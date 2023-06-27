@@ -42,6 +42,16 @@ const (
 // NOTE: It's not recommended to be used concurrently from multiple threads -
 // if first user takes the whole timeout, the second one will get 0 timeout
 // even though the first one may return something later.
+// timeBudget 实现了一个你可以使用的时间预算，并且会定期刷新。
+// 使用它的模式是：
+// budget := newTimeBudget(...)
+// ...
+// timeout := budget.takeAvailable()
+// // 现在你可以在做事情上花费最多 timeout
+// ...
+// // 如果你没有使用所有的 timeout，返回你没有使用的部分
+// budget.returnUnused(<unused part of timeout>)
+// 注意：不建议从多个线程并发使用 - 如果第一个用户使用了整个超时，第二个用户将获得 0 超时，即使第一个用户稍后可能会返回一些内容。
 type timeBudget interface {
 	takeAvailable() time.Duration
 	returnUnused(unused time.Duration)

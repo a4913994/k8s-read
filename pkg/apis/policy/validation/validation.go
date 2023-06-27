@@ -426,6 +426,9 @@ var sysctlContainSlashPatternRegexp = regexp.MustCompile("^" + SysctlContainSlas
 //
 //	https://man7.org/linux/man-pages/man8/sysctl.8.html
 //	https://man7.org/linux/man-pages/man5/sysctl.d.5.html
+//
+// IsValidSysctlPattern检查name是否为有效的sysctl模式。
+// 即匹配sysctlContainSlashPatternRegexp。
 func IsValidSysctlPattern(name string) bool {
 	if len(name) > apivalidation.SysctlMaxLength {
 		return false

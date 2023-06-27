@@ -99,6 +99,7 @@ type FeatureGate interface {
 
 // MutableFeatureGate parses and stores flag gates for known features from
 // a string like feature1=true,feature2=false,...
+// MutableFeatureGate also offers a method to add new features to it.
 type MutableFeatureGate interface {
 	FeatureGate
 
@@ -160,6 +161,7 @@ var _ pflag.Value = &featureGate{}
 // call chains, so they'd be unhelpful as names.
 var internalPackages = []string{"k8s.io/component-base/featuregate/feature_gate.go"}
 
+// NewFeatureGate returns a new feature gate instance
 func NewFeatureGate() *featureGate {
 	known := map[Feature]FeatureSpec{}
 	for k, v := range defaultFeatures {

@@ -32,6 +32,7 @@ const (
 // patternAllowlist takes a list of sysctls or sysctl patterns (ending in *) and
 // checks validity via a sysctl and prefix map, rejecting those which are not known
 // to be namespaced.
+// patternAllowlist获取sysctls或sysctl模式的列表(以)结尾，并通过sysctl和前缀映射检查有效性，拒绝那些未知的命名空间。
 type patternAllowlist struct {
 	sysctls  map[string]Namespace
 	prefixes map[string]Namespace
@@ -40,6 +41,7 @@ type patternAllowlist struct {
 var _ lifecycle.PodAdmitHandler = &patternAllowlist{}
 
 // NewAllowlist creates a new Allowlist from a list of sysctls and sysctl pattern (ending in *).
+// NewAllowlist从sysctls和sysctl模式(以*结尾)的列表中创建一个新的Allowlist。
 func NewAllowlist(patterns []string) (*patternAllowlist, error) {
 	w := &patternAllowlist{
 		sysctls:  map[string]Namespace{},
@@ -80,6 +82,9 @@ func NewAllowlist(patterns []string) (*patternAllowlist, error) {
 // The parameters hostNet and hostIPC are used to forbid sysctls for pod sharing the
 // respective namespaces with the host. This check is only possible for sysctls on
 // the static default allowlist, not those on the custom allowlist provided by the admin.
+// validateSysctl检查sysctl是否允许列出，因为它是由Linux内核知道的。请注意，允许列出是必需的，但不足以满足：容器运行时可能会有更严格的检查，并拒绝启动pod。
+//
+// 参数hostNet和hostIPC用于禁止与主机共享相应命名空间的pod的sysctls。仅对静态默认允许列表上的sysctls执行此检查，而不是管理员提供的自定义允许列表上的sysctls。
 func (w *patternAllowlist) validateSysctl(sysctl string, hostNet, hostIPC bool) error {
 	sysctl = convertSysctlVariableToDotsSeparator(sysctl)
 	nsErrorFmt := "%q not allowed with host %s enabled"
@@ -108,6 +113,7 @@ func (w *patternAllowlist) validateSysctl(sysctl string, hostNet, hostIPC bool) 
 
 // Admit checks that all sysctls given in pod's security context
 // are valid according to the allowlist.
+// Admit检查pod安全上下文中给出的所有sysctls是否有效，根据允许列表。
 func (w *patternAllowlist) Admit(attrs *lifecycle.PodAdmitAttributes) lifecycle.PodAdmitResult {
 	pod := attrs.Pod
 	if pod.Spec.SecurityContext == nil || len(pod.Spec.SecurityContext.Sysctls) == 0 {

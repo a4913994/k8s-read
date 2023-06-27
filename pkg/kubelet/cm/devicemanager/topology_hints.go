@@ -17,7 +17,7 @@ limitations under the License.
 package devicemanager
 
 import (
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
@@ -25,9 +25,9 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/cm/topologymanager/bitmask"
 )
 
-// GetTopologyHints implements the TopologyManager HintProvider Interface which
-// ensures the Device Manager is consulted when Topology Aware Hints for each
-// container are created.
+// GetTopologyHints实现了TopologyManager HintProvider接口，该接口
+// 该接口确保在为每个容器创建拓扑感知提示时咨询设备管理器。
+// 容器的拓扑感知提示时，会参考设备管理器。
 func (m *ManagerImpl) GetTopologyHints(pod *v1.Pod, container *v1.Container) map[string][]topologymanager.TopologyHint {
 	// The pod is during the admission phase. We need to save the pod to avoid it
 	// being cleaned before the admission ended

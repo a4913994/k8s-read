@@ -37,54 +37,71 @@ import (
 // associated with it which runs the probe loop until the container permanently terminates, or the
 // stop channel is closed. The worker uses the probe Manager's statusManager to get up-to-date
 // container IDs.
+// worker 处理其分配的容器的定期探测。每个 worker 都有一个与之关联的 go-routine，该 go-routine 运行探测循环，直到容器永久终止，或者关闭停止通道为止。
+// worker 使用探测管理器的 statusManager 来获取最新的容器 ID。
 type worker struct {
 	// Channel for stopping the probe.
+	// 用于停止探测的通道
 	stopCh chan struct{}
 
 	// Channel for triggering the probe manually.
+	// 用于手动触发探测的通道
 	manualTriggerCh chan struct{}
 
 	// The pod containing this probe (read-only)
+	// 包含此探测的 pod（只读）
 	pod *v1.Pod
 
 	// The container to probe (read-only)
+	// 要探测的容器（只读）
 	container v1.Container
 
 	// Describes the probe configuration (read-only)
+	// 描述探测配置（只读）
 	spec *v1.Probe
 
 	// The type of the worker.
+	// worker 的类型
 	probeType probeType
 
 	// The probe value during the initial delay.
+	// 初始延迟期间的探测值
 	initialValue results.Result
 
 	// Where to store this workers results.
+	// 存储此 worker 结果的位置
 	resultsManager results.Manager
 	probeManager   *manager
 
 	// The last known container ID for this worker.
+	// 此 worker 的最后一个已知容器 ID。
 	containerID kubecontainer.ContainerID
 	// The last probe result for this worker.
+	// 此 worker 的最后一个探测结果。
 	lastResult results.Result
 	// How many times in a row the probe has returned the same result.
+	// 探测连续返回相同结果的次数。
 	resultRun int
 
 	// If set, skip probing.
+	// 如果设置，则跳过探测。
 	onHold bool
 
 	// proberResultsMetricLabels holds the labels attached to this worker
 	// for the ProberResults metric by result.
+	// proberResultsMetricLabels 保存了此 worker 用于 ProberResults 指标的标签，按结果分类。
 	proberResultsSuccessfulMetricLabels metrics.Labels
 	proberResultsFailedMetricLabels     metrics.Labels
 	proberResultsUnknownMetricLabels    metrics.Labels
 	// proberDurationMetricLabels holds the labels attached to this worker
 	// for the ProberDuration metric by result.
+	// proberDurationMetricLabels 保存了此 worker 用于 ProberDuration 指标的标签，按结果分类。
 	proberDurationSuccessfulMetricLabels metrics.Labels
 	proberDurationUnknownMetricLabels    metrics.Labels
 }
 
 // Creates and starts a new probe worker.
+// 创建并启动新的探测 worker。
 func newWorker(
 	m *manager,
 	probeType probeType,
@@ -148,6 +165,7 @@ func newWorker(
 }
 
 // run periodically probes the container.
+// run 定期探测容器。
 func (w *worker) run() {
 	ctx := context.Background()
 	probeTickerPeriod := time.Duration(w.spec.PeriodSeconds) * time.Second
@@ -155,6 +173,7 @@ func (w *worker) run() {
 	// If kubelet restarted the probes could be started in rapid succession.
 	// Let the worker wait for a random portion of tickerPeriod before probing.
 	// Do it only if the kubelet has started recently.
+	// 如果 kubelet 重新启动，则可能会立即启动探测。 让 worker 等待 tickerPeriod 的随机部分，然后再探测。 仅在 kubelet 最近启动时执行此操作。
 	if probeTickerPeriod > time.Since(w.probeManager.start) {
 		time.Sleep(time.Duration(rand.Float64() * float64(probeTickerPeriod)))
 	}
@@ -191,6 +210,7 @@ probeLoop:
 
 // stop stops the probe worker. The worker handles cleanup and removes itself from its manager.
 // It is safe to call stop multiple times.
+// stop 停止探测 worker。 worker 处理清理并从其管理器中删除自身。 可以安全地多次调用 stop。
 func (w *worker) stop() {
 	select {
 	case w.stopCh <- struct{}{}:
@@ -200,6 +220,7 @@ func (w *worker) stop() {
 
 // doProbe probes the container once and records the result.
 // Returns whether the worker should continue.
+// doProbe 一次探测容器并记录结果。 返回 worker 是否应继续。
 func (w *worker) doProbe(ctx context.Context) (keepGoing bool) {
 	defer func() { recover() }() // Actually eat panics (HandleCrash takes care of logging)
 	defer runtime.HandleCrash(func(_ interface{}) { keepGoing = true })

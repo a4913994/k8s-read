@@ -43,6 +43,7 @@ type newObjectFunc func() runtime.Object
 type isImmutableFunc func(runtime.Object) bool
 
 // objectCacheItem is a single item stored in objectCache.
+// objectCacheItem是存储在objectCache中的单个项目。
 type objectCacheItem struct {
 	refCount  int
 	store     *cacheStore
@@ -124,6 +125,7 @@ func (i *objectCacheItem) startReflector() {
 }
 
 // cacheStore is in order to rewrite Replace function to mark initialized flag
+// cacheStore是为了重写Replace函数以标记初始化标志
 type cacheStore struct {
 	cache.Store
 	lock        sync.Mutex
@@ -155,6 +157,7 @@ func (c *cacheStore) unsetInitialized() {
 
 // objectCache is a local cache of objects propagated via
 // individual watches.
+// objectCache是通过单个观察传播的对象的本地缓存。
 type objectCache struct {
 	listObject    listObjectFunc
 	watchObject   watchObjectFunc
@@ -172,6 +175,7 @@ type objectCache struct {
 const minIdleTime = 1 * time.Minute
 
 // NewObjectCache returns a new watch-based instance of Store interface.
+// NewObjectCache返回一个新的基于观察的Store接口实例。
 func NewObjectCache(
 	listObject listObjectFunc,
 	watchObject watchObjectFunc,
@@ -372,6 +376,11 @@ func (c *objectCache) shutdownWhenStopped(stopCh <-chan struct{}) {
 //   - whenever a pod is created or updated, we start individual watches for all
 //     referenced objects that aren't referenced from other registered pods
 //   - every GetObject() returns a value from local cache propagated via watches
+//
+// NewWatchBasedManager 创建一个管理器，它会缓存所有必要的对象以供注册的 pod 使用。
+// 它实现了以下逻辑：
+//   - 每当创建或更新 pod 时，我们都会为所有未从其他已注册的 pod 引用的对象启动单独的 watch
+//   - 每个 GetObject() 都会从通过 watch 传播的本地缓存中返回一个值
 func NewWatchBasedManager(
 	listObject listObjectFunc,
 	watchObject watchObjectFunc,
@@ -385,6 +394,10 @@ func NewWatchBasedManager(
 	// We just want to stop the objectCacheItem referenced by environment variables,
 	// So, maxIdleTime is set to an integer multiple of resyncInterval,
 	// We currently set it to 5 times.
+	// 如果 configmap/secret 用作卷，则 volumeManager 每个 resyncInterval 周期都会访问 objectCacheItem，
+	// 我们只想停止由环境变量引用的 objectCacheItem，
+	// 因此，maxIdleTime 设置为 resyncInterval 的整数倍，
+	// 我们目前将其设置为 5 倍。
 	maxIdleTime := resyncInterval * 5
 
 	// TODO propagate stopCh from the higher level.

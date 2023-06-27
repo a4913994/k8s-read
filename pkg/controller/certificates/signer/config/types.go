@@ -24,22 +24,29 @@ import (
 type CSRSigningControllerConfiguration struct {
 	// clusterSigningCertFile is the filename containing a PEM-encoded
 	// X509 CA certificate used to issue cluster-scoped certificates
+	// clusterSigningCertFile 是包含用于颁发集群范围证书的 PEM 编码 X509 CA 证书的文件名
 	ClusterSigningCertFile string
 	// clusterSigningCertFile is the filename containing a PEM-encoded
 	// RSA or ECDSA private key used to issue cluster-scoped certificates
+	// clusterSigningCertFile 是包含用于颁发集群范围证书的 PEM 编码 RSA 或 ECDSA 私钥的文件名
 	ClusterSigningKeyFile string
 
 	// kubeletServingSignerConfiguration holds the certificate and key used to issue certificates for the kubernetes.io/kubelet-serving signer
+	// kubeletServingSignerConfiguration 持有用于为 kubernetes.iokubelet-serving signer 颁发证书的证书和密钥
 	KubeletServingSignerConfiguration CSRSigningConfiguration
 	// kubeletClientSignerConfiguration holds the certificate and key used to issue certificates for the kubernetes.io/kube-apiserver-client-kubelet
+	// kubeletClientSignerConfiguration 持有用于为 kubernetes.iokube-apiserver-client-kubelet 颁发证书的证书和密钥
 	KubeletClientSignerConfiguration CSRSigningConfiguration
 	// kubeAPIServerClientSignerConfiguration holds the certificate and key used to issue certificates for the kubernetes.io/kube-apiserver-client
+	// kubeAPIServerClientSignerConfiguration 持有用于为 kubernetes.iokube-apiserver-client 颁发证书的证书和密钥
 	KubeAPIServerClientSignerConfiguration CSRSigningConfiguration
 	// legacyUnknownSignerConfiguration holds the certificate and key used to issue certificates for the kubernetes.io/legacy-unknown
+	// legacyUnknownSignerConfiguration 持有用于为 kubernetes.iolegacy-unknown 颁发证书的证书和密钥
 	LegacyUnknownSignerConfiguration CSRSigningConfiguration
 
 	// clusterSigningDuration is the max length of duration signed certificates will be given.
 	// Individual CSRs may request shorter certs by setting spec.expirationSeconds.
+	// clusterSigningDuration 是将给出签名证书的最大持续时间。个别 CSR 可以通过设置 spec.expirationSeconds 来请求更短的证书
 	ClusterSigningDuration metav1.Duration
 }
 

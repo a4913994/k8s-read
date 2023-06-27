@@ -63,6 +63,7 @@ var optionsTypes = []runtime.Object{
 }
 
 // AddToGroupVersion registers common meta types into schemas.
+// AddToGroupVersion 注册常见的元类型到 schemas 中
 func AddToGroupVersion(scheme *runtime.Scheme, groupVersion schema.GroupVersion) {
 	scheme.AddKnownTypeWithName(groupVersion.WithKind(WatchEventKind), &WatchEvent{})
 	scheme.AddKnownTypeWithName(

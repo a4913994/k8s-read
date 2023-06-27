@@ -326,6 +326,8 @@ func PreInitRuntimeService(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 
 // NewMainKubelet instantiates a new Kubelet object along with all the required internal modules.
 // No initialization of Kubelet and its modules should happen here.
+// NewMainKubelet实例化一个新的Kubelet对象以及所有必需的内部模块。
+// 在这里不应该发生Kubelet及其模块的初始化。
 func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	kubeDeps *Dependencies,
 	crOptions *config.ContainerRuntimeOptions,
@@ -364,7 +366,8 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 	if kubeCfg.SyncFrequency.Duration <= 0 {
 		return nil, fmt.Errorf("invalid sync frequency %d", kubeCfg.SyncFrequency.Duration)
 	}
-
+	// 如果为真，Kubelet确保主机上存在一组iptables规则。
+	// 这些规则将作为各种组件的实用程序，e.g kube-proxy。 规则将基于IPTablesMasqueradeBit和IPTablesDropBit创建。
 	if kubeCfg.MakeIPTablesUtilChains {
 		if kubeCfg.IPTablesMasqueradeBit > 31 || kubeCfg.IPTablesMasqueradeBit < 0 {
 			return nil, fmt.Errorf("iptables-masquerade-bit is not valid. Must be within [0, 31]")
@@ -382,12 +385,15 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		return nil, fmt.Errorf("cloud provider %q was specified, but built-in cloud providers are disabled. Please set --cloud-provider=external and migrate to an external cloud provider", cloudProvider)
 	}
 
+	// InformerSynced是一个函数，可用于确定通知器是否已同步。这对于确定缓存是否已同步很有用。
 	var nodeHasSynced cache.InformerSynced
+	// NodeLister帮助列出节点。 这里返回的所有对象都必须被视为只读
 	var nodeLister corelisters.NodeLister
 
 	// If kubeClient == nil, we are running in standalone mode (i.e. no API servers)
 	// If not nil, we are running as part of a cluster and should sync w/API
 	if kubeDeps.KubeClient != nil {
+		// NewSharedInformerFactoryWithOptions构造了一个带有附加选项的SharedInformerFactory的新实例。
 		kubeInformers := informers.NewSharedInformerFactoryWithOptions(kubeDeps.KubeClient, 0, informers.WithTweakListOptions(func(options *metav1.ListOptions) {
 			options.FieldSelector = fields.Set{metav1.ObjectNameField: string(nodeName)}.String()
 		}))
@@ -395,6 +401,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		nodeHasSynced = func() bool {
 			return kubeInformers.Core().V1().Nodes().Informer().HasSynced()
 		}
+		// Start初始化所有请求的informers。它们在goroutine中处理 运行直到停止通道被关闭。
 		kubeInformers.Start(wait.NeverStop)
 		klog.InfoS("Attempting to sync node with API server")
 	} else {
@@ -405,6 +412,7 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 		klog.InfoS("Kubelet is running in standalone mode, will skip API server sync")
 	}
 
+	// watch for pod to the node
 	if kubeDeps.PodConfig == nil {
 		var err error
 		kubeDeps.PodConfig, err = makePodSourceConfig(kubeCfg, kubeDeps, nodeName, nodeHasSynced)
@@ -1401,6 +1409,8 @@ func (kl *Kubelet) StartGarbageCollection() {
 
 // initializeModules will initialize internal modules that do not require the container runtime to be up.
 // Note that the modules here must not depend on modules that are not initialized here.
+// initializeModules将初始化不需要容器运行时up的内部模块。
+// 注意，这里的模块不能依赖于这里没有初始化的模块。
 func (kl *Kubelet) initializeModules() error {
 	// Prometheus metrics.
 	metrics.Register(
@@ -1536,6 +1546,7 @@ func (kl *Kubelet) Run(updates <-chan kubetypes.PodUpdate) {
 	go wait.Until(kl.updateRuntimeUp, 5*time.Second, wait.NeverStop)
 
 	// Set up iptables util rules
+	// 配置iptables util规则
 	if kl.makeIPTablesUtilChains {
 		kl.initNetworkUtil()
 	}
@@ -2110,6 +2121,11 @@ func (kl *Kubelet) canRunPod(pod *v1.Pod) lifecycle.PodAdmitResult {
 // any new change seen, will run a sync against desired state and running state. If
 // no changes are seen to the configuration, will synchronize the last known desired
 // state every sync-frequency seconds. Never returns.
+// syncLoop是处理更改的主循环。它从
+// 三个通道(file、apiserver和http)，并创建它们的联合。为
+// 看到的任何新变化，都将对期望状态和运行状态进行同步。如果
+// 没有看到对配置的任何更改，将同步最后已知的所需内容
+// 说明每个同步频率秒。从来没有回报。
 func (kl *Kubelet) syncLoop(ctx context.Context, updates <-chan kubetypes.PodUpdate, handler SyncHandler) {
 	klog.InfoS("Starting kubelet main sync loop")
 	// The syncTicker wakes up kubelet to checks if there are any pod workers

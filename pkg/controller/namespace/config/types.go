@@ -22,10 +22,12 @@ import (
 
 // NamespaceControllerConfiguration contains elements describing NamespaceController.
 type NamespaceControllerConfiguration struct {
-	// namespaceSyncPeriod is the period for syncing namespace life-cycle
+	// NamespaceSyncPeriod is the period for syncing namespace life-cycle
 	// updates.
+	// NamespaceSyncPeriod是同步命名空间生命周期更新的周期。
 	NamespaceSyncPeriod metav1.Duration
-	// concurrentNamespaceSyncs is the number of namespace objects that are
+	// ConcurrentNamespaceSyncs is the number of namespace objects that are
 	// allowed to sync concurrently.
+	// ConcurrentNamespaceSyncs是允许并发同步的命名空间对象的数量。
 	ConcurrentNamespaceSyncs int32
 }

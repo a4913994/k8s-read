@@ -31,6 +31,7 @@ import (
 // Quantity is a fixed-point representation of a number.
 // It provides convenient marshaling/unmarshaling in JSON and YAML,
 // in addition to String() and AsInt64() accessors.
+// Quantity 是一个固定点数表示的数字. 它提供了方便的 JSON 和 YAML 的序列化/反序列化, 以及 String() 和 AsInt64() 访问器.
 //
 // The serialization format is:
 //

@@ -31,6 +31,7 @@ const (
 
 // ready is a three state condition variable that blocks until is Ready if is not Stopped.
 // Its initial state is Pending.
+// ready 是一个三状态条件变量，如果不是 Stopped，它会阻塞直到 Ready。
 type ready struct {
 	state status
 	c     *sync.Cond

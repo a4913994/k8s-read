@@ -21,5 +21,6 @@ type PodGCControllerConfiguration struct {
 	// terminatedPodGCThreshold is the number of terminated pods that can exist
 	// before the terminated pod garbage collector starts deleting terminated pods.
 	// If <= 0, the terminated pod garbage collector is disabled.
+	// terminatedPodGCThreshold是在终止的pod垃圾收集器开始删除终止的pod之前，可以存在的终止的pod数量。如果<=0，终止的pod垃圾收集器被禁用。
 	TerminatedPodGCThreshold int32
 }

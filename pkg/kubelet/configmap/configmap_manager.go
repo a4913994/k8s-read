@@ -35,28 +35,34 @@ import (
 )
 
 // Manager interface provides methods for Kubelet to manage ConfigMap.
+// Manager 接口提供了 Kubelet 管理 ConfigMap 的方法。
 type Manager interface {
 	// Get configmap by configmap namespace and name.
+	// 根据 configmap 的命名空间和名称获取 configmap。
 	GetConfigMap(namespace, name string) (*v1.ConfigMap, error)
 
 	// WARNING: Register/UnregisterPod functions should be efficient,
 	// i.e. should not block on network operations.
 
 	// RegisterPod registers all configmaps from a given pod.
+	// RegisterPod 函数从给定的 pod 中注册所有的 configmaps。
 	RegisterPod(pod *v1.Pod)
 
 	// UnregisterPod unregisters configmaps from a given pod that are not
 	// used by any other registered pod.
+	// UnregisterPod 函数从给定的 pod 中注销所有未被其他已注册的 pod 使用的 configmaps。
 	UnregisterPod(pod *v1.Pod)
 }
 
 // simpleConfigMapManager implements ConfigMap Manager interface with
 // simple operations to apiserver.
+// simpleConfigMapManager 实现了 ConfigMap Manager 接口，它使用简单的操作来访问 apiserver。
 type simpleConfigMapManager struct {
 	kubeClient clientset.Interface
 }
 
 // NewSimpleConfigMapManager creates a new ConfigMapManager instance.
+// NewSimpleConfigMapManager 函数创建一个新的 ConfigMapManager 实例。
 func NewSimpleConfigMapManager(kubeClient clientset.Interface) Manager {
 	return &simpleConfigMapManager{kubeClient: kubeClient}
 }
@@ -75,6 +81,8 @@ func (s *simpleConfigMapManager) UnregisterPod(pod *v1.Pod) {
 // for registered pods. Different implementation of the store
 // may result in different semantics for freshness of configmaps
 // (e.g. ttl-based implementation vs watch-based implementation).
+// configMapManager 保存了所有已注册 pod 所需的 configmaps 的缓存。
+// store 的不同实现可能会导致 configmaps 的不同语义（例如基于 ttl 的实现 vs 基于 watch 的实现）。
 type configMapManager struct {
 	manager manager.Manager
 }
@@ -119,6 +127,12 @@ const (
 //   - every GetObject() call tries to fetch the value from local cache; if it is
 //     not there, invalidated or too old, we fetch it from apiserver and refresh the
 //     value in cache; otherwise it is just fetched from cache
+//
+// NewCachingConfigMapManager 创建一个管理器，它保存了所有已注册 pod 所需的 configmaps 的缓存。
+// 它实现了以下逻辑：
+//   - 每当一个 pod 被创建或更新时，所有 configmaps 的缓存版本都会被使无效
+//   - 每次调用 GetObject() 函数时，它都会尝试从本地缓存中获取值；如果它不存在、无效或过期，
+//     我们会从 apiserver 中获取它并刷新缓存中的值；否则，它将从缓存中获取
 func NewCachingConfigMapManager(kubeClient clientset.Interface, getTTL manager.GetObjectTTLFunc) Manager {
 	getConfigMap := func(namespace, name string, opts metav1.GetOptions) (runtime.Object, error) {
 		return kubeClient.CoreV1().ConfigMaps(namespace).Get(context.TODO(), name, opts)
@@ -135,6 +149,11 @@ func NewCachingConfigMapManager(kubeClient clientset.Interface, getTTL manager.G
 //   - whenever a pod is created or updated, we start individual watches for all
 //     referenced objects that aren't referenced from other registered pods
 //   - every GetObject() returns a value from local cache propagated via watches
+//
+// NewWatchingConfigMapManager 创建一个管理器，它保存了所有已注册 pod 所需的 configmaps 的缓存。
+// 它实现了以下逻辑：
+//   - 每当一个 pod 被创建或更新时，我们会为所有未被其他已注册的 pod 引用的对象启动单独的 watch
+//   - 每次调用 GetObject() 函数时，它都会从通过 watch 传播的本地缓存中返回值
 func NewWatchingConfigMapManager(kubeClient clientset.Interface, resyncInterval time.Duration) Manager {
 	listConfigMap := func(namespace string, opts metav1.ListOptions) (runtime.Object, error) {
 		return kubeClient.CoreV1().ConfigMaps(namespace).List(context.TODO(), opts)

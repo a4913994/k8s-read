@@ -33,21 +33,25 @@ import (
 	nodeutil "k8s.io/kubernetes/pkg/util/node"
 )
 
-// KubeletClientConfig defines config parameters for the kubelet client
+// KubeletClientConfig 定义了kubelet客户端的配置参数。
 type KubeletClientConfig struct {
 	// Port specifies the default port - used if no information about Kubelet port can be found in Node.NodeStatus.DaemonEndpoints.
+	// Port 定义了kubelet的默认端口，如果在Node.NodeStatus.DaemonEndpoints中找不到kubelet的端口信息，则使用该端口。
 	Port uint
 
 	// ReadOnlyPort specifies the Port for ReadOnly communications.
+	// ReadOnlyPort 定义了kubelet的只读端口。
 	ReadOnlyPort uint
 
 	// PreferredAddressTypes - used to select an address from Node.NodeStatus.Addresses
+	// PreferredAddressTypes 定义了从Node.NodeStatus.Addresses中选择地址的优先级。
 	PreferredAddressTypes []string
 
 	// TLSClientConfig contains settings to enable transport layer security
 	restclient.TLSClientConfig
 
 	// Server requires Bearer authentication
+	// Server 需要 Bearer 认证
 	BearerToken string `datapolicy:"token"`
 
 	// HTTPTimeout is used by the client to timeout http requests to Kubelet.
@@ -156,6 +160,7 @@ func (f NodeGetterFunc) Get(ctx context.Context, name string, options metav1.Get
 }
 
 // NodeConnectionInfoGetter obtains connection info from the status of a Node API object
+// NodeConnectionInfoGetter 从 Node API 对象的状态中获取连接信息。
 type NodeConnectionInfoGetter struct {
 	// nodes is used to look up Node objects
 	nodes NodeGetter
@@ -172,6 +177,7 @@ type NodeConnectionInfoGetter struct {
 }
 
 // NewNodeConnectionInfoGetter creates a new NodeConnectionInfoGetter.
+// NewNodeConnectionInfoGetter 创建一个新的 NodeConnectionInfoGetter。
 func NewNodeConnectionInfoGetter(nodes NodeGetter, config KubeletClientConfig) (ConnectionInfoGetter, error) {
 	transport, err := MakeTransport(&config)
 	if err != nil {

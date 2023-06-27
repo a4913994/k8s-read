@@ -39,31 +39,37 @@ import (
 )
 
 // HandlerRunner runs a lifecycle handler for a container.
+// HandlerRunner为容器运行生命周期处理程序。
 type HandlerRunner interface {
 	Run(ctx context.Context, containerID ContainerID, pod *v1.Pod, container *v1.Container, handler *v1.LifecycleHandler) (string, error)
 }
 
 // RuntimeHelper wraps kubelet to make container runtime
 // able to get necessary informations like the RunContainerOptions, DNS settings, Host IP.
+// RuntimeHelper 包装kubelet，使容器运行时能够获得必要的信息，如RunContainerOptions, DNS设置，主机IP。
 type RuntimeHelper interface {
 	GenerateRunContainerOptions(ctx context.Context, pod *v1.Pod, container *v1.Container, podIP string, podIPs []string) (contOpts *RunContainerOptions, cleanupAction func(), err error)
 	GetPodDNS(pod *v1.Pod) (dnsConfig *runtimeapi.DNSConfig, err error)
 	// GetPodCgroupParent returns the CgroupName identifier, and its literal cgroupfs form on the host
 	// of a pod.
+	// GetPodCgroupParent返回Pod的CgroupName标识符及其在主机上的cgroupfs形式。
 	GetPodCgroupParent(pod *v1.Pod) string
 	GetPodDir(podUID types.UID) string
 	GeneratePodHostNameAndDomain(pod *v1.Pod) (hostname string, hostDomain string, err error)
 	// GetExtraSupplementalGroupsForPod returns a list of the extra
 	// supplemental groups for the Pod. These extra supplemental groups come
 	// from annotations on persistent volumes that the pod depends on.
+	// GetExtraSupplementalGroupsForPod返回Pod的额外补充组列表。这些额外的补充组来自Pod依赖的持久卷上的注释。
 	GetExtraSupplementalGroupsForPod(pod *v1.Pod) []int64
 
 	// GetOrCreateUserNamespaceMappings returns the configuration for the sandbox user namespace
+	// GetOrCreateUserNamespaceMappings返回沙箱用户命名空间的配置
 	GetOrCreateUserNamespaceMappings(pod *v1.Pod) (*runtimeapi.UserNamespace, error)
 }
 
 // ShouldContainerBeRestarted checks whether a container needs to be restarted.
 // TODO(yifan): Think about how to refactor this.
+// ShouldContainerBeRestarted检查是否需要重新启动容器。
 func ShouldContainerBeRestarted(container *v1.Container, pod *v1.Pod, podStatus *PodStatus) bool {
 	// Once a pod has been marked deleted, it should not be restarted
 	if pod.DeletionTimestamp != nil {
@@ -102,6 +108,8 @@ func ShouldContainerBeRestarted(container *v1.Container, pod *v1.Pod, podStatus 
 // HashContainer returns the hash of the container. It is used to compare
 // the running container with its desired spec.
 // Note: remember to update hashValues in container_hash_test.go as well.
+// HashContainer返回容器的哈希值。它用于比较运行的容器与其期望的规范。
+// 注意：还要记得更新container_hash_test.go中的hashValues。
 func HashContainer(container *v1.Container) uint64 {
 	hash := fnv.New32a()
 	// Omit nil or empty field when calculating hash value
@@ -113,6 +121,7 @@ func HashContainer(container *v1.Container) uint64 {
 
 // envVarsToMap constructs a map of environment name to value from a slice
 // of env vars.
+// envVarsToMap从env vars切片构造一个环境名称到值的映射。
 func envVarsToMap(envs []EnvVar) map[string]string {
 	result := map[string]string{}
 	for _, env := range envs {
@@ -123,6 +132,7 @@ func envVarsToMap(envs []EnvVar) map[string]string {
 
 // v1EnvVarsToMap constructs a map of environment name to value from a slice
 // of env vars.
+// v1EnvVarsToMap从env vars切片构造一个环境名称到值的映射。
 func v1EnvVarsToMap(envs []v1.EnvVar) map[string]string {
 	result := map[string]string{}
 	for _, env := range envs {
@@ -135,6 +145,8 @@ func v1EnvVarsToMap(envs []v1.EnvVar) map[string]string {
 // ExpandContainerCommandOnlyStatic substitutes only static environment variable values from the
 // container environment definitions. This does *not* include valueFrom substitutions.
 // TODO: callers should use ExpandContainerCommandAndArgs with a fully resolved list of environment.
+// ExpandContainerCommandOnlyStatic仅从容器环境定义中替换静态环境变量值。这不包括valueFrom替换。
+// TODO：调用者应使用ExpandContainerCommandAndArgs与完全解析的环境列表。
 func ExpandContainerCommandOnlyStatic(containerCommand []string, envs []v1.EnvVar) (command []string) {
 	mapping := expansion.MappingFuncFor(v1EnvVarsToMap(envs))
 	if len(containerCommand) != 0 {
@@ -146,6 +158,7 @@ func ExpandContainerCommandOnlyStatic(containerCommand []string, envs []v1.EnvVa
 }
 
 // ExpandContainerVolumeMounts expands the subpath of the given VolumeMount by replacing variable references with the values of given EnvVar.
+// ExpandContainerVolumeMounts通过用给定EnvVar的值替换变量引用来扩展给定VolumeMount的子路径。
 func ExpandContainerVolumeMounts(mount v1.VolumeMount, envs []EnvVar) (string, error) {
 
 	envmap := envVarsToMap(envs)
@@ -165,6 +178,7 @@ func ExpandContainerVolumeMounts(mount v1.VolumeMount, envs []EnvVar) (string, e
 }
 
 // ExpandContainerCommandAndArgs expands the given Container's command by replacing variable references `with the values of given EnvVar.
+// ExpandContainerCommandAndArgs通过用给定EnvVar的值替换变量引用来扩展给定容器的命令。
 func ExpandContainerCommandAndArgs(container *v1.Container, envs []EnvVar) (command []string, args []string) {
 	mapping := expansion.MappingFuncFor(envVarsToMap(envs))
 
@@ -184,6 +198,7 @@ func ExpandContainerCommandAndArgs(container *v1.Container, envs []EnvVar) (comm
 }
 
 // FilterEventRecorder creates an event recorder to record object's event except implicitly required container's, like infra container.
+// FilterEventRecorder创建一个事件记录器来记录对象的事件，除了隐式需要的容器，如infra容器。
 func FilterEventRecorder(recorder record.EventRecorder) record.EventRecorder {
 	return &innerEventRecorder{
 		recorder: recorder,
@@ -229,11 +244,13 @@ func (irecorder *innerEventRecorder) AnnotatedEventf(object runtime.Object, anno
 
 // IsHostNetworkPod returns whether the host networking requested for the given Pod.
 // Pod must not be nil.
+// IsHostNetworkPod返回给定Pod是否请求主机网络。
 func IsHostNetworkPod(pod *v1.Pod) bool {
 	return pod.Spec.HostNetwork
 }
 
 // ConvertPodStatusToRunningPod returns Pod given PodStatus and container runtime string.
+// ConvertPodStatusToRunningPod返回给定PodStatus和容器运行时字符串的Pod。
 // TODO(random-liu): Convert PodStatus to running Pod, should be deprecated soon
 func ConvertPodStatusToRunningPod(runtimeName string, podStatus *PodStatus) Pod {
 	runningPod := Pod{
@@ -271,6 +288,8 @@ func ConvertPodStatusToRunningPod(runtimeName string, podStatus *PodStatus) Pod 
 // This is only needed because we need to return sandboxes as if they were
 // kubecontainer.Containers to avoid substantial changes to PLEG.
 // TODO: Remove this once it becomes obsolete.
+// SandboxToContainerState将runtimeapi.PodSandboxState转换为kubecontainer.State。
+// 这仅仅是因为我们需要将沙盒作为kubecontainer.Containers返回，以避免对PLEG进行大量更改。
 func SandboxToContainerState(state runtimeapi.PodSandboxState) State {
 	switch state {
 	case runtimeapi.PodSandboxState_SANDBOX_READY:
@@ -282,6 +301,7 @@ func SandboxToContainerState(state runtimeapi.PodSandboxState) State {
 }
 
 // GetContainerSpec gets the container spec by containerName.
+// GetContainerSpec通过containerName获取容器规范。
 func GetContainerSpec(pod *v1.Pod, containerName string) *v1.Container {
 	var containerSpec *v1.Container
 	podutil.VisitContainers(&pod.Spec, podutil.AllFeatureEnabledContainers(), func(c *v1.Container, containerType podutil.ContainerType) bool {
@@ -295,6 +315,7 @@ func GetContainerSpec(pod *v1.Pod, containerName string) *v1.Container {
 }
 
 // HasPrivilegedContainer returns true if any of the containers in the pod are privileged.
+// HasPrivilegedContainer返回pod中的任何容器是否为特权容器。
 func HasPrivilegedContainer(pod *v1.Pod) bool {
 	var hasPrivileged bool
 	podutil.VisitContainers(&pod.Spec, podutil.AllFeatureEnabledContainers(), func(c *v1.Container, containerType podutil.ContainerType) bool {
@@ -308,6 +329,7 @@ func HasPrivilegedContainer(pod *v1.Pod) bool {
 }
 
 // HasWindowsHostProcessContainer returns true if any of the containers in a pod are HostProcess containers.
+// HasWindowsHostProcessContainer返回pod中的任何容器是否为HostProcess容器。
 func HasWindowsHostProcessContainer(pod *v1.Pod) bool {
 	var hasHostProcess bool
 	podutil.VisitContainers(&pod.Spec, podutil.AllFeatureEnabledContainers(), func(c *v1.Container, containerType podutil.ContainerType) bool {
@@ -322,6 +344,7 @@ func HasWindowsHostProcessContainer(pod *v1.Pod) bool {
 }
 
 // AllContainersAreWindowsHostProcess returns true if all containers in a pod are HostProcess containers.
+// AllContainersAreWindowsHostProcess返回pod中的所有容器是否为HostProcess容器。
 func AllContainersAreWindowsHostProcess(pod *v1.Pod) bool {
 	allHostProcess := true
 	podutil.VisitContainers(&pod.Spec, podutil.AllFeatureEnabledContainers(), func(c *v1.Container, containerType podutil.ContainerType) bool {
@@ -336,6 +359,7 @@ func AllContainersAreWindowsHostProcess(pod *v1.Pod) bool {
 }
 
 // MakePortMappings creates internal port mapping from api port mapping.
+// MakePortMappings从api端口映射创建内部端口映射。
 func MakePortMappings(container *v1.Container) (ports []PortMapping) {
 	names := make(map[string]struct{})
 	for _, p := range container.Ports {

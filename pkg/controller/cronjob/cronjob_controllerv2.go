@@ -61,6 +61,7 @@ var (
 
 // ControllerV2 is a controller for CronJobs.
 // Refactored Cronjob controller that uses DelayingQueue and informers
+// ControllerV2是一个用于CronJob的控制器。重构的Cronjob控制器，使用DelayingQueue和informers。
 type ControllerV2 struct {
 	queue workqueue.RateLimitingInterface
 

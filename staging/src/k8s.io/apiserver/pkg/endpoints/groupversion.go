@@ -38,9 +38,11 @@ import (
 )
 
 // ConvertabilityChecker indicates what versions a GroupKind is available in.
+// ConvertabilityChecker 指示 GroupKind 可用的版本。
 type ConvertabilityChecker interface {
 	// VersionsForGroupKind indicates what versions are available to convert a group kind. This determines
 	// what our decoding abilities are.
+	// VersionsForGroupKind 指示哪些版本可用于转换组种类。这就决定了我们的解码能力是什么。
 	VersionsForGroupKind(gk schema.GroupKind) []schema.GroupVersion
 }
 
@@ -49,29 +51,40 @@ type ConvertabilityChecker interface {
 // /${storage_key}[/${object_name}]
 // Where 'storage_key' points to a rest.Storage object stored in storage.
 // This object should contain all parameterization necessary for running a particular API version
+// APIGroupVersion 是一个帮助器，用于通过 go-restful 将 rest.Storage 对象公开为 http.Handlers。
+// 它处理以下 URL：
+// /${storage_key}[/${object_name}]
+// 其中 'storage_key' 指向存储在存储中的 rest.Storage 对象。该对象应包含运行特定 API 版本所需的所有参数化
 type APIGroupVersion struct {
 	Storage map[string]rest.Storage
 
 	Root string
 
 	// GroupVersion is the external group version
+	// GroupVersion 是外部组版本
 	GroupVersion schema.GroupVersion
 
 	// OptionsExternalVersion controls the Kubernetes APIVersion used for common objects in the apiserver
 	// schema like api.Status, api.DeleteOptions, and metav1.ListOptions. Other implementors may
 	// define a version "v1beta1" but want to use the Kubernetes "v1" internal objects. If
 	// empty, defaults to GroupVersion.
+	// OptionsExternalVersion 控制 apiserver 架构中常见对象（如 api.Status、api.DeleteOptions 和 metav1.ListOptions）的 Kubernetes APIVersion。
+	// 其他实现者可以定义一个版本 "v1beta1"，但想要使用 Kubernetes 内部对象 "v1"。如果为空，则默认为 GroupVersion。
 	OptionsExternalVersion *schema.GroupVersion
 	// MetaGroupVersion defaults to "meta.k8s.io/v1" and is the scheme group version used to decode
 	// common API implementations like ListOptions. Future changes will allow this to vary by group
 	// version (for when the inevitable meta/v2 group emerges).
+	// MetaGroupVersion 默认为 "meta.k8s.io/v1"，并且是用于解码常见 API 实现的方案组版本，例如 ListOptions。
+	// 未来的更改将允许此值随组版本而变化（当不可避免的 meta/v2 组出现时）。
 	MetaGroupVersion *schema.GroupVersion
 
 	// RootScopedKinds are the root scoped kinds for the primary GroupVersion
+	// RootScopedKinds 是主 GroupVersion 的根范围内的种类
 	RootScopedKinds sets.String
 
 	// Serializer is used to determine how to convert responses from API methods into bytes to send over
 	// the wire.
+	// Serializer 用于确定如何将 API 方法的响应转换为要通过线路发送的字节。
 	Serializer     runtime.NegotiatedSerializer
 	ParameterCodec runtime.ParameterCodec
 
@@ -89,6 +102,7 @@ type APIGroupVersion struct {
 	// Authorizer determines whether a user is allowed to make a certain request. The Handler does a preliminary
 	// authorization check using the request URI but it may be necessary to make additional checks, such as in
 	// the create-on-update case
+	// Authorizer 确定用户是否允许进行某些请求。处理器使用请求 URI 进行预授权检查，但可能需要进行其他检查，例如在创建更新的情况下。
 	Authorizer authorizer.Authorizer
 
 	Admit admission.Interface
@@ -96,16 +110,20 @@ type APIGroupVersion struct {
 	MinRequestTimeout time.Duration
 
 	// OpenAPIModels exposes the OpenAPI models to each individual handler.
+	// OpenAPIModels 将 OpenAPI 模型公开给每个单独的处理器。
 	OpenAPIModels openapiproto.Models
 
 	// The limit on the request body size that would be accepted and decoded in a write request.
 	// 0 means no limit.
+	// The limit does not apply to PATCH requests.
 	MaxRequestBodyBytes int64
 }
 
 // InstallREST registers the REST handlers (storage, watch, proxy and redirect) into a restful Container.
 // It is expected that the provided path root prefix will serve all operations. Root MUST NOT end
 // in a slash.
+// InstallREST 注册 REST 处理器（存储、监视、代理和重定向）到 restful 容器中。
+// 期望提供的路径根前缀将为所有操作提供服务。根不得以斜杠结尾。
 func (g *APIGroupVersion) InstallREST(container *restful.Container) ([]apidiscoveryv2beta1.APIResourceDiscovery, []*storageversion.ResourceInfo, error) {
 	prefix := path.Join(g.Root, g.GroupVersion.Group, g.GroupVersion.Version)
 	installer := &APIInstaller{

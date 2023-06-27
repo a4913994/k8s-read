@@ -24,12 +24,14 @@ import (
 )
 
 // A ServiceResolver knows how to get a URL given a service.
+// ServiceResolver 知道如何根据服务获取 URL。
 type ServiceResolver interface {
 	ResolveEndpoint(namespace, name string, port int32) (*url.URL, error)
 }
 
 // NewEndpointServiceResolver returns a ServiceResolver that chooses one of the
 // service's endpoints.
+// NewEndpointServiceResolver 返回一个 ServiceResolver，该 ServiceResolver 会选择服务的一个端点。
 func NewEndpointServiceResolver(services listersv1.ServiceLister, endpoints listersv1.EndpointsLister) ServiceResolver {
 	return &aggregatorEndpointRouting{
 		services:  services,
@@ -48,6 +50,7 @@ func (r *aggregatorEndpointRouting) ResolveEndpoint(namespace, name string, port
 
 // NewClusterIPServiceResolver returns a ServiceResolver that directly calls the
 // service's cluster IP.
+// NewClusterIPServiceResolver 返回一个 ServiceResolver，该 ServiceResolver 直接调用服务的集群 IP。
 func NewClusterIPServiceResolver(services listersv1.ServiceLister) ServiceResolver {
 	return &aggregatorClusterRouting{
 		services: services,
@@ -64,6 +67,7 @@ func (r *aggregatorClusterRouting) ResolveEndpoint(namespace, name string, port 
 
 // NewLoopbackServiceResolver returns a ServiceResolver that routes
 // the kubernetes/default service with port 443 to loopback.
+// NewLoopbackServiceResolver 返回一个 ServiceResolver，该 ServiceResolver 会将 kubernetes/default 服务的 443 端口路由到回环。
 func NewLoopbackServiceResolver(delegate ServiceResolver, host *url.URL) ServiceResolver {
 	return &loopbackResolver{
 		delegate: delegate,

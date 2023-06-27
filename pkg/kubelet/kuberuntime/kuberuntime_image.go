@@ -30,6 +30,7 @@ import (
 
 // PullImage pulls an image from the network to local storage using the supplied
 // secrets if necessary.
+// PullImage使用必要的机密从网络拉取图像到本地存储。
 func (m *kubeGenericRuntimeManager) PullImage(ctx context.Context, image kubecontainer.ImageSpec, pullSecrets []v1.Secret, podSandboxConfig *runtimeapi.PodSandboxConfig) (string, error) {
 	img := image.Image
 	repoToPull, _, _, err := parsers.ParseImageName(img)
@@ -82,6 +83,7 @@ func (m *kubeGenericRuntimeManager) PullImage(ctx context.Context, image kubecon
 
 // GetImageRef gets the ID of the image which has already been in
 // the local storage. It returns ("", nil) if the image isn't in the local storage.
+// GetImageRef获取已经在本地存储中的Image的ID。 如果Image不在本地存储中，则返回（“”，nil）。
 func (m *kubeGenericRuntimeManager) GetImageRef(ctx context.Context, image kubecontainer.ImageSpec) (string, error) {
 	resp, err := m.imageService.ImageStatus(ctx, toRuntimeAPIImageSpec(image), false)
 	if err != nil {
@@ -95,6 +97,7 @@ func (m *kubeGenericRuntimeManager) GetImageRef(ctx context.Context, image kubec
 }
 
 // ListImages gets all images currently on the machine.
+// ListImages获取当前机器上的所有Image。
 func (m *kubeGenericRuntimeManager) ListImages(ctx context.Context) ([]kubecontainer.Image, error) {
 	var images []kubecontainer.Image
 
@@ -118,6 +121,7 @@ func (m *kubeGenericRuntimeManager) ListImages(ctx context.Context) ([]kubeconta
 }
 
 // RemoveImage removes the specified image.
+// RemoveImage删除指定的Image。
 func (m *kubeGenericRuntimeManager) RemoveImage(ctx context.Context, image kubecontainer.ImageSpec) error {
 	err := m.imageService.RemoveImage(ctx, &runtimeapi.ImageSpec{Image: image.Image})
 	if err != nil {
@@ -132,6 +136,9 @@ func (m *kubeGenericRuntimeManager) RemoveImage(ctx context.Context, image kubec
 // Notice that current logic doesn't really work for images which share layers (e.g. docker image),
 // this is a known issue, and we'll address this by getting imagefs stats directly from CRI.
 // TODO: Get imagefs stats directly from CRI.
+// ImageStats返回Image的统计信息。
+// 请注意，当前的逻辑对于共享图层的Image（例如docker image）并不起作用，这是一个已知的问题，我们将通过直接从CRI获取imagefs stats来解决这个问题。
+// TODO：直接从CRI获取imagefs stats。
 func (m *kubeGenericRuntimeManager) ImageStats(ctx context.Context) (*kubecontainer.ImageStats, error) {
 	allImages, err := m.imageService.ListImages(ctx, nil)
 	if err != nil {

@@ -33,6 +33,7 @@ import (
 )
 
 // ProberResults stores the cumulative number of a probe by result as prometheus metrics.
+// ProberResults 存储了探针的结果的累计数量
 var ProberResults = metrics.NewCounterVec(
 	&metrics.CounterOpts{
 		Subsystem:      "prober",
@@ -49,6 +50,7 @@ var ProberResults = metrics.NewCounterVec(
 )
 
 // ProberDuration stores the duration of a successful probe lifecycle by result as prometheus metrics.
+// ProberDuration 存储了探针生命周期的持续时间
 var ProberDuration = metrics.NewHistogramVec(
 	&metrics.HistogramOpts{
 		Subsystem:      "prober",
@@ -66,52 +68,68 @@ var ProberDuration = metrics.NewHistogramVec(
 // probe (AddPod). The worker periodically probes its assigned container and caches the results. The
 // manager use the cached probe results to set the appropriate Ready state in the PodStatus when
 // requested (UpdatePodStatus). Updating probe parameters is not currently supported.
+// Manager 管理 pod 探针。它为每个指定探针的容器创建一个探针“worker”（AddPod）。
+// worker 定期探测其分配的容器并缓存结果。manager 使用缓存的探针结果在请求时设置 PodStatus 中适当的 Ready 状态（UpdatePodStatus）。
+// 目前不支持更新探针参数。
 type Manager interface {
 	// AddPod creates new probe workers for every container probe. This should be called for every
 	// pod created.
+	// AddPod 为每个容器探针创建新的探针 worker。这应该为每个创建的 pod 调用。
 	AddPod(pod *v1.Pod)
 
 	// StopLivenessAndStartup handles stopping liveness and startup probes during termination.
+	// StopLivenessAndStartup 处理在终止期间停止活性和启动探针。
 	StopLivenessAndStartup(pod *v1.Pod)
 
 	// RemovePod handles cleaning up the removed pod state, including terminating probe workers and
 	// deleting cached results.
+	// RemovePod 处理清理删除的 pod 状态，包括终止探针 worker 和删除缓存的结果。
 	RemovePod(pod *v1.Pod)
 
 	// CleanupPods handles cleaning up pods which should no longer be running.
 	// It takes a map of "desired pods" which should not be cleaned up.
+	// CleanupPods 处理清理不应再运行的 pod。它接受一个“期望的 pod”映射，这些映射不应该被清理。
 	CleanupPods(desiredPods map[types.UID]sets.Empty)
 
 	// UpdatePodStatus modifies the given PodStatus with the appropriate Ready state for each
 	// container based on container running status, cached probe results and worker states.
+	// UpdatePodStatus 使用基于容器运行状态、缓存的探针结果和 worker 状态为每个容器设置适当的 Ready 状态来修改给定的 PodStatus。
 	UpdatePodStatus(types.UID, *v1.PodStatus)
 }
 
 type manager struct {
 	// Map of active workers for probes
+	// 探针的活动workers的映射
 	workers map[probeKey]*worker
 	// Lock for accessing & mutating workers
+	// 访问和修改 workers 的锁
 	workerLock sync.RWMutex
 
 	// The statusManager cache provides pod IP and container IDs for probing.
+	// statusManager 缓存提供用于探测的 pod IP 和容器 ID。
 	statusManager status.Manager
 
 	// readinessManager manages the results of readiness probes
+	// readinessManager 管理就绪性探针的结果
 	readinessManager results.Manager
 
 	// livenessManager manages the results of liveness probes
+	// livenessManager 管理活性探针的结果
 	livenessManager results.Manager
 
 	// startupManager manages the results of startup probes
+	// startupManager 管理启动探针的结果
 	startupManager results.Manager
 
 	// prober executes the probe actions.
+	// prober 执行探针操作。
 	prober *prober
 
 	start time.Time
 }
 
 // NewManager creates a Manager for pod probing.
+// NewManager 为 pod 探测创建一个 Manager。
 func NewManager(
 	statusManager status.Manager,
 	livenessManager results.Manager,
@@ -133,6 +151,7 @@ func NewManager(
 }
 
 // Key uniquely identifying container probes
+// Key 用于唯一标识容器探针
 type probeKey struct {
 	podUID        types.UID
 	containerName string
@@ -140,6 +159,7 @@ type probeKey struct {
 }
 
 // Type of probe (liveness, readiness or startup)
+// 探针类型（活性、就绪性或启动）
 type probeType int
 
 const (

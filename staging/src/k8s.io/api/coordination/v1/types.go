@@ -24,6 +24,7 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Lease defines a lease concept.
+// Lease 定义了租约概念
 type Lease struct {
 	metav1.TypeMeta `json:",inline"`
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
@@ -37,6 +38,7 @@ type Lease struct {
 }
 
 // LeaseSpec is a specification of a Lease.
+// LeaseSpec 是 Lease 的规范
 type LeaseSpec struct {
 	// holderIdentity contains the identity of the holder of a current lease.
 	// +optional

@@ -38,6 +38,7 @@ import (
 )
 
 // createPodSandbox creates a pod sandbox and returns (podSandBoxID, message, error).
+// createPodSandbox创建一个pod沙盒并返回(podSandBoxID, message, error)。
 func (m *kubeGenericRuntimeManager) createPodSandbox(ctx context.Context, pod *v1.Pod, attempt uint32) (string, string, error) {
 	podSandboxConfig, err := m.generatePodSandboxConfig(pod, attempt)
 	if err != nil {
@@ -77,6 +78,7 @@ func (m *kubeGenericRuntimeManager) createPodSandbox(ctx context.Context, pod *v
 }
 
 // generatePodSandboxConfig generates pod sandbox config from v1.Pod.
+// generatePodSandboxConfig从v1.Pod生成pod沙盒配置。
 func (m *kubeGenericRuntimeManager) generatePodSandboxConfig(pod *v1.Pod, attempt uint32) (*runtimeapi.PodSandboxConfig, error) {
 	// TODO: deprecating podsandbox resource requirements in favor of the pod level cgroup
 	// Refer https://github.com/kubernetes/kubernetes/issues/29871
@@ -161,6 +163,10 @@ func (m *kubeGenericRuntimeManager) generatePodSandboxConfig(pod *v1.Pod, attemp
 // We've to call PodSandboxLinuxConfig always irrespective of the underlying OS as securityContext is not part of
 // podSandboxConfig. It is currently part of LinuxPodSandboxConfig. In future, if we have securityContext pulled out
 // in podSandboxConfig we should be able to use it.
+// generatePodSandboxLinuxConfig从v1.Pod生成LinuxPodSandboxConfig。
+// 无论底层操作系统是什么，我们都必须调用PodSandboxLinuxConfig，因为securityContext不是podSandboxConfig的一部分。
+// 它目前是LinuxPodSandboxConfig的一部分。将来，如果我们已经将securityContext从podSandboxConfig中拔出来，
+// 我们应该能够使用它。
 func (m *kubeGenericRuntimeManager) generatePodSandboxLinuxConfig(pod *v1.Pod) (*runtimeapi.LinuxPodSandboxConfig, error) {
 	cgroupParent := m.runtimeHelper.GetPodCgroupParent(pod)
 	lc := &runtimeapi.LinuxPodSandboxConfig{
@@ -229,6 +235,8 @@ func (m *kubeGenericRuntimeManager) generatePodSandboxLinuxConfig(pod *v1.Pod) (
 // generatePodSandboxWindowsConfig generates WindowsPodSandboxConfig from v1.Pod.
 // On Windows this will get called in addition to LinuxPodSandboxConfig because not all relevant fields have been added to
 // WindowsPodSandboxConfig at this time.
+// generatePodSandboxWindowsConfig 从 v1.Pod 生成 WindowsPodSandboxConfig。
+// 在 Windows 上，这将被调用，以及 LinuxPodSandboxConfig，因为在此时尚未将所有相关字段添加到 WindowsPodSandboxConfig 中。
 func (m *kubeGenericRuntimeManager) generatePodSandboxWindowsConfig(pod *v1.Pod) (*runtimeapi.WindowsPodSandboxConfig, error) {
 	wc := &runtimeapi.WindowsPodSandboxConfig{
 		SecurityContext: &runtimeapi.WindowsSandboxSecurityContext{},
@@ -284,6 +292,7 @@ func (m *kubeGenericRuntimeManager) generatePodSandboxWindowsConfig(pod *v1.Pod)
 }
 
 // getKubeletSandboxes lists all (or just the running) sandboxes managed by kubelet.
+// getKubeletSandboxes 列出所有（或仅运行中的）由 kubelet 管理的沙箱。
 func (m *kubeGenericRuntimeManager) getKubeletSandboxes(ctx context.Context, all bool) ([]*runtimeapi.PodSandbox, error) {
 	var filter *runtimeapi.PodSandboxFilter
 	if !all {
@@ -305,6 +314,7 @@ func (m *kubeGenericRuntimeManager) getKubeletSandboxes(ctx context.Context, all
 }
 
 // determinePodSandboxIP determines the IP addresses of the given pod sandbox.
+// determinePodSandboxIP 确定给定沙箱的 IP 地址。
 func (m *kubeGenericRuntimeManager) determinePodSandboxIPs(podNamespace, podName string, podSandbox *runtimeapi.PodSandboxStatus) []string {
 	podIPs := make([]string, 0)
 	if podSandbox.Network == nil {
@@ -338,6 +348,7 @@ func (m *kubeGenericRuntimeManager) determinePodSandboxIPs(podNamespace, podName
 
 // getPodSandboxID gets the sandbox id by podUID and returns ([]sandboxID, error).
 // Param state could be nil in order to get all sandboxes belonging to same pod.
+// getPodSandboxID 通过 podUID 获取沙箱 id 并返回（[]sandboxID，error）。 参数 state 可以为 nil，以便获取属于同一 pod 的所有沙箱。
 func (m *kubeGenericRuntimeManager) getSandboxIDByPodUID(ctx context.Context, podUID kubetypes.UID, state *runtimeapi.PodSandboxState) ([]string, error) {
 	filter := &runtimeapi.PodSandboxFilter{
 		LabelSelector: map[string]string{types.KubernetesPodUIDLabel: string(podUID)},
@@ -368,6 +379,7 @@ func (m *kubeGenericRuntimeManager) getSandboxIDByPodUID(ctx context.Context, po
 }
 
 // GetPortForward gets the endpoint the runtime will serve the port-forward request from.
+// GetPortForward 从运行时获取端点，该端点将从中提供端口转发请求。
 func (m *kubeGenericRuntimeManager) GetPortForward(ctx context.Context, podName, podNamespace string, podUID kubetypes.UID, ports []int32) (*url.URL, error) {
 	sandboxIDs, err := m.getSandboxIDByPodUID(ctx, podUID, nil)
 	if err != nil {

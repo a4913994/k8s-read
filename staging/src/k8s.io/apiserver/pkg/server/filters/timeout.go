@@ -35,6 +35,7 @@ import (
 )
 
 // WithTimeoutForNonLongRunningRequests times out non-long-running requests after the time given by timeout.
+// WithTimeoutForNonLongRunningRequests 在 timeout 给定的时间之后使非长时间运行的请求超时。
 func WithTimeoutForNonLongRunningRequests(handler http.Handler, longRunning apirequest.LongRunningRequestCheck) http.Handler {
 	if longRunning == nil {
 		return handler

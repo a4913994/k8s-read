@@ -35,24 +35,37 @@ import (
 type ServerRunOptions struct {
 	AdvertiseAddress net.IP
 
-	CorsAllowedOriginList       []string
-	HSTSDirectives              []string
-	ExternalHost                string
-	MaxRequestsInFlight         int
+	// CorsAllowedOriginList 跨域访问的域名列表
+	CorsAllowedOriginList []string
+	// HSTSDirectives 设置的 HSTS 指令列表
+	HSTSDirectives []string
+	// ExternalHost 设置的外部主机名
+	ExternalHost string
+	// MaxRequestsInFlight 设置的最大并发请求数
+	MaxRequestsInFlight int
+	// MaxMutatingRequestsInFlight 设置的最大并发可变请求数
 	MaxMutatingRequestsInFlight int
-	RequestTimeout              time.Duration
-	GoawayChance                float64
-	LivezGracePeriod            time.Duration
-	MinRequestTimeout           int
-	ShutdownDelayDuration       time.Duration
+	// RequestTimeout 设置的请求超时时间
+	RequestTimeout time.Duration
+	// GoawayChance 设置的 goaway 概率
+	GoawayChance float64
+	// LivezGracePeriod 设置的 livez 宽限期
+	LivezGracePeriod time.Duration
+	// MinRequestTimeout 设置的最小请求超时时间
+	MinRequestTimeout int
+	// ShutdownDelayDuration 设置的关闭延迟时间
+	ShutdownDelayDuration time.Duration
 	// We intentionally did not add a flag for this option. Users of the
 	// apiserver library can wire it to a flag.
+	// JSONPatchMaxCopyBytes 设置的 JSON Patch 最大拷贝字节数
 	JSONPatchMaxCopyBytes int64
 	// The limit on the request body size that would be accepted and
 	// decoded in a write request. 0 means no limit.
 	// We intentionally did not add a flag for this option. Users of the
 	// apiserver library can wire it to a flag.
-	MaxRequestBodyBytes       int64
+	// MaxRequestBodyBytes 设置的最大请求体字节数
+	MaxRequestBodyBytes int64
+	// EnablePriorityAndFairness 设置是否启用优先级和公平性
 	EnablePriorityAndFairness bool
 
 	// ShutdownSendRetryAfter dictates when to initiate shutdown of the HTTP
@@ -62,6 +75,9 @@ type ServerRunOptions struct {
 	// Server as soon as ShutdownDelayDuration has elapsed.
 	// If enabled, after ShutdownDelayDuration elapses, any incoming request is
 	// rejected with a 429 status code and a 'Retry-After' response.
+	// ShutdownSendRetryAfter 设置是否在关闭时发送 Retry-After 响应
+	// ShutdownSendRetryAfter 指示在 apiserver 正常终止期间何时开始关闭 HTTP 服务器。如果为真，我们将等待正在运行的非长时间运行的请求被耗尽，然后启动 HTTP 服务器的关闭。如果为 false，我们会在 ShutdownDelayDuration 过去后立即关闭 HTTP 服务器。
+	// 如果启用，ShutdownDelayDuration 过去后，任何传入请求都会被拒绝，状态代码为 429，响应中有 'Retry-After'。
 	ShutdownSendRetryAfter bool
 }
 

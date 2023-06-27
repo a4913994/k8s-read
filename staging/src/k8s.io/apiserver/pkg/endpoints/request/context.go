@@ -45,6 +45,7 @@ func NewDefaultContext() context.Context {
 }
 
 // WithValue returns a copy of parent in which the value associated with key is val.
+// WithValue 返回 parent 的副本，其中与 key 关联的值为 val。
 func WithValue(parent context.Context, key interface{}, val interface{}) context.Context {
 	return context.WithValue(parent, key, val)
 }

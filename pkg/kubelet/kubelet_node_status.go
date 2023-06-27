@@ -48,6 +48,7 @@ import (
 // registerWithAPIServer registers the node with the cluster master. It is safe
 // to call multiple times, but not concurrently (kl.registrationCompleted is
 // not locked).
+// registerWithAPIServer注册节点与集群主节点。它可以安全地多次调用，但不可以并发调用（kl.registrationCompleted没有锁）。
 func (kl *Kubelet) registerWithAPIServer() {
 	if kl.registrationCompleted {
 		return
@@ -82,6 +83,7 @@ func (kl *Kubelet) registerWithAPIServer() {
 // successful.  If a node with the same name already exists, it reconciles the
 // value of the annotation for controller-managed attach-detach of attachable
 // persistent volumes for the node.
+// tryRegisterWithAPIServer尝试将给定的节点注册到API服务器，返回一个布尔值，指示尝试是否成功。如果存在具有相同名称的节点，则会调和节点的可附加持久卷的控制器管理的附加-分离注释的值。
 func (kl *Kubelet) tryRegisterWithAPIServer(node *v1.Node) bool {
 	_, err := kl.kubeClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
 	if err == nil {
@@ -125,6 +127,7 @@ func (kl *Kubelet) tryRegisterWithAPIServer(node *v1.Node) bool {
 }
 
 // reconcileHugePageResource will update huge page capacity for each page size and remove huge page sizes no longer supported
+// reconcileHugePageResource将更新每个页面大小的巨大页面容量，并删除不再支持的巨大页面大小
 func (kl *Kubelet) reconcileHugePageResource(initialNode, existingNode *v1.Node) bool {
 	requiresUpdate := updateDefaultResources(initialNode, existingNode)
 	supportedHugePageResources := sets.String{}
@@ -172,6 +175,7 @@ func (kl *Kubelet) reconcileHugePageResource(initialNode, existingNode *v1.Node)
 }
 
 // Zeros out extended resource capacity during reconciliation.
+// reconcileExtendedResource在调和期间将扩展资源容量归零。
 func (kl *Kubelet) reconcileExtendedResource(initialNode, node *v1.Node) bool {
 	requiresUpdate := updateDefaultResources(initialNode, node)
 	// Check with the device manager to see if node has been recreated, in which case extended resources should be zeroed until they are available
@@ -189,6 +193,7 @@ func (kl *Kubelet) reconcileExtendedResource(initialNode, node *v1.Node) bool {
 }
 
 // updateDefaultResources will set the default resources on the existing node according to the initial node
+// updateDefaultResources将根据初始节点在现有节点上设置默认资源
 func updateDefaultResources(initialNode, existingNode *v1.Node) bool {
 	requiresUpdate := false
 	if existingNode.Status.Capacity == nil {
@@ -212,6 +217,7 @@ func updateDefaultResources(initialNode, existingNode *v1.Node) bool {
 }
 
 // updateDefaultLabels will set the default labels on the node
+// updateDefaultLabels 将在节点上设置默认标签
 func (kl *Kubelet) updateDefaultLabels(initialNode, existingNode *v1.Node) bool {
 	defaultLabels := []string{
 		v1.LabelHostname,
@@ -254,6 +260,7 @@ func (kl *Kubelet) updateDefaultLabels(initialNode, existingNode *v1.Node) bool 
 // reconcileCMADAnnotationWithExistingNode reconciles the controller-managed
 // attach-detach annotation on a new node and the existing node, returning
 // whether the existing node must be updated.
+// reconcileCMADAnnotationWithExistingNode调和新节点上的控制器管理的附加-分离注释和现有节点，返回现有节点是否必须更新。
 func (kl *Kubelet) reconcileCMADAnnotationWithExistingNode(node, existingNode *v1.Node) bool {
 	var (
 		existingCMAAnnotation    = existingNode.Annotations[volutil.ControllerManagedAttachAnnotation]
@@ -283,6 +290,7 @@ func (kl *Kubelet) reconcileCMADAnnotationWithExistingNode(node, existingNode *v
 
 // initialNode constructs the initial v1.Node for this Kubelet, incorporating node
 // labels, information from the cloud provider, and Kubelet configuration.
+// initialNode 构造此 Kubelet 的初始 v1.Node，包括节点标签、来自云提供商的信息和 Kubelet 配置。
 func (kl *Kubelet) initialNode(ctx context.Context) (*v1.Node, error) {
 	node := &v1.Node{
 		ObjectMeta: metav1.ObjectMeta{
@@ -434,6 +442,9 @@ func (kl *Kubelet) initialNode(ctx context.Context) (*v1.Node, error) {
 // It holds the same lock as syncNodeStatus and is thread-safe when called concurrently with
 // syncNodeStatus. Its return value indicates whether the loop running it should exit
 // (final run), and it also sets kl.containerRuntimeReadyExpected.
+// fastNodeStatusUpdate是syncNodeStatus的“轻量级”版本，除了最后一次运行外，它不会命中apiserver。
+// 它持有与syncNodeStatus相同的锁，并且在与syncNodeStatus并发调用时是线程安全的。
+// 它的返回值表示运行它的循环是否应该退出（最后一次运行），它还设置了kl.containerRuntimeReadyExpected。
 func (kl *Kubelet) fastNodeStatusUpdate(ctx context.Context, timeout bool) (completed bool) {
 	kl.syncNodeStatusMux.Lock()
 	defer func() {
@@ -511,6 +522,7 @@ func (kl *Kubelet) fastNodeStatusUpdate(ctx context.Context, timeout bool) (comp
 // syncNodeStatus should be called periodically from a goroutine.
 // It synchronizes node status to master if there is any change or enough time
 // passed from the last sync, registering the kubelet first if necessary.
+// syncNodeStatus应该定期从goroutine调用。 如果有任何更改或从上次同步经过足够的时间，则它将节点状态同步到主节点，首先注册kubelet（如果需要）。
 func (kl *Kubelet) syncNodeStatus() {
 	kl.syncNodeStatusMux.Lock()
 	defer kl.syncNodeStatusMux.Unlock()
@@ -530,6 +542,7 @@ func (kl *Kubelet) syncNodeStatus() {
 
 // updateNodeStatus updates node status to master with retries if there is any
 // change or enough time passed from the last sync.
+// updateNodeStatus使用重试更新节点状态到主节点，如果有任何更改或从上次同步经过足够的时间。
 func (kl *Kubelet) updateNodeStatus(ctx context.Context) error {
 	klog.V(5).InfoS("Updating node status")
 	for i := 0; i < nodeStatusUpdateRetry; i++ {
@@ -547,6 +560,7 @@ func (kl *Kubelet) updateNodeStatus(ctx context.Context) error {
 
 // tryUpdateNodeStatus tries to update node status to master if there is any
 // change or enough time passed from the last sync.
+// tryUpdateNodeStatus尝试更新节点状态到主节点，如果有任何更改或从上次同步经过足够的时间。
 func (kl *Kubelet) tryUpdateNodeStatus(ctx context.Context, tryNumber int) error {
 	// In large clusters, GET and PUT operations on Node objects coming
 	// from here are the majority of load on apiserver and etcd.
@@ -583,6 +597,7 @@ func (kl *Kubelet) tryUpdateNodeStatus(ctx context.Context, tryNumber int) error
 
 // updateNode creates a copy of originalNode and runs update logic on it.
 // It returns the updated node object and a bool indicating if anything has been changed.
+// updateNode创建originalNode的副本，并在其上运行更新逻辑。 它返回更新的节点对象和一个bool值，指示是否已更改任何内容。
 func (kl *Kubelet) updateNode(ctx context.Context, originalNode *v1.Node) (*v1.Node, bool) {
 	node := originalNode.DeepCopy()
 
@@ -625,6 +640,7 @@ func (kl *Kubelet) updateNode(ctx context.Context, originalNode *v1.Node) (*v1.N
 
 // patchNodeStatus patches node on the API server based on originalNode.
 // It returns any potential error, or an updatedNode and refreshes the state of kubelet when successful.
+// patchNodeStatus根据originalNode在API服务器上修补节点。 它返回任何潜在的错误，或者更新节点并在成功时刷新kubelet的状态。
 func (kl *Kubelet) patchNodeStatus(originalNode, node *v1.Node) (*v1.Node, error) {
 	// Patch the current status on the API server
 	updatedNode, _, err := nodeutil.PatchNodeStatus(kl.heartbeatClient.CoreV1(), types.NodeName(kl.nodeName), originalNode, node)
@@ -659,18 +675,26 @@ func (kl *Kubelet) patchNodeStatus(originalNode, node *v1.Node) (*v1.Node, error
 // Or, after a successful node status update, call with updatedNode returned from
 // the patch call, to mark the volumeInUse as reportedInUse to indicate
 // those volumes are already updated in the node's status
+// markVolumesFromNode使用节点中的VolumesInUse状态更新volumeManager。
+// 在不需要更新节点状态的情况下，使用获取的节点调用。 即使没有对节点状态进行更改（没有将卷添加或从VolumesInUse列表中删除），我们也必须将卷标记为volume manager的dsw中的ReportedInUse。
+// 原因是，在kubelet重新启动的情况下，volume manager的dsw被重新填充，并且volume ReportedInUse被初始化为false，而Node对象中的VolumesInUse列表仍然包含上一个kubelet实例的状态。
+// 一旦将卷添加到dsw中，就需要从Node.Status中的VolumesInUse列表中同步ReportedInUse字段。
+// 无法在dsw中直接执行MarkVolumesAsReportedInUse（）调用，因为它无法访问Node对象。 这也不能在节点状态管理器初始化时填充，因为该卷可能尚未添加到dsw中。
+// 或者，在成功更新节点状态之后，使用从patch调用返回的updatedNode调用，以将volumeInUse标记为reportedInUse，以指示这些卷已经更新了节点的状态
 func (kl *Kubelet) markVolumesFromNode(node *v1.Node) {
 	kl.volumeManager.MarkVolumesAsReportedInUse(node.Status.VolumesInUse)
 }
 
 // recordNodeStatusEvent records an event of the given type with the given
 // message for the node.
+// recordNodeStatusEvent为给定类型的节点记录给定消息的事件。
 func (kl *Kubelet) recordNodeStatusEvent(eventType, event string) {
 	klog.V(2).InfoS("Recording event message for node", "node", klog.KRef("", string(kl.nodeName)), "event", event)
 	kl.recorder.Eventf(kl.nodeRef, eventType, event, "Node %s status is now: %s", kl.nodeName, event)
 }
 
 // recordEvent records an event for this node, the Kubelet's nodeRef is passed to the recorder
+// recordEvent为此节点记录事件，Kubelet的nodeRef被传递给记录器
 func (kl *Kubelet) recordEvent(eventType, event, message string) {
 	kl.recorder.Eventf(kl.nodeRef, eventType, event, message)
 }

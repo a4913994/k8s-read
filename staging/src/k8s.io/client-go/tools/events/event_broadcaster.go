@@ -55,6 +55,7 @@ const (
 var defaultSleepDuration = 10 * time.Second
 
 // TODO: validate impact of copying and investigate hashing
+// TODO: 验证复制的影响并调查哈希
 type eventKey struct {
 	action              string
 	reason              string

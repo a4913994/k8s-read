@@ -26,6 +26,7 @@ import (
 )
 
 // WithTracing adds tracing to requests if the incoming request is sampled
+// 如果对传入请求进行采样，WithTracing 会向请求添加跟踪
 func WithTracing(handler http.Handler, tp trace.TracerProvider) http.Handler {
 	opts := []otelhttp.Option{
 		otelhttp.WithPropagators(tracing.Propagators()),

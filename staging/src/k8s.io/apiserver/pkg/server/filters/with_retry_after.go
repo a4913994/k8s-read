@@ -54,7 +54,7 @@ type shouldRespondWithRetryAfterFunc func() (*retryAfterParams, bool)
 
 // WithRetryAfter rejects any incoming new request(s) with a 429
 // if the specified shutdownDelayDurationElapsedFn channel is closed
-//
+// 如果指定的 shutdownDelayDurationElapsedFn 通道关闭，WithRetryAfter 将拒绝任何传入的新请求并返回 429
 // It includes new request(s) on a new or an existing TCP connection
 // Any new request(s) arriving after shutdownDelayDurationElapsedFn is closed
 // are replied with a 429 and the following response headers:

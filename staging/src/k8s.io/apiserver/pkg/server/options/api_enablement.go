@@ -30,6 +30,7 @@ import (
 
 // APIEnablementOptions contains the options for which resources to turn on and off.
 // Given small aggregated API servers, this option isn't required for "normal" API servers
+//
 type APIEnablementOptions struct {
 	RuntimeConfig cliflag.ConfigurationMap
 }

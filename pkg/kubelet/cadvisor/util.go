@@ -19,15 +19,15 @@ package cadvisor
 import (
 	cadvisorapi "github.com/google/cadvisor/info/v1"
 	cadvisorapi2 "github.com/google/cadvisor/info/v2"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 )
 
 const (
-	// CrioSocket is the path to the CRI-O socket.
-	// Please keep this in sync with the one in:
-	// github.com/google/cadvisor/tree/master/container/crio/client.go
+	//CrioSocket是通往CRI-O插座的路径。
+	//请将其与以下内容保持同步。
+	//github.com/google/cadvisor/tree/master/container/crio/client.go。
 	CrioSocket = "/var/run/crio/crio.sock"
 )
 

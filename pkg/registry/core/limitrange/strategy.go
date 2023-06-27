@@ -35,6 +35,7 @@ type limitrangeStrategy struct {
 
 // Strategy is the default logic that applies when creating and updating
 // LimitRange objects via the REST API.
+// Strategy 是在通过 REST API 创建和更新 LimitRange 对象时默认的逻辑。
 var Strategy = limitrangeStrategy{legacyscheme.Scheme, names.SimpleNameGenerator}
 
 func (limitrangeStrategy) NamespaceScoped() bool {

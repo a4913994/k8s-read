@@ -41,6 +41,8 @@ var (
 // according to the given chance for HTTP2 requests. After client receive GOAWAY,
 // the in-flight long-running requests will not be influenced, and the new requests
 // will use a new TCP connection to re-balancing to another server behind the load balance.
+// WithProbabilisticGoaway 返回一个 http.Handler，它根据给定的 HTTP2 请求机会概率性地发送 GOAWAY。
+// 客户端收到 GOAWAY 后，正在进行的长时间运行的请求不会受到影响，新请求将使用新的 TCP 连接重新平衡到负载平衡后面的另一台服务器。
 func WithProbabilisticGoaway(inner http.Handler, chance float64) http.Handler {
 	return &goaway{
 		handler: inner,

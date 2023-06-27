@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"k8s.io/klog/v2"
 	"net"
 	"net/http"
 	"net/url"
@@ -37,7 +38,6 @@ import (
 	"k8s.io/client-go/transport"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/flowcontrol"
-	"k8s.io/klog/v2"
 )
 
 const (
@@ -49,25 +49,33 @@ var ErrNotInCluster = errors.New("unable to load in-cluster configuration, KUBER
 
 // Config holds the common attributes that can be passed to a Kubernetes client on
 // initialization.
+// Config 包含了可以传递给 Kubernetes 客户端的公共属性。
 type Config struct {
 	// Host must be a host string, a host:port pair, or a URL to the base of the apiserver.
 	// If a URL is given then the (optional) Path of that URL represents a prefix that must
 	// be appended to all request URIs used to access the apiserver. This allows a frontend
 	// proxy to easily relocate all of the apiserver endpoints.
+	// Host 必须是一个主机字符串，一个主机:端口对，或者是一个指向 apiserver 基础的 URL。
+	// 如果给定了一个 URL，那么该 URL 的（可选）路径表示一个必须附加到所有请求 URI 上的前缀，
+	// 以访问 apiserver。这允许前端代理轻松地重新定位所有 apiserver 的端点。
 	Host string
 	// APIPath is a sub-path that points to an API root.
+	// APIPATH 是一个指向 API 根的子路径。
 	APIPath string
 
 	// ContentConfig contains settings that affect how objects are transformed when
 	// sent to the server.
+	// ContentConfig 包含了影响对象在发送到服务器时如何转换的设置。
 	ContentConfig
 
 	// Server requires Basic authentication
+	// Server 需要基本身份验证
 	Username string
 	Password string `datapolicy:"password"`
 
 	// Server requires Bearer authentication. This client will not attempt to use
 	// refresh tokens for an OAuth2 flow.
+	// Server 需要 Bearer 身份验证。此客户端将不会尝试使用 OAuth2 流程的刷新令牌。
 	// TODO: demonstrate an OAuth2 compatible client.
 	BearerToken string `datapolicy:"token"`
 
@@ -77,15 +85,19 @@ type Config struct {
 	BearerTokenFile string
 
 	// Impersonate is the configuration that RESTClient will use for impersonation.
+	// Impersonate 是 RESTClient 用于模拟的配置。
 	Impersonate ImpersonationConfig
 
 	// Server requires plugin-specified authentication.
+	// Server 需要插件指定的身份验证。
 	AuthProvider *clientcmdapi.AuthProviderConfig
 
 	// Callback to persist config for AuthProvider.
+	// Callback 用于持久化 AuthProvider 的配置。
 	AuthConfigPersister AuthProviderConfigPersister
 
 	// Exec-based authentication provider.
+	// Exec-based 身份验证提供程序。
 	ExecProvider *clientcmdapi.ExecConfig
 
 	// TLSClientConfig contains settings to enable transport layer security
@@ -282,21 +294,26 @@ func (c TLSClientConfig) String() string {
 type ContentConfig struct {
 	// AcceptContentTypes specifies the types the client will accept and is optional.
 	// If not set, ContentType will be used to define the Accept header
+	// AcceptContentTypes 定义了客户端接受的类型，是可选的。如果没有设置，ContentType 将被用来定义 Accept header
 	AcceptContentTypes string
 	// ContentType specifies the wire format used to communicate with the server.
 	// This value will be set as the Accept header on requests made to the server, and
 	// as the default content type on any object sent to the server. If not set,
 	// "application/json" is used.
+	// ContentType 定义了与服务端通信时使用的 wire 格式。这个值将被设置为请求头中的 Accept，以及发送给服务端的对象的默认内容类型。
+	// 如果没有设置，将使用 "application/json"。
 	ContentType string
 	// GroupVersion is the API version to talk to. Must be provided when initializing
 	// a RESTClient directly. When initializing a Client, will be set with the default
 	// code version.
+	// GroupVersion 是要与之通信的 API 版本。在直接初始化 RESTClient 时必须提供。在初始化 Client 时，将使用默认的代码版本。
 	GroupVersion *schema.GroupVersion
 	// NegotiatedSerializer is used for obtaining encoders and decoders for multiple
 	// supported media types.
 	//
 	// TODO: NegotiatedSerializer will be phased out as internal clients are removed
 	//   from Kubernetes.
+	// NegotiatedSerializer 用于获取多种支持的媒体类型的编码器和解码器。
 	NegotiatedSerializer runtime.NegotiatedSerializer
 }
 

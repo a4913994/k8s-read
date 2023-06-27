@@ -29,11 +29,13 @@ import (
 )
 
 // REST defines the RESTStorage object that will work against secrets.
+// REST 定义了将与 secrets 一起工作的 RESTStorage 对象。
 type REST struct {
 	*genericregistry.Store
 }
 
 // NewREST returns a RESTStorage object that will work against secrets.
+// NewREST 返回一个 RESTStorage 对象，该对象将与 secrets 一起工作。
 func NewREST(optsGetter generic.RESTOptionsGetter) (*REST, error) {
 	store := &genericregistry.Store{
 		NewFunc:                  func() runtime.Object { return &api.Secret{} },

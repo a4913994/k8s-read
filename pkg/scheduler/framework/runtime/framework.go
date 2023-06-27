@@ -106,6 +106,7 @@ type frameworkImpl struct {
 // extensionPoint encapsulates desired and applied set of plugins at a specific extension
 // point. This is used to simplify iterating over all extension points supported by the
 // frameworkImpl.
+// extensionPoint在特定的扩展点封装所需和应用的插件集。这用于简化在frameworkImpl支持的所有扩展点上的迭代
 type extensionPoint struct {
 	// the set of plugins to be configured at this extension point.
 	plugins *config.PluginSet
@@ -158,6 +159,8 @@ type Option func(*frameworkOptions)
 // KubeSchedulerConfiguration version used. The string should be the full
 // scheme group/version of the external type we converted from (for example
 // "kubescheduler.config.k8s.io/v1beta2")
+// WithComponentConfigVersion将组件配置版本设置为所使用的KubeSchedulerConfiguration版本。
+// 字符串应该是我们转换的外部类型的完整方案组版本(例如“kubeschedler .config.k8s.iov1beta2”)
 func WithComponentConfigVersion(componentConfigVersion string) Option {
 	return func(o *frameworkOptions) {
 		o.componentConfigVersion = componentConfigVersion

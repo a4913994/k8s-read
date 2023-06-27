@@ -44,6 +44,7 @@ import (
 )
 
 // BuiltInAuthenticationOptions contains all build-in authentication options for API Server
+// BuiltInAuthenticationOptions 包含了 API Server 的所有内置认证选项
 type BuiltInAuthenticationOptions struct {
 	APIAudiences    []string
 	Anonymous       *AnonymousAuthenticationOptions
@@ -60,16 +61,19 @@ type BuiltInAuthenticationOptions struct {
 }
 
 // AnonymousAuthenticationOptions contains anonymous authentication options for API Server
+// AnonymousAuthenticationOptions 包含了 API Server 的匿名认证选项
 type AnonymousAuthenticationOptions struct {
 	Allow bool
 }
 
 // BootstrapTokenAuthenticationOptions contains bootstrap token authentication options for API Server
+// BootstrapTokenAuthenticationOptions 包含了 API Server 的 bootstrap token 认证选项
 type BootstrapTokenAuthenticationOptions struct {
 	Enable bool
 }
 
 // OIDCAuthenticationOptions contains OIDC authentication options for API Server
+// OIDCAuthenticationOptions 包含了 API Server 的 OIDC 认证选项
 type OIDCAuthenticationOptions struct {
 	CAFile         string
 	ClientID       string
@@ -83,6 +87,7 @@ type OIDCAuthenticationOptions struct {
 }
 
 // ServiceAccountAuthenticationOptions contains service account authentication options for API Server
+// ServiceAccountAuthenticationOptions 包含了 API Server 的 service account 认证选项
 type ServiceAccountAuthenticationOptions struct {
 	KeyFiles         []string
 	Lookup           bool
@@ -93,11 +98,13 @@ type ServiceAccountAuthenticationOptions struct {
 }
 
 // TokenFileAuthenticationOptions contains token file authentication options for API Server
+// TokenFileAuthenticationOptions 包含了 API Server 的 token file 认证选项
 type TokenFileAuthenticationOptions struct {
 	TokenFile string
 }
 
 // WebHookAuthenticationOptions contains web hook authentication options for API Server
+// WebHookAuthenticationOptions 包含了 API Server 的 web hook 认证选项
 type WebHookAuthenticationOptions struct {
 	ConfigFile string
 	Version    string
@@ -110,6 +117,7 @@ type WebHookAuthenticationOptions struct {
 }
 
 // NewBuiltInAuthenticationOptions create a new BuiltInAuthenticationOptions, just set default token cache TTL
+// NewBuiltInAuthenticationOptions 创建一个新的 BuiltInAuthenticationOptions，只是设置默认的 token 缓存 TTL
 func NewBuiltInAuthenticationOptions() *BuiltInAuthenticationOptions {
 	return &BuiltInAuthenticationOptions{
 		TokenSuccessCacheTTL: 10 * time.Second,
@@ -118,6 +126,7 @@ func NewBuiltInAuthenticationOptions() *BuiltInAuthenticationOptions {
 }
 
 // WithAll set default value for every build-in authentication option
+// WithAll 为每个内置认证选项设置默认值
 func (o *BuiltInAuthenticationOptions) WithAll() *BuiltInAuthenticationOptions {
 	return o.
 		WithAnonymous().
@@ -131,6 +140,7 @@ func (o *BuiltInAuthenticationOptions) WithAll() *BuiltInAuthenticationOptions {
 }
 
 // WithAnonymous set default value for anonymous authentication
+// WithAnonymous 为匿名认证设置默认值
 func (o *BuiltInAuthenticationOptions) WithAnonymous() *BuiltInAuthenticationOptions {
 	o.Anonymous = &AnonymousAuthenticationOptions{Allow: true}
 	return o

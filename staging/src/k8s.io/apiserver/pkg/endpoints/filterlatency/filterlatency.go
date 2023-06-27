@@ -34,6 +34,7 @@ import (
 type requestFilterRecordKeyType int
 
 // requestFilterRecordKey is the context key for a request filter record struct.
+// requestFilterRecordKey 是请求过滤器记录结构的上下文键。
 const requestFilterRecordKey requestFilterRecordKeyType = iota
 
 const minFilterLatencyToLog = 100 * time.Millisecond
@@ -44,11 +45,13 @@ type requestFilterRecord struct {
 }
 
 // withRequestFilterRecord attaches the given request filter record to the parent context.
+// withRequestFilterRecord 将给定的请求过滤器记录附加到父上下文。
 func withRequestFilterRecord(parent context.Context, fr *requestFilterRecord) context.Context {
 	return apirequest.WithValue(parent, requestFilterRecordKey, fr)
 }
 
 // requestFilterRecordFrom returns the request filter record from the given context.
+// requestFilterRecordFrom 从给定上下文返回请求过滤器记录。
 func requestFilterRecordFrom(ctx context.Context) *requestFilterRecord {
 	fr, _ := ctx.Value(requestFilterRecordKey).(*requestFilterRecord)
 	return fr
@@ -56,12 +59,14 @@ func requestFilterRecordFrom(ctx context.Context) *requestFilterRecord {
 
 // TrackStarted measures the timestamp the given handler has started execution
 // by attaching a handler to the chain.
+// TrackStarted 通过将处理程序附加到链来测量给定处理程序开始执行的时间戳。
 func TrackStarted(handler http.Handler, tp trace.TracerProvider, name string) http.Handler {
 	return trackStarted(handler, tp, name, clock.RealClock{})
 }
 
 // TrackCompleted measures the timestamp the given handler has completed execution and then
 // it updates the corresponding metric with the filter latency duration.
+// TrackCompleted 测量给定处理程序已完成执行的时间戳，然后使用过滤器延迟持续时间更新相应的指标。
 func TrackCompleted(handler http.Handler) http.Handler {
 	return trackCompleted(handler, clock.RealClock{}, func(ctx context.Context, fr *requestFilterRecord, completedAt time.Time) {
 		latency := completedAt.Sub(fr.startedTimestamp)

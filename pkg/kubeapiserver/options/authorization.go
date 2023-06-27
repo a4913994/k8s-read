@@ -32,6 +32,7 @@ import (
 )
 
 // BuiltInAuthorizationOptions contains all build-in authorization options for API Server
+// BuiltInAuthorizationOptions 包含了 API Server 的所有内置授权选项
 type BuiltInAuthorizationOptions struct {
 	Modes                       []string
 	PolicyFile                  string
@@ -42,10 +43,13 @@ type BuiltInAuthorizationOptions struct {
 	// WebhookRetryBackoff specifies the backoff parameters for the authorization webhook retry logic.
 	// This allows us to configure the sleep time at each iteration and the maximum number of retries allowed
 	// before we fail the webhook call in order to limit the fan out that ensues when the system is degraded.
+	// WebhookRetryBackoff WebhookRetryBackoff 指定授权 webhook 重试逻辑的退避参数。
+	// 这允许我们配置每次迭代的休眠时间以及在 webhook 调用失败之前允许的最大重试次数，以限制系统降级时随之而来的扇出。
 	WebhookRetryBackoff *wait.Backoff
 }
 
 // NewBuiltInAuthorizationOptions create a BuiltInAuthorizationOptions with default value
+// NewBuiltInAuthorizationOptions 使用默认值创建一个 BuiltInAuthorizationOptions
 func NewBuiltInAuthorizationOptions() *BuiltInAuthorizationOptions {
 	return &BuiltInAuthorizationOptions{
 		Modes:                       []string{authzmodes.ModeAlwaysAllow},
@@ -57,6 +61,7 @@ func NewBuiltInAuthorizationOptions() *BuiltInAuthorizationOptions {
 }
 
 // Validate checks invalid config combination
+// Validate 检查无效的配置组合
 func (o *BuiltInAuthorizationOptions) Validate() []error {
 	if o == nil {
 		return nil

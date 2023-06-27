@@ -31,24 +31,31 @@ type key int
 
 // auditKey is the context key for storing the audit context that is being
 // captured and the evaluated policy that applies to the given request.
+// auditKey 是上下文键，用于存储正在捕获的审计上下文和适用于给定请求的评估策略。
 const auditKey key = iota
 
 // AuditContext holds the information for constructing the audit events for the current request.
+// AuditContext 包含为当前请求构造审计事件的信息。
 type AuditContext struct {
 	// RequestAuditConfig is the audit configuration that applies to the request
+	// RequestAuditConfig 是应用于请求的审计配置
 	RequestAuditConfig RequestAuditConfig
 
 	// Event is the audit Event object that is being captured to be written in
 	// the API audit log. It is set to nil when the request is not being audited.
+	// Event 是被捕获并写入 API 审计日志的审计事件对象。当请求未被审计时，它被设置为 nil。
 	Event *auditinternal.Event
 
 	// annotations holds audit annotations that are recorded before the event has been initialized.
 	// This is represented as a slice rather than a map to preserve order.
+	// annotations 保存在事件初始化之前记录的审计注释。这表示为切片而不是映射以保持顺序。
 	annotations []annotation
 	// annotationMutex guards annotations AND event.Annotations
+	// annotationMutex 保护注释和事件。注释
 	annotationMutex sync.Mutex
 
 	// auditID is the Audit ID associated with this request.
+	// auditID 是与此请求关联的审核 ID。
 	auditID types.UID
 }
 
@@ -63,6 +70,9 @@ type annotation struct {
 // as at that point the audit event has already been sent to the audit sink.
 // Handlers that are unaware of their position in the overall request flow should
 // prefer AddAuditAnnotation over LogAnnotation to avoid dropping annotations.
+// AddAuditAnnotation 为给定的键值对设置审计注解。调用 WithAuditAnnotations 之后的请求流的大部分部分是安全的。
+// 值得注意的例外是，在 WithAudit 之前运行的处理程序中，不得通过延迟语句（即在 ServeHTTP 之后）调用此函数，因为此时审计事件已经发送到审计接收器。
+// 不知道自己在整个请求流中的位置的处理程序应该更喜欢 AddAuditAnnotation 而不是 LogAnnotation 以避免删除注释。
 func AddAuditAnnotation(ctx context.Context, key, value string) {
 	ac := AuditContextFrom(ctx)
 	if ac == nil {
@@ -79,6 +89,8 @@ func AddAuditAnnotation(ctx context.Context, key, value string) {
 // AddAuditAnnotations is a bulk version of AddAuditAnnotation. Refer to AddAuditAnnotation for
 // restrictions on when this can be called.
 // keysAndValues are the key-value pairs to add, and must have an even number of items.
+// AddAuditAnnotations 是 AddAuditAnnotation 的批量版本。有关何时可以调用的限制，请参阅 AddAuditAnnotation。
+// keysAndValues 是要添加的键值对，并且必须具有偶数个项目。
 func AddAuditAnnotations(ctx context.Context, keysAndValues ...string) {
 	ac := AuditContextFrom(ctx)
 	if ac == nil {
@@ -99,6 +111,7 @@ func AddAuditAnnotations(ctx context.Context, keysAndValues ...string) {
 
 // AddAuditAnnotationsMap is a bulk version of AddAuditAnnotation. Refer to AddAuditAnnotation for
 // restrictions on when this can be called.
+// AddAuditAnnotationsMap 是 AddAuditAnnotation 的批量版本。有关何时可以调用的限制，请参阅 AddAuditAnnotation。
 func AddAuditAnnotationsMap(ctx context.Context, annotations map[string]string) {
 	ac := AuditContextFrom(ctx)
 	if ac == nil {
@@ -116,6 +129,7 @@ func AddAuditAnnotationsMap(ctx context.Context, annotations map[string]string) 
 
 // addAuditAnnotationLocked is the shared code for recording an audit annotation. This method should
 // only be called while the auditAnnotationsMutex is locked.
+// addAuditAnnotationLocked 是记录审计注解的共享代码。只有在锁定 auditAnnotationsMutex 时才应调用此方法。
 func addAuditAnnotationLocked(ac *AuditContext, key, value string) {
 	if ac.Event != nil {
 		logAnnotation(ac.Event, key, value)
@@ -126,6 +140,7 @@ func addAuditAnnotationLocked(ac *AuditContext, key, value string) {
 
 // This is private to prevent reads/write to the slice from outside of this package.
 // The audit event should be directly read to get access to the annotations.
+// 这是私有的，以防止从这个包的外部读写切片。应直接读取审计事件以访问注释。
 func addAuditAnnotationsFrom(ctx context.Context, ev *auditinternal.Event) {
 	ac := AuditContextFrom(ctx)
 	if ac == nil {
@@ -142,6 +157,7 @@ func addAuditAnnotationsFrom(ctx context.Context, ev *auditinternal.Event) {
 }
 
 // LogAnnotation fills in the Annotations according to the key value pair.
+// LogAnnotation 根据键值对填写Annotations。
 func logAnnotation(ae *auditinternal.Event, key, value string) {
 	if ae == nil || ae.Level.Less(auditinternal.LevelMetadata) {
 		return

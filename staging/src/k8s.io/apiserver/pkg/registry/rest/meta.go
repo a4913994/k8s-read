@@ -24,6 +24,7 @@ import (
 )
 
 // WipeObjectMetaSystemFields erases fields that are managed by the system on ObjectMeta.
+// WipeObjectMetaSystemFields 擦除 ObjectMeta 上由系统管理的字段。
 func WipeObjectMetaSystemFields(meta metav1.Object) {
 	meta.SetCreationTimestamp(metav1.Time{})
 	meta.SetUID("")
@@ -33,6 +34,7 @@ func WipeObjectMetaSystemFields(meta metav1.Object) {
 }
 
 // FillObjectMetaSystemFields populates fields that are managed by the system on ObjectMeta.
+// FillObjectMetaSystemFields 填充 ObjectMeta 上由系统管理的字段。
 func FillObjectMetaSystemFields(meta metav1.Object) {
 	meta.SetCreationTimestamp(metav1.Now())
 	meta.SetUID(uuid.NewUUID())
@@ -41,6 +43,8 @@ func FillObjectMetaSystemFields(meta metav1.Object) {
 // EnsureObjectNamespaceMatchesRequestNamespace returns an error if obj.Namespace and requestNamespace
 // are both populated and do not match. If either is unpopulated, it modifies obj as needed to ensure
 // obj.GetNamespace() == requestNamespace.
+// EnsureObjectNamespaceMatchesRequestNamespace 如果 obj.Namespace 和 requestNamespace 都已填充且不匹配，则返回错误。
+// 如果任一未填充，则根据需要修改 obj 以确保 obj.GetNamespace() == requestNamespace。
 func EnsureObjectNamespaceMatchesRequestNamespace(requestNamespace string, obj metav1.Object) error {
 	objNamespace := obj.GetNamespace()
 	switch {
@@ -65,6 +69,7 @@ func EnsureObjectNamespaceMatchesRequestNamespace(requestNamespace string, obj m
 }
 
 // ExpectedNamespaceForScope returns the expected namespace for a resource, given the request namespace and resource scope.
+// ExpectedNamespaceForScope 根据请求的命名空间和资源范围返回资源的预期命名空间。
 func ExpectedNamespaceForScope(requestNamespace string, namespaceScoped bool) string {
 	if namespaceScoped {
 		return requestNamespace
@@ -73,6 +78,7 @@ func ExpectedNamespaceForScope(requestNamespace string, namespaceScoped bool) st
 }
 
 // ExpectedNamespaceForResource returns the expected namespace for a resource, given the request namespace.
+// ExpectedNamespaceForResource 根据请求的命名空间返回资源的预期命名空间。
 func ExpectedNamespaceForResource(requestNamespace string, resource schema.GroupVersionResource) string {
 	if resource.Resource == "namespaces" && resource.Group == "" {
 		return ""

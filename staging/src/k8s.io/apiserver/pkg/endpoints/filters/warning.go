@@ -28,6 +28,7 @@ import (
 )
 
 // WithWarningRecorder attaches a deduplicating k8s.io/apiserver/pkg/warning#WarningRecorder to the request context.
+// WithWarningRecorder 将去重 k8s.ioapiserverpkgwarningWarningRecorder 附加到请求上下文。
 func WithWarningRecorder(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		recorder := &recorder{writer: w}

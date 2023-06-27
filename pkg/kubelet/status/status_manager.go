@@ -149,10 +149,13 @@ func NewManager(kubeClient clientset.Interface, podManager kubepod.Manager, podD
 // pod conditions are excluded.
 // This method normalizes the status before comparing so as to make sure that meaningless
 // changes will be ignored.
+// isPodStatusByKubeletEqual 返回 true 如果给定的 pod 状态在非 kubelet 所有的 pod 条件被排除时是相等的。
+// 这个方法在比较之前会对状态进行归一化，以确保无意义的更改将被忽略。
 func isPodStatusByKubeletEqual(oldStatus, status *v1.PodStatus) bool {
 	oldCopy := oldStatus.DeepCopy()
 	for _, c := range status.Conditions {
 		// both owned and shared conditions are used for kubelet status equality
+		// 所有者和共享条件都用于 kubelet 状态相等性
 		if kubetypes.PodConditionByKubelet(c.Type) || kubetypes.PodConditionSharedByKubelet(c.Type) {
 			_, oc := podutil.GetPodCondition(oldCopy, c.Type)
 			if oc == nil || oc.Status != c.Status || oc.Message != c.Message || oc.Reason != c.Reason {
@@ -761,6 +764,7 @@ func (m *manager) syncPod(uid types.UID, status versionedPodStatus) {
 
 // needsUpdate returns whether the status is stale for the given pod UID.
 // This method is not thread safe, and must only be accessed by the sync thread.
+// needsUpdate 返回给定 pod UID 的状态是否已过时。 此方法不是线程安全的，只能由同步线程访问。
 func (m *manager) needsUpdate(uid types.UID, status versionedPodStatus) bool {
 	latest, ok := m.apiStatusVersions[kubetypes.MirrorPodUID(uid)]
 	if !ok || latest < status.version {
@@ -789,8 +793,12 @@ func (m *manager) canBeDeleted(pod *v1.Pod, status v1.PodStatus) bool {
 // now the pod manager only supports getting mirror pod by static pod, so we have to pass
 // static pod uid here.
 // TODO(random-liu): Simplify the logic when mirror pod manager is added.
+// needsReconcile 将给定的状态与 pod 管理器中的状态（实际上来自 apiserver）进行比较，返回状态是否需要与 apiserver 进行协调。
+// 现在，当 pod 状态在 apiserver 和 kubelet 之间不一致时，kubelet 应该强制发送更新以协调不一致，因为 kubelet 应该是 pod 状态的真实来源。
+// 注意（random-liu）：传递镜像 pod uid 并通过 uid 获取镜像 pod 更简单，但是现在 pod 管理器仅支持通过静态 pod 获取镜像 pod，因此这里必须传递静态 pod uid。 TODO（random-liu）：添加镜像 pod 管理器时简化逻辑。
 func (m *manager) needsReconcile(uid types.UID, status v1.PodStatus) bool {
 	// The pod could be a static pod, so we should translate first.
+	// pod 可能是静态 pod，因此我们应该先翻译。
 	pod, ok := m.podManager.GetPodByUID(uid)
 	if !ok {
 		klog.V(4).InfoS("Pod has been deleted, no need to reconcile", "podUID", string(uid))
@@ -826,6 +834,8 @@ func (m *manager) needsReconcile(uid types.UID, status v1.PodStatus) bool {
 // before comparing podStatus to the status returned by apiserver because
 // apiserver does not support RFC339NANO.
 // Related issue #15262/PR #15263 to move apiserver to RFC339NANO is closed.
+// normalizeStatus 将 podStatus 中的纳秒精度时间戳规范化为秒精度（* RFC339NANO * - > * RFC3339 *）。
+// 在将 podStatus 与 apiserver 返回的状态进行比较之前，必须执行此操作，因为 apiserver 不支持 RFC339NANO。
 func normalizeStatus(pod *v1.Pod, status *v1.PodStatus) *v1.PodStatus {
 	bytesPerStatus := kubecontainer.MaxPodTerminationMessageLogLength
 	if containers := len(pod.Spec.Containers) + len(pod.Spec.InitContainers); containers > 0 {

@@ -18,26 +18,29 @@ package watch
 
 import (
 	"fmt"
-	"sync"
-
 	"k8s.io/klog/v2"
+	"sync"
 
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Interface can be implemented by anything that knows how to watch and report changes.
+// Interface 可以由任何知道如何监视并报告更改的东西实现。
 type Interface interface {
 	// Stop stops watching. Will close the channel returned by ResultChan(). Releases
 	// any resources used by the watch.
+	// Stop 停止监视。将关闭 ResultChan() 返回的通道。释放监视使用的任何资源。
 	Stop()
 
 	// ResultChan returns a chan which will receive all the events. If an error occurs
 	// or Stop() is called, the implementation will close this channel and
 	// release any resources used by the watch.
+	// ResultChan 返回一个 chan，该 chan 将接收所有事件。如果发生错误或调用 Stop()，则实现将关闭此通道并释放监视使用的任何资源。
 	ResultChan() <-chan Event
 }
 
 // EventType defines the possible types of events.
+// EventType 定义了可能的事件类型。
 type EventType string
 
 const (
@@ -54,6 +57,7 @@ var (
 
 // Event represents a single event to a watched resource.
 // +k8s:deepcopy-gen=true
+// Event 表示对被监视资源的单个事件。
 type Event struct {
 	Type EventType
 
@@ -66,6 +70,11 @@ type Event struct {
 	//    nor miss any events.
 	//  * If Type is Error: *api.Status is recommended; other types may make sense
 	//    depending on context.
+	// Object 是：
+	//  * 如果 Type 是 Added 或 Modified：对象的新状态。
+	//  * 如果 Type 是 Deleted：删除之前对象的状态。
+	//  * 如果 Type 是 Bookmark：仅设置 ResourceVersion 字段的对象（正在监视的类型的实例）。从书签 resourceVersion 重新启动监视的成功重启后，客户端保证不会重复事件，也不会错过任何事件。
+	//  * 如果 Type 是 Error：建议使用 *api.Status；根据上下文，其他类型可能是有意义的。
 	Object runtime.Object
 }
 

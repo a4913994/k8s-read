@@ -37,12 +37,14 @@ var _ runtime.CacheableObject = &cachingObject{}
 
 // metaRuntimeInterface implements runtime.Object and
 // metav1.Object interfaces.
+// metaRuntimeInterface 实现了 runtime.Object 和 metav1.Object 接口
 type metaRuntimeInterface interface {
 	runtime.Object
 	metav1.Object
 }
 
 // serializationResult captures a result of serialization.
+// serializationResult 捕获了序列化的结果
 type serializationResult struct {
 	// once should be used to ensure serialization is computed once.
 	once sync.Once
@@ -54,6 +56,7 @@ type serializationResult struct {
 }
 
 // serializationsCache is a type for caching serialization results.
+// serializationsCache 是缓存序列化结果的类型
 type serializationsCache map[runtime.Identifier]*serializationResult
 
 // cachingObject is an object that is able to cache its serializations
@@ -61,6 +64,8 @@ type serializationsCache map[runtime.Identifier]*serializationResult
 //
 // cachingObject implements the metav1.Object interface (accessors for
 // all metadata fields).
+// cachingObject 实现了 metav1.Object 接口（所有元数据字段的访问器）
+// cachingObject 实现了 runtime.CacheableObject 接口
 type cachingObject struct {
 	lock sync.RWMutex
 
@@ -72,14 +77,22 @@ type cachingObject struct {
 	// case when we are setting some fields are ResourceVersion for
 	// DELETE events, so in all other cases we can effectively avoid
 	// performing any deep copies.
+	// deepCopied 定义了对象下面是否已经被深度复制过了
+	// 操作是在第一次 setXxx 操作时延迟执行的
+	// 延迟深度复制对于我们来说是有用的，因为实际上我们设置字段的唯一情况是 DELETE 事件的 ResourceVersion
+	// 所以在所有其他情况下，我们可以有效地避免执行任何深度复制
 	deepCopied bool
 
 	// Object for which serializations are cached.
+	// 用于缓存序列化的对象
 	object metaRuntimeInterface
 
 	// serializations is a cache containing object`s serializations.
 	// The value stored in atomic.Value is of type serializationsCache.
 	// The atomic.Value type is used to allow fast-path.
+	// serializations 是一个包含对象序列化的缓存
+	// 存储在 atomic.Value 中的值的类型是 serializationsCache
+	// 使用 atomic.Value 类型可以实现快速路径
 	serializations atomic.Value
 }
 
@@ -87,6 +100,8 @@ type cachingObject struct {
 // into a cachingObject.
 // An error is returned if it's not possible to cast the object to
 // metav1.Object type.
+// newCachingObject 对给定对象执行深度复制，并将其包装到 cachingObject 中
+// 如果无法将对象转换为 metav1.Object 类型，则返回错误
 func newCachingObject(object runtime.Object) (*cachingObject, error) {
 	if obj, ok := object.(metaRuntimeInterface); ok {
 		result := &cachingObject{
@@ -133,6 +148,9 @@ func (o *cachingObject) getSerializationResult(id runtime.Identifier) *serializa
 // function in case of cache miss.
 // It assumes that for a given identifier, the encode function always encodes
 // each input object into the same output format.
+// CacheEncode 实现了 runtime.CacheableObject 接口
+// 它序列化对象并将结果写入给定的 io.Writer，尝试首先使用已缓存的结果，如果缓存未命中，则回退到给定的 encode 函数
+// 它假定对于给定的标识符，encode 函数总是将每个输入对象编码为相同的输出格式
 func (o *cachingObject) CacheEncode(id runtime.Identifier, encode func(runtime.Object, io.Writer) error, w io.Writer) error {
 	result := o.getSerializationResult(id)
 	result.once.Do(func() {
@@ -155,6 +173,8 @@ func (o *cachingObject) CacheEncode(id runtime.Identifier, encode func(runtime.O
 // GetObject implements runtime.CacheableObject interface.
 // It returns deep-copy of the wrapped object to return ownership of it
 // to the called according to the contract of the interface.
+// GetObject 实现了 runtime.CacheableObject 接口
+// 它返回包装对象的深度副本，以便根据接口的约定将其所有权返回给调用者
 func (o *cachingObject) GetObject() runtime.Object {
 	o.lock.RLock()
 	defer o.lock.RUnlock()
@@ -162,6 +182,7 @@ func (o *cachingObject) GetObject() runtime.Object {
 }
 
 // GetObjectKind implements runtime.Object interface.
+// GetObjectKind 实现了 runtime.Object 接口
 func (o *cachingObject) GetObjectKind() schema.ObjectKind {
 	o.lock.RLock()
 	defer o.lock.RUnlock()
@@ -169,6 +190,7 @@ func (o *cachingObject) GetObjectKind() schema.ObjectKind {
 }
 
 // DeepCopyObject implements runtime.Object interface.
+// DeepCopyObject 实现了 runtime.Object 接口
 func (o *cachingObject) DeepCopyObject() runtime.Object {
 	// DeepCopyObject on cachingObject is not expected to be called anywhere.
 	// However, to be on the safe-side, we implement it, though given the
@@ -191,6 +213,7 @@ var (
 
 // shouldLogCacheInvalidation allows for logging cache-invalidation
 // at most once per second (to avoid spamming logs in case of issues).
+// shouldLogCacheInvalidation 允许每秒最多记录一次缓存无效（以避免由于问题而导致日志记录过多）
 func shouldLogCacheInvalidation(now time.Time) bool {
 	invalidationCacheTimestampLock.Lock()
 	defer invalidationCacheTimestampLock.Unlock()
@@ -216,10 +239,13 @@ func (o *cachingObject) invalidateCacheLocked() {
 }
 
 // The following functions implement metav1.Object interface:
-// - getters simply delegate for the underlying object
-// - setters check if operations isn't noop and if so,
-//   invalidate the cache and delegate for the underlying object
-
+//   - getters simply delegate for the underlying object
+//   - setters check if operations isn't noop and if so,
+//     invalidate the cache and delegate for the underlying object
+//
+// 下面的函数实现了 metav1.Object 接口：
+// - getters 只是委托给底层对象
+// - setters 检查操作是否不是 noop，如果是，则使缓存无效并委托给底层对象
 func (o *cachingObject) conditionalSet(isNoop func() bool, set func()) {
 	if fastPath := func() bool {
 		o.lock.RLock()

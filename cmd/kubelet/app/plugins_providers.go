@@ -50,8 +50,8 @@ func appendPluginBasedOnFeatureFlags(plugins []volume.VolumePlugin, inTreePlugin
 		// TODO: fail and return here once alpha only tests can set the feature flags for a plugin correctly
 	}
 
-	// Skip appending the in-tree plugin to the list of plugins to be probed/initialized
-	// if the plugin unregister feature flag is set
+	//跳过将树内插件追加到要探测/初始化的插件列表中。
+	//如果插件取消注册功能标志被设置
 	if featureGate.Enabled(pluginInfo.pluginUnregisterFeature) {
 		klog.InfoS("Skipped registration of plugin since feature flag is enabled", "pluginName", inTreePluginName, "featureFlag", pluginInfo.pluginUnregisterFeature)
 		return plugins, nil

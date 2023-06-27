@@ -21,5 +21,6 @@ type EphemeralVolumeControllerConfiguration struct {
 	// ConcurrentEphemeralVolumeSyncs is the number of ephemeral volume syncing operations
 	// that will be done concurrently. Larger number = faster ephemeral volume updating,
 	// but more CPU (and network) load.
+	// ConcurrentEphemeralVolumeSyncs 是将同时完成的临时卷同步操作的数量。更大的数字 = 更快的临时卷更新，但更多的 CPU（和网络）负载。
 	ConcurrentEphemeralVolumeSyncs int32
 }

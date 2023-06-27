@@ -67,6 +67,7 @@ const (
 // watchCache. Additionally to a typical "watch.Event" it contains
 // the previous value of the object to enable proper filtering in the
 // upper layers.
+// watchCacheEvent 是发送给 watchCache 用户的单个“watch 事件”。除了典型的“watch.Event”之外，它还包含对象的前一个值，以便在上层过滤器中正确过滤。
 type watchCacheEvent struct {
 	Type            watch.EventType
 	Object          runtime.Object

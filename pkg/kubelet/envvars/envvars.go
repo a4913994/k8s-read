@@ -22,13 +22,13 @@ import (
 	"strconv"
 	"strings"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 )
 
-// FromServices builds environment variables that a container is started with,
-// which tell the container where to find the services it may need, which are
-// provided as an argument.
+// FromServices 构建容器启动时的环境变量。
+// 它告诉容器在哪里可以找到它可能需要的服务，这些服务是作为参数提供的。
+// 作为一个参数提供。
 func FromServices(services []*v1.Service) []v1.EnvVar {
 	var result []v1.EnvVar
 	for i := range services {

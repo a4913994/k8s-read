@@ -31,6 +31,7 @@ type Token interface {
 
 // Request attempts to extract authentication information from a request and
 // returns a Response or an error if the request could not be checked.
+// Request 尝试从请求中提取身份验证信息，如果无法检查请求，则返回 Response 或错误。
 type Request interface {
 	AuthenticateRequest(req *http.Request) (*Response, bool, error)
 }

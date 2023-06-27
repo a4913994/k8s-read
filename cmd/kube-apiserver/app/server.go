@@ -178,6 +178,7 @@ func Run(completeOptions completedServerRunOptions, stopCh <-chan struct{}) erro
 }
 
 // CreateServerChain creates the apiservers connected via delegation.
+// CreateServerChain 创建通过委托连接的 apiservers。
 func CreateServerChain(completedOptions completedServerRunOptions) (*aggregatorapiserver.APIAggregator, error) {
 	kubeAPIServerConfig, serviceResolver, pluginInitializer, err := CreateKubeAPIServerConfig(completedOptions)
 	if err != nil {
@@ -515,6 +516,7 @@ func BuildPriorityAndFairness(s *options.ServerRunOptions, extclient clientgocli
 }
 
 // completedServerRunOptions is a private wrapper that enforces a call of Complete() before Run can be invoked.
+// completedServerRunOptions 是一个私有的包装器，它强制在调用 Run 之前调用 Complete()。
 type completedServerRunOptions struct {
 	*options.ServerRunOptions
 }

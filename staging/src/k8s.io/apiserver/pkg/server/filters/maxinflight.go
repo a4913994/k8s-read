@@ -124,6 +124,7 @@ func initMaxInFlight(nonMutatingLimit, mutatingLimit int) {
 }
 
 // WithMaxInFlightLimit limits the number of in-flight requests to buffer size of the passed in channel.
+// WithMaxInFlightLimit 将进行中请求的数量限制为传入通道的缓冲区大小。
 func WithMaxInFlightLimit(
 	handler http.Handler,
 	nonMutatingLimit int,

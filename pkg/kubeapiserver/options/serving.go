@@ -24,6 +24,7 @@ import (
 
 // NewSecureServingOptions gives default values for the kube-apiserver which are not the options wanted by
 // "normal" API servers running on the platform
+// NewSecureServingOptions 为 kube-apiserver 提供默认值，这不是平台上运行的“普通”API 服务器所需的选项
 func NewSecureServingOptions() *genericoptions.SecureServingOptionsWithLoopback {
 	o := genericoptions.SecureServingOptions{
 		BindAddress: netutils.ParseIPSloppy("0.0.0.0"),

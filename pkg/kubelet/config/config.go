@@ -36,19 +36,24 @@ import (
 )
 
 // PodConfigNotificationMode describes how changes are sent to the update channel.
+// PodConfigNotificationMode 描述如何将更改发送到更新通道。
 type PodConfigNotificationMode int
 
 const (
 	// PodConfigNotificationUnknown is the default value for
 	// PodConfigNotificationMode when uninitialized.
+	// PodConfigNotificationUnknown 是未初始化时 PodConfigNotificationMode 的默认值。
 	PodConfigNotificationUnknown PodConfigNotificationMode = iota
 	// PodConfigNotificationSnapshot delivers the full configuration as a SET whenever
 	// any change occurs.
+	// PodConfigNotificationSnapshot 在任何更改发生时都将完整配置作为 SET 传递。
 	PodConfigNotificationSnapshot
 	// PodConfigNotificationSnapshotAndUpdates delivers an UPDATE and DELETE message whenever pods are
 	// changed, and a SET message if there are any additions or removals.
+	// PodConfigNotificationSnapshotAndUpdates 在更改 pod 时传递 UPDATE 和 DELETE 消息，如果有任何添加或删除，则传递 SET 消息。
 	PodConfigNotificationSnapshotAndUpdates
 	// PodConfigNotificationIncremental delivers ADD, UPDATE, DELETE, REMOVE, RECONCILE to the update channel.
+	// PodConfigNotificationIncremental 将 ADD、UPDATE、DELETE、REMOVE、RECONCILE 传递到更新通道。
 	PodConfigNotificationIncremental
 )
 
@@ -56,9 +61,9 @@ type podStartupSLIObserver interface {
 	ObservedPodOnWatch(pod *v1.Pod, when time.Time)
 }
 
-// PodConfig is a configuration mux that merges many sources of pod configuration into a single
-// consistent structure, and then delivers incremental change notifications to listeners
-// in order.
+// PodConfig是一个配置复用器，它将许多pod配置的来源合并到一个单一的
+// 统一的结构，然后按顺序向听众提供增量的变化通知。
+// 顺序传递。
 type PodConfig struct {
 	pods *podStorage
 	mux  *config.Mux
@@ -73,6 +78,7 @@ type PodConfig struct {
 
 // NewPodConfig creates an object that can merge many configuration sources into a stream
 // of normalized updates to a pod configuration.
+// NewPodConfig 创建一个可以将许多配置源合并到一个流中的对象，该流将标准化的更新传递到 pod 配置中。
 func NewPodConfig(mode PodConfigNotificationMode, recorder record.EventRecorder, startupSLIObserver podStartupSLIObserver) *PodConfig {
 	updates := make(chan kubetypes.PodUpdate, 50)
 	storage := newPodStorage(updates, mode, recorder, startupSLIObserver)
@@ -120,14 +126,18 @@ func (c *PodConfig) Sync() {
 // to the channel are delivered in order.  Note that this object is an in-memory source of
 // "truth" and on creation contains zero entries.  Once all previously read sources are
 // available, then this object should be considered authoritative.
+// podStorage 管理任何时刻的当前 pod 状态，并确保更新传递到通道中的顺序。
+// 请注意，此对象是“真实性”的内存源，并且在创建时包含零条目。一旦所有以前读取的源都可用，那么此对象应被视为权威。
 type podStorage struct {
 	podLock sync.RWMutex
 	// map of source name to pod uid to pod reference
+	// map[源名称]map[pod uid]pod 引用
 	pods map[string]map[types.UID]*v1.Pod
 	mode PodConfigNotificationMode
 
 	// ensures that updates are delivered in strict order
 	// on the updates channel
+	// 确保按严格顺序传递更新到更新通道
 	updateLock sync.Mutex
 	updates    chan<- kubetypes.PodUpdate
 
@@ -136,6 +146,7 @@ type podStorage struct {
 	sourcesSeen     sets.String
 
 	// the EventRecorder to use
+	// EventRecorder 用于记录事件
 	recorder record.EventRecorder
 
 	startupSLIObserver podStartupSLIObserver
@@ -144,6 +155,8 @@ type podStorage struct {
 // TODO: PodConfigNotificationMode could be handled by a listener to the updates channel
 // in the future, especially with multiple listeners.
 // TODO: allow initialization of the current state of the store with snapshotted version.
+// TODO: PodConfigNotificationMode 可以在将来通过更新通道的侦听器来处理，特别是在多个侦听器的情况下。
+// TODO: 允许使用快照版本初始化存储的当前状态。
 func newPodStorage(updates chan<- kubetypes.PodUpdate, mode PodConfigNotificationMode, recorder record.EventRecorder, startupSLIObserver podStartupSLIObserver) *podStorage {
 	return &podStorage{
 		pods:               make(map[string]map[types.UID]*v1.Pod),
@@ -158,6 +171,8 @@ func newPodStorage(updates chan<- kubetypes.PodUpdate, mode PodConfigNotificatio
 // Merge normalizes a set of incoming changes from different sources into a map of all Pods
 // and ensures that redundant changes are filtered out, and then pushes zero or more minimal
 // updates onto the update channel.  Ensures that updates are delivered in order.
+// Merge 将来自不同源的一组传入更改标准化为所有 Pod 的映射，并确保过滤掉冗余更改，然后将零个或多个最小更新推送到更新通道。
+// 确保按顺序传递更新。
 func (s *podStorage) Merge(source string, change interface{}) error {
 	s.updateLock.Lock()
 	defer s.updateLock.Unlock()
@@ -235,6 +250,9 @@ func (s *podStorage) merge(source string, change interface{}) (adds, updates, de
 	// updatePodFunc is the local function which updates the pod cache *oldPods* with new pods *newPods*.
 	// After updated, new pod will be stored in the pod cache *pods*.
 	// Notice that *pods* and *oldPods* could be the same cache.
+	// updatePodFunc 是本地函数，它使用新的 pod *newPods* 更新 pod 缓存 *oldPods*。
+	// 更新后，新的 pod 将存储在 pod 缓存 *pods* 中。
+	// 请注意，*pods* 和 *oldPods* 可能是相同的缓存。
 	updatePodsFunc := func(newPods []*v1.Pod, oldPods, pods map[types.UID]*v1.Pod) {
 		filtered := filterInvalidPods(newPods, source, s.recorder)
 		for _, ref := range filtered {
@@ -368,6 +386,7 @@ func isLocalAnnotationKey(key string) bool {
 
 // isAnnotationMapEqual returns true if the existing annotation Map is equal to candidate except
 // for local annotations.
+// isAnnotationMapEqual 返回 true，如果现有注释映射等于候选人，除了本地注释
 func isAnnotationMapEqual(existingMap, candidateMap map[string]string) bool {
 	if candidateMap == nil {
 		candidateMap = make(map[string]string)
@@ -394,6 +413,7 @@ func isAnnotationMapEqual(existingMap, candidateMap map[string]string) bool {
 }
 
 // recordFirstSeenTime records the first seen time of this pod.
+// recordFirstSeenTime 记录此 pod 的第一次见面时间
 func recordFirstSeenTime(pod *v1.Pod) {
 	klog.V(4).InfoS("Receiving a new pod", "pod", klog.KObj(pod))
 	pod.Annotations[kubetypes.ConfigFirstSeenAnnotationKey] = kubetypes.NewTimestamp().GetString()
@@ -401,6 +421,7 @@ func recordFirstSeenTime(pod *v1.Pod) {
 
 // updateAnnotations returns an Annotation map containing the api annotation map plus
 // locally managed annotations
+// updateAnnotations 返回一个包含 api 注解映射和本地管理注解的注解映射
 func updateAnnotations(existing, ref *v1.Pod) {
 	annotations := make(map[string]string, len(ref.Annotations)+len(localAnnotations))
 	for k, v := range ref.Annotations {
@@ -431,15 +452,26 @@ func podsDifferSemantically(existing, ref *v1.Pod) bool {
 //   - if ref makes no meaningful change, but changes the pod status, returns needReconcile=true
 //   - else return all false
 //     Now, needUpdate, needGracefulDelete and needReconcile should never be both true
+//
+// checkAndUpdatePod 更新现有的，并且：
+// - 如果 ref 使得一个有意义的变化，返回 needUpdate=true
+// - 如果 ref 使得一个有意义的变化，并且这个变化是优雅的删除，返回 needGracefulDelete=true
+// - 如果 ref 没有使得有意义的变化，但是改变了 pod 状态，返回 needReconcile=true
+// - 否则返回全部 false
+// 现在，needUpdate，needGracefulDelete 和 needReconcile 不应该同时为 true
 func checkAndUpdatePod(existing, ref *v1.Pod) (needUpdate, needReconcile, needGracefulDelete bool) {
 
 	// 1. this is a reconcile
 	// TODO: it would be better to update the whole object and only preserve certain things
 	//       like the source annotation or the UID (to ensure safety)
+	// 1. 这是一个 reconcile
+	// TODO: 最好是更新整个对象并且只保留某些东西，比如 source 注解或者 UID（以确保安全）
 	if !podsDifferSemantically(existing, ref) {
 		// this is not an update
 		// Only check reconcile when it is not an update, because if the pod is going to
 		// be updated, an extra reconcile is unnecessary
+		// 这不是一个更新
+		// 只有在不是更新的时候才检查 reconcile，因为如果 pod 要被更新，额外的 reconcile 是不必要的
 		if !reflect.DeepEqual(existing.Status, ref.Status) {
 			// Pod with changed pod status needs reconcile, because kubelet should
 			// be the source of truth of pod status.
@@ -451,6 +483,7 @@ func checkAndUpdatePod(existing, ref *v1.Pod) (needUpdate, needReconcile, needGr
 
 	// Overwrite the first-seen time with the existing one. This is our own
 	// internal annotation, there is no need to update.
+	// 用现有的覆盖第一次看到的时间。这是我们自己的内部注解，没有必要更新。
 	ref.Annotations[kubetypes.ConfigFirstSeenAnnotationKey] = existing.Annotations[kubetypes.ConfigFirstSeenAnnotationKey]
 
 	existing.Spec = ref.Spec
@@ -472,6 +505,7 @@ func checkAndUpdatePod(existing, ref *v1.Pod) (needUpdate, needReconcile, needGr
 }
 
 // Sync sends a copy of the current state through the update channel.
+// Sync 通过 update 通道发送当前状态的副本。
 func (s *podStorage) Sync() {
 	s.updateLock.Lock()
 	defer s.updateLock.Unlock()
@@ -479,6 +513,7 @@ func (s *podStorage) Sync() {
 }
 
 // Object implements config.Accessor
+// Object 实现了 config.Accessor
 func (s *podStorage) MergedState() interface{} {
 	s.podLock.RLock()
 	defer s.podLock.RUnlock()

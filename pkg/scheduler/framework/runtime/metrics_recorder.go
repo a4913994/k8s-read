@@ -26,6 +26,7 @@ import (
 
 // frameworkMetric is the data structure passed in the buffer channel between the main framework thread
 // and the metricsRecorder goroutine.
+// frameworkMetric是在主框架线程和metricsRecorder程序之间的缓冲通道中传递的数据结构。
 type frameworkMetric struct {
 	metric      *k8smetrics.HistogramVec
 	labelValues []string

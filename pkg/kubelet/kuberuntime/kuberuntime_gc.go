@@ -34,6 +34,7 @@ import (
 )
 
 // containerGC is the manager of garbage collection.
+// containerGC是垃圾收集的管理器。
 type containerGC struct {
 	client           internalapi.RuntimeService
 	manager          *kubeGenericRuntimeManager
@@ -41,6 +42,7 @@ type containerGC struct {
 }
 
 // NewContainerGC creates a new containerGC.
+// NewContainerGC创建一个新的containerGC。
 func newContainerGC(client internalapi.RuntimeService, podStateProvider podStateProvider, manager *kubeGenericRuntimeManager) *containerGC {
 	return &containerGC{
 		client:           client,
@@ -50,19 +52,25 @@ func newContainerGC(client internalapi.RuntimeService, podStateProvider podState
 }
 
 // containerGCInfo is the internal information kept for containers being considered for GC.
+// containerGCInfo是保留用于GC的容器的内部信息。
 type containerGCInfo struct {
 	// The ID of the container.
+	// 容器的ID。
 	id string
 	// The name of the container.
+	// 容器的名称。
 	name string
 	// Creation time for the container.
+	// 容器的创建时间。
 	createTime time.Time
 	// If true, the container is in unknown state. Garbage collector should try
 	// to stop containers before removal.
+	// 如果为true，则容器处于未知状态。 垃圾收集器应该尝试在删除之前停止容器。
 	unknown bool
 }
 
 // sandboxGCInfo is the internal information kept for sandboxes being considered for GC.
+// sandboxGCInfo是保留用于GC的沙盒的内部信息。
 type sandboxGCInfo struct {
 	// The ID of the sandbox.
 	id string
@@ -73,6 +81,7 @@ type sandboxGCInfo struct {
 }
 
 // evictUnit is considered for eviction as units of (UID, container name) pair.
+// evictUnit被视为（UID，容器名称）对的单位进行驱逐。
 type evictUnit struct {
 	// UID of the pod.
 	uid types.UID
@@ -84,6 +93,7 @@ type containersByEvictUnit map[evictUnit][]containerGCInfo
 type sandboxesByPodUID map[types.UID][]sandboxGCInfo
 
 // NumContainers returns the number of containers in this map.
+// NumContainers返回此映射中的容器数。
 func (cu containersByEvictUnit) NumContainers() int {
 	num := 0
 	for key := range cu {
@@ -93,6 +103,7 @@ func (cu containersByEvictUnit) NumContainers() int {
 }
 
 // NumEvictUnits returns the number of pod in this map.
+// NumEvictUnits返回此映射中的pod数。
 func (cu containersByEvictUnit) NumEvictUnits() int {
 	return len(cu)
 }
@@ -273,6 +284,11 @@ func (cgc *containerGC) evictContainers(ctx context.Context, gcPolicy kubecontai
 //  2. contains no containers.
 //  3. belong to a non-existent (i.e., already removed) pod, or is not the
 //     most recently created sandbox for the pod.
+//
+// evictSandboxes移除所有可移除的沙箱。一个可移除的沙箱必须满足以下要求：
+// 1. 不在就绪状态
+// 2. 不包含任何容器。
+// 3. 属于一个不存在的（即已经删除的）pod，或者不是pod的最近创建的沙箱。
 func (cgc *containerGC) evictSandboxes(ctx context.Context, evictNonDeletedPods bool) error {
 	containers, err := cgc.manager.getKubeletContainers(ctx, true)
 	if err != nil {
@@ -327,6 +343,7 @@ func (cgc *containerGC) evictSandboxes(ctx context.Context, evictNonDeletedPods 
 
 // evictPodLogsDirectories evicts all evictable pod logs directories. Pod logs directories
 // are evictable if there are no corresponding pods.
+// evictPodLogsDirectories移除所有可移除的pod日志目录。如果没有相应的pod，pod日志目录是可移除的。
 func (cgc *containerGC) evictPodLogsDirectories(ctx context.Context, allSourcesReady bool) error {
 	osInterface := cgc.manager.osInterface
 	if allSourcesReady {
@@ -406,6 +423,13 @@ func (cgc *containerGC) evictPodLogsDirectories(ctx context.Context, allSourcesR
 // * removes oldest dead containers by enforcing gcPolicy.MaxContainers.
 // * gets evictable sandboxes which are not ready and contains no containers.
 // * removes evictable sandboxes.
+// GarbageCollect移除死亡的容器，使用指定的容器gc策略。注意，gc策略不适用于沙箱。沙箱只有在它们不准备好并且不包含任何容器时才会被移除。
+// GarbageCollect包含以下步骤：
+// * 获取不活动的容器，这些容器不活动并且创建超过gcPolicy.MinAge。
+// * 通过强制gcPolicy.MaxPerPodContainer移除每个pod中最老的死亡容器。
+// * 通过强制gcPolicy.MaxContainers移除最老的死亡容器。
+// * 获取不准备好的沙箱，这些沙箱不包含任何容器。
+// * 移除可移除的沙箱。
 func (cgc *containerGC) GarbageCollect(ctx context.Context, gcPolicy kubecontainer.GCPolicy, allSourcesReady bool, evictNonDeletedPods bool) error {
 	errors := []error{}
 	// Remove evictable containers

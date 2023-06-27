@@ -122,6 +122,7 @@ func newSerializersForScheme(scheme *runtime.Scheme, mf json.MetaFactory, option
 
 // CodecFactory provides methods for retrieving codecs and serializers for specific
 // versions and content types.
+// CodecFactory 提供检索特定版本和内容类型的编解码器和序列化程序的方法。
 type CodecFactory struct {
 	scheme    *runtime.Scheme
 	universal runtime.Decoder
@@ -131,33 +132,41 @@ type CodecFactory struct {
 }
 
 // CodecFactoryOptions holds the options for configuring CodecFactory behavior
+// CodecFactoryOptions 包含配置 CodecFactory 行为的选项
 type CodecFactoryOptions struct {
 	// Strict configures all serializers in strict mode
+	// Strict 以严格模式配置所有序列化程序
 	Strict bool
 	// Pretty includes a pretty serializer along with the non-pretty one
+	// Pretty 包括一个漂亮的序列化器和一个非漂亮的序列化器
 	Pretty bool
 }
 
 // CodecFactoryOptionsMutator takes a pointer to an options struct and then modifies it.
 // Functions implementing this type can be passed to the NewCodecFactory() constructor.
+// CodecFactoryOptionsMutator 接受一个指向选项结构的指针，然后修改它。可以将实现此类型的函数传递给 NewCodecFactory() 构造函数。
 type CodecFactoryOptionsMutator func(*CodecFactoryOptions)
 
 // EnablePretty enables including a pretty serializer along with the non-pretty one
+// EnablePretty 启用包括漂亮的序列化器和非漂亮的序列化器
 func EnablePretty(options *CodecFactoryOptions) {
 	options.Pretty = true
 }
 
 // DisablePretty disables including a pretty serializer along with the non-pretty one
+// DisablePretty 禁用包括漂亮的序列化器和非漂亮的序列化器
 func DisablePretty(options *CodecFactoryOptions) {
 	options.Pretty = false
 }
 
 // EnableStrict enables configuring all serializers in strict mode
+// EnableStrict 启用在严格模式下配置所有序列化程序
 func EnableStrict(options *CodecFactoryOptions) {
 	options.Strict = true
 }
 
 // DisableStrict disables configuring all serializers in strict mode
+// DisableStrict 禁止在严格模式下配置所有序列化程序
 func DisableStrict(options *CodecFactoryOptions) {
 	options.Strict = false
 }
@@ -166,11 +175,11 @@ func DisableStrict(options *CodecFactoryOptions) {
 // and conversion wrappers to define preferred internal and external versions. In the future,
 // as the internal version is used less, callers may instead use a defaulting serializer and
 // only convert objects which are shared internally (Status, common API machinery).
-//
+// NewCodecFactory 提供方法来检索支持的有线格式的序列化器和转换包装器以定义首选的内部和外部版本。将来，随着内部版本的使用越来越少，调用者可能会改用默认的序列化程序，并且只转换内部共享的对象（状态，通用 API 机制）。
 // Mutators can be passed to change the CodecFactoryOptions before construction of the factory.
 // It is recommended to explicitly pass mutators instead of relying on defaults.
 // By default, Pretty is enabled -- this is conformant with previously supported behavior.
-//
+// 可以传递 Mutators 以在工厂构造之前更改 CodecFactoryOptions。建议显式传递修改器而不是依赖默认值。默认情况下，Pretty 是启用的——这符合以前支持的行为。
 // TODO: allow other codecs to be compiled in?
 // TODO: accept a scheme interface
 func NewCodecFactory(scheme *runtime.Scheme, mutators ...CodecFactoryOptionsMutator) CodecFactory {

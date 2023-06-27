@@ -31,32 +31,41 @@ func init() {
 }
 
 // Context is additional information that a storage transformation may need to verify the data at rest.
+// Context 是存储转换可能需要验证静态数据的附加信息。
 type Context interface {
 	// AuthenticatedData should return an array of bytes that describes the current value. If the value changes,
 	// the transformer may report the value as unreadable or tampered. This may be nil if no such description exists
 	// or is needed. For additional verification, set this to data that strongly identifies the value, such as
 	// the key and creation version of the stored data.
+	// AuthenticatedData 应返回描述当前值的字节数组。如果值发生变化，转换器可能会报告该值不可读或被篡改。
+	// 如果不存在或不需要这样的描述，这可能是零。对于额外的验证，将此设置为强烈标识值的数据，例如存储数据的密钥和创建版本。
 	AuthenticatedData() []byte
 }
 
 // Transformer allows a value to be transformed before being read from or written to the underlying store. The methods
 // must be able to undo the transformation caused by the other.
+// Transformer 允许在从底层存储读取或写入底层存储之前转换值。这些方法必须能够撤消由其他方法引起的转换。
 type Transformer interface {
 	// TransformFromStorage may transform the provided data from its underlying storage representation or return an error.
 	// Stale is true if the object on disk is stale and a write to etcd should be issued, even if the contents of the object
 	// have not changed.
+	// TransformFromStorage 可能会从其底层存储表示转换提供的数据或返回错误。
+	// 如果磁盘上的对象陈旧并且应该向 etcd 发出写入，则 Stale 为真，即使对象的内容没有更改。
 	TransformFromStorage(ctx context.Context, data []byte, dataCtx Context) (out []byte, stale bool, err error)
 	// TransformToStorage may transform the provided data into the appropriate form in storage or return an error.
+	// TransformToStorage 可能会将提供的数据转换为存储中的适当形式或返回错误。
 	TransformToStorage(ctx context.Context, data []byte, dataCtx Context) (out []byte, err error)
 }
 
 // DefaultContext is a simple implementation of Context for a slice of bytes.
+// DefaultContext 是 Context 的一个字节切片的简单实现。
 type DefaultContext []byte
 
 // AuthenticatedData returns itself.
 func (c DefaultContext) AuthenticatedData() []byte { return c }
 
 // PrefixTransformer holds a transformer interface and the prefix that the transformation is located under.
+// PrefixTransformer 持有转换器接口和转换所在的前缀。
 type PrefixTransformer struct {
 	Prefix      []byte
 	Transformer Transformer
@@ -73,6 +82,8 @@ var _ Transformer = &prefixTransformers{}
 // prefixes in order. The first matching prefix will be used to transform the value (the prefix is stripped
 // before the Transformer interface is invoked). The first provided transformer will be used when writing to
 // the store.
+// NewPrefixTransformers 通过按顺序检查传入数据与提供的前缀来支持 Transformer 接口。
+// 第一个匹配的前缀将用于转换值（前缀在调用 Transformer 接口之前被剥离）。写入存储时将使用第一个提供的转换器
 func NewPrefixTransformers(err error, transformers ...PrefixTransformer) Transformer {
 	if err == nil {
 		err = fmt.Errorf("the provided value does not match any of the supported transformers")
@@ -86,6 +97,7 @@ func NewPrefixTransformers(err error, transformers ...PrefixTransformer) Transfo
 // TransformFromStorage finds the first transformer with a prefix matching the provided data and returns
 // the result of transforming the value. It will always mark any transformation as stale that is not using
 // the first transformer.
+// TransformFromStorage 找到前缀与提供的数据匹配的第一个转换器，并返回转换值的结果。它将始终将任何未使用第一个转换器的转换标记为陈旧
 func (t *prefixTransformers) TransformFromStorage(ctx context.Context, data []byte, dataCtx Context) ([]byte, bool, error) {
 	start := time.Now()
 	var errs []error
@@ -151,6 +163,7 @@ func (t *prefixTransformers) TransformFromStorage(ctx context.Context, data []by
 }
 
 // TransformToStorage uses the first transformer and adds its prefix to the data.
+// TransformToStorage 使用第一个转换器并将其前缀添加到数据中。
 func (t *prefixTransformers) TransformToStorage(ctx context.Context, data []byte, dataCtx Context) ([]byte, error) {
 	start := time.Now()
 	transformer := t.transformers[0]

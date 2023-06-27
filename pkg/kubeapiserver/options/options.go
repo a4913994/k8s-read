@@ -24,10 +24,13 @@ import (
 )
 
 // DefaultServiceNodePortRange is the default port range for NodePort services.
+// DefaultServiceNodePortRange 是 NodePort 服务的默认端口范围
 var DefaultServiceNodePortRange = utilnet.PortRange{Base: 30000, Size: 2768}
 
 // DefaultServiceIPCIDR is a CIDR notation of IP range from which to allocate service cluster IPs
+// DefaultServiceIPCIDR 是从中分配服务集群 IP 的 IP 范围的 CIDR 表示法
 var DefaultServiceIPCIDR = net.IPNet{IP: netutils.ParseIPSloppy("10.0.0.0"), Mask: net.CIDRMask(24, 32)}
 
 // DefaultEtcdPathPrefix is the default key prefix of etcd for API Server
+// DefaultEtcdPathPrefix 是 API 服务器的 etcd 的默认键前缀
 const DefaultEtcdPathPrefix = "/registry"

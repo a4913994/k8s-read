@@ -20,5 +20,6 @@ package config
 type TTLAfterFinishedControllerConfiguration struct {
 	// concurrentTTLSyncs is the number of TTL-after-finished collector workers that are
 	// allowed to sync concurrently.
+	// concurrentTTLSyncs是允许同步的TTL-after-finished采集器工作者的数量。
 	ConcurrentTTLSyncs int32
 }

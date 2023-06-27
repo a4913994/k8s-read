@@ -35,6 +35,7 @@ type defaultTableConvertor struct {
 
 // NewDefaultTableConvertor creates a default convertor; the provided resource is used for error messages
 // if no resource info can be determined from the context passed to ConvertToTable.
+// NewDefaultTableConvertor 创建一个默认的转换器；如果无法从传递给 ConvertToTable 的上下文中确定资源信息，则使用提供的资源用于错误消息。
 func NewDefaultTableConvertor(defaultQualifiedResource schema.GroupResource) TableConvertor {
 	return defaultTableConvertor{defaultQualifiedResource: defaultQualifiedResource}
 }

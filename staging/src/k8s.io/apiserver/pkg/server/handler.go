@@ -34,20 +34,28 @@ import (
 	"k8s.io/apiserver/pkg/server/mux"
 )
 
-// APIServerHandlers holds the different http.Handlers used by the API server.
+// APIServerHandler holds the different http.Handlers used by the API server.
 // This includes the full handler chain, the director (which chooses between gorestful and nonGoRestful,
 // the gorestful handler (used for the API) which falls through to the nonGoRestful handler on unregistered paths,
 // and the nonGoRestful handler (which can contain a fallthrough of its own)
 // FullHandlerChain -> Director -> {GoRestfulContainer,NonGoRestfulMux} based on inspection of registered web services
+// APIServerHandlers 持有 API 服务器使用的不同的 http.Handlers。
+// 这包括完整的处理链、导演（用于选择 gorestful 和 nonGoRestful 之间）、
+// gorestful 处理器（用于 API），它在未注册路径上会降级到 nonGoRestful 处理器，
+// 以及 nonGoRestful 处理器（它本身也可以降级）
+// FullHandlerChain -> Director -> {GoRestfulContainer,NonGoRestfulMux} 基于已注册 web 服务的检查
 type APIServerHandler struct {
 	// FullHandlerChain is the one that is eventually served with.  It should include the full filter
 	// chain and then call the Director.
+	// FullHandlerChain 是最终提供服务的。它应该包含完整的过滤器链，然后调用 Director。
 	FullHandlerChain http.Handler
 	// The registered APIs.  InstallAPIs uses this.  Other servers probably shouldn't access this directly.
+	// 已注册的 API。InstallAPIs 使用它。其他服务器可能不应该直接访问它。
 	GoRestfulContainer *restful.Container
 	// NonGoRestfulMux is the final HTTP handler in the chain.
 	// It comes after all filters and the API handling
 	// This is where other servers can attach handler to various parts of the chain.
+	// NonGoRestfulMux 是链中的最终 HTTP 处理器。
 	NonGoRestfulMux *mux.PathRecorderMux
 
 	// Director is here so that we can properly handle fall through and proxy cases.
@@ -63,11 +71,17 @@ type APIServerHandler struct {
 	// order to handle "normal" paths and delegation. Hopefully no API consumers will ever have to deal with this level of detail.  I think
 	// we should consider completely removing gorestful.
 	// Other servers should only use this opaquely to delegate to an API server.
+	// Director 在这里，以便我们能够正确处理降级和代理情况。
+	// 这看起来有点疯狂，但这是发生的事情。我们需要在 gorestful 中注册 /apis 处理，以便为兼容性生成 swagger。使用 `/apis` 作为 webservice 进行处理，这意味着它会强制 404（不允许默认值）所有不是 /apis 或 /apis/ 的请求。我们需要这些调用降级到 goresful 以进行正确的委派。尝试为包含它的模式注册不起作用，因为 gorestful 会协商动词和内容编码，所有这些东西在 gorestful 真正需要传递时都会变得疯狂。此外，openapi 强制执行唯一的动词约束，我们不适合它，它仍然会弄乱 swagger。尝试将 webservices 切换到路由不起作用，因为包含的 webservice 面临上述所有问题。
+	// 这导致了在这里所做的疯狂事情。我们的 mux 做了我们需要的事情，所以我们将它放在 gorestful 前面。它将自我检查，以决定路由是否可能由 goresful 处理，并在需要时将其路由到那里。否则，它会转到 NonGoRestfulMux mux，以处理“正常”路径和委派。希望没有 API 消费者会有必要处理这种程度的细节。我认为我们应该完全删除 gorestful。
+	// 其他服务器应该只能模糊地使用它来委派给 API 服务器。
 	Director http.Handler
 }
 
 // HandlerChainBuilderFn is used to wrap the GoRestfulContainer handler using the provided handler chain.
 // It is normally used to apply filtering like authentication and authorization
+// HandlerChainBuilderFn 用于使用提供的处理器链包装 GoRestfulContainer 处理器。
+// 它通常用于应用过滤器，如身份验证和授权
 type HandlerChainBuilderFn func(apiHandler http.Handler) http.Handler
 
 func NewAPIServerHandler(name string, s runtime.NegotiatedSerializer, handlerChainBuilder HandlerChainBuilderFn, notFoundHandler http.Handler) *APIServerHandler {
@@ -101,6 +115,7 @@ func NewAPIServerHandler(name string, s runtime.NegotiatedSerializer, handlerCha
 }
 
 // ListedPaths returns the paths that should be shown under /
+// ListedPaths 返回应显示在 / 下的路径
 func (a *APIServerHandler) ListedPaths() []string {
 	var handledPaths []string
 	// Extract the paths handled using restful.WebService

@@ -21,5 +21,6 @@ type DeploymentControllerConfiguration struct {
 	// concurrentDeploymentSyncs is the number of deployment objects that are
 	// allowed to sync concurrently. Larger number = more responsive deployments,
 	// but more CPU (and network) load.
+	// concurrentDeploymentSyncs 是允许并发同步的部署对象的数量。更大的数字 = 更多的部署，但更多的 CPU（和网络）负载。
 	ConcurrentDeploymentSyncs int32
 }

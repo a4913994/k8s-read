@@ -33,8 +33,10 @@ import (
 
 // AdmissionOptions holds the admission options.
 // It is a wrap of generic AdmissionOptions.
+// AdmissionOptions 处理 admission 控制器的选项, 它是通用 AdmissionOptions 的封装
 type AdmissionOptions struct {
 	// GenericAdmission holds the generic admission options.
+	// GenericAdmission 处理通用 admission 控制器的选项
 	GenericAdmission *genericoptions.AdmissionOptions
 	// DEPRECATED flag, should use EnabledAdmissionPlugins and DisabledAdmissionPlugins.
 	// They are mutually exclusive, specify both will lead to an error.
@@ -42,14 +44,18 @@ type AdmissionOptions struct {
 }
 
 // NewAdmissionOptions creates a new instance of AdmissionOptions
+// NewAdmissionOptions 创建一个 AdmissionOptions 实例
 // Note:
 //
-//	In addition it calls RegisterAllAdmissionPlugins to register
-//	all kube-apiserver admission plugins.
+//		In addition it calls RegisterAllAdmissionPlugins to register
+//		all kube-apiserver admission plugins.
+//	 除此之外, 它还调用了 RegisterAllAdmissionPlugins 来注册所有 kube-apiserver admission 控制器
 //
-//	Provides the list of RecommendedPluginOrder that holds sane values
-//	that can be used by servers that don't care about admission chain.
-//	Servers that do care can overwrite/append that field after creation.
+//		Provides the list of RecommendedPluginOrder that holds sane values
+//		that can be used by servers that don't care about admission chain.
+//		Servers that do care can overwrite/append that field after creation.
+//	 提供了一个 RecommendedPluginOrder 列表, 该列表包含了一些可以被不关心 admission 链的服务器使用的值
+//	 关心的服务器可以在创建之后覆盖/追加该字段
 func NewAdmissionOptions() *AdmissionOptions {
 	options := genericoptions.NewAdmissionOptions()
 	// register all admission plugins
@@ -65,6 +71,7 @@ func NewAdmissionOptions() *AdmissionOptions {
 }
 
 // AddFlags adds flags related to admission for kube-apiserver to the specified FlagSet
+// AddFlags 将与 kube-apiserver 相关的 admission 控制器的 flag 添加到指定的 FlagSet 中
 func (a *AdmissionOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.StringSliceVar(&a.PluginNames, "admission-control", a.PluginNames, ""+
 		"Admission is divided into two phases. "+
@@ -105,6 +112,7 @@ func (a *AdmissionOptions) Validate() []error {
 
 // ApplyTo adds the admission chain to the server configuration.
 // Kube-apiserver just call generic AdmissionOptions.ApplyTo.
+// ApplyTo 将 admission 链添加到服务器配置中
 func (a *AdmissionOptions) ApplyTo(
 	c *server.Config,
 	informers informers.SharedInformerFactory,

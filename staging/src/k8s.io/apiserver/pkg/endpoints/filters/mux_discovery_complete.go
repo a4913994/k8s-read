@@ -38,7 +38,7 @@ func NoMuxAndDiscoveryIncompleteKey(ctx context.Context) bool {
 // WithMuxAndDiscoveryComplete puts the muxAndDiscoveryIncompleteKey in the context if a request has been made before muxAndDiscoveryCompleteSignal has been ready.
 // Putting the key protect us from returning a 404 response instead of a 503.
 // It is especially important for controllers like GC and NS since they act on 404s.
-//
+// 如果在 muxAndDiscoveryCompleteSignal 准备好之前已发出请求，WithMuxAndDiscoveryComplete 会将 muxAndDiscoveryIncompleteKey 放入上下文中。放置密钥可以防止我们返回 404 响应而不是 503。这对于像 GC 和 NS 这样的控制器尤其重要，因为它们作用于 404。
 // The presence of the key is checked in the NotFoundHandler (staging/src/k8s.io/apiserver/pkg/util/notfoundhandler/not_found_handler.go)
 //
 // The primary reason this filter exists is to protect from a potential race between the client's requests reaching the NotFoundHandler and the server becoming ready.

@@ -29,6 +29,7 @@ import (
 )
 
 // WithPanicRecovery wraps an http Handler to recover and log panics (except in the special case of http.ErrAbortHandler panics, which suppress logging).
+// WithPanicRecovery 包装了一个 http 处理程序来恢复和记录恐慌（除了 http.ErrAbortHandler 恐慌的特殊情况，它会抑制日志记录）。
 func WithPanicRecovery(handler http.Handler, resolver request.RequestInfoResolver) http.Handler {
 	return withPanicRecovery(handler, func(w http.ResponseWriter, req *http.Request, err interface{}) {
 		if err == http.ErrAbortHandler {
@@ -60,6 +61,7 @@ func WithPanicRecovery(handler http.Handler, resolver request.RequestInfoResolve
 }
 
 // WithHTTPLogging enables logging of incoming requests.
+// WithHTTPLogging 启用传入请求的日志记录。
 func WithHTTPLogging(handler http.Handler) http.Handler {
 	return httplog.WithLogging(handler, httplog.DefaultStacktracePred)
 }

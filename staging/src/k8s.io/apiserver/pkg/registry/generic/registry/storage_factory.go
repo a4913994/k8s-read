@@ -33,6 +33,7 @@ import (
 )
 
 // Creates a cacher based given storageConfig.
+// 创建一个基于 storageConfig 的 cacher。
 func StorageWithCacher() generic.StorageDecorator {
 	return func(
 		storageConfig *storagebackend.ConfigForResource,

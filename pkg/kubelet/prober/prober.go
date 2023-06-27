@@ -43,6 +43,7 @@ import (
 const maxProbeRetries = 3
 
 // Prober helps to check the liveness/readiness/startup of a container.
+// prober帮助检查容器的活动性/就绪性/启动性
 type prober struct {
 	exec   execprobe.Prober
 	http   httpprobe.Prober
@@ -55,6 +56,7 @@ type prober struct {
 
 // NewProber creates a Prober, it takes a command runner and
 // several container info managers.
+// NewProber创建一个探测器，它需要一个命令运行器和几个容器信息管理器
 func newProber(
 	runner kubecontainer.CommandRunner,
 	recorder record.EventRecorder) *prober {
@@ -71,6 +73,7 @@ func newProber(
 }
 
 // recordContainerEvent should be used by the prober for all container related events.
+// recordContainerEvent应该由探测器用于所有容器相关的事件
 func (pb *prober) recordContainerEvent(pod *v1.Pod, container *v1.Container, eventType, reason, message string, args ...interface{}) {
 	ref, err := kubecontainer.GenerateContainerRef(pod, container)
 	if err != nil {
@@ -81,6 +84,7 @@ func (pb *prober) recordContainerEvent(pod *v1.Pod, container *v1.Container, eve
 }
 
 // probe probes the container.
+// probe探测容器
 func (pb *prober) probe(ctx context.Context, probeType probeType, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID) (results.Result, error) {
 	var probeSpec *v1.Probe
 	switch probeType {
@@ -122,6 +126,7 @@ func (pb *prober) probe(ctx context.Context, probeType probeType, pod *v1.Pod, s
 
 // runProbeWithRetries tries to probe the container in a finite loop, it returns the last result
 // if it never succeeds.
+// runProbeWithRetries尝试在有限循环中探测容器，如果从未成功，则返回最后的结果
 func (pb *prober) runProbeWithRetries(ctx context.Context, probeType probeType, p *v1.Probe, pod *v1.Pod, status v1.PodStatus, container v1.Container, containerID kubecontainer.ContainerID, retries int) (probe.Result, string, error) {
 	var err error
 	var result probe.Result

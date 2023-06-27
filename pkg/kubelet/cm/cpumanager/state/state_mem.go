@@ -31,7 +31,7 @@ type stateMemory struct {
 
 var _ State = &stateMemory{}
 
-// NewMemoryState creates new State for keeping track of cpu/pod assignment
+// NewMemoryState创建了新的状态，用于跟踪cpu/pod分配。
 func NewMemoryState() State {
 	klog.InfoS("Initialized new in-memory state store")
 	return &stateMemory{

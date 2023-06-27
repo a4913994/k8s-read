@@ -27,6 +27,7 @@ import (
 
 // providerRequiresNetworkingConfiguration returns whether the cloud provider
 // requires special networking configuration.
+// providerRequiresNetworkingConfiguration返回云提供商是否需要特殊的网络配置。
 func (kl *Kubelet) providerRequiresNetworkingConfiguration() bool {
 	// TODO: We should have a mechanism to say whether native cloud provider
 	// is used or whether we are using overlay networking. We should return
@@ -41,6 +42,7 @@ func (kl *Kubelet) providerRequiresNetworkingConfiguration() bool {
 
 // updatePodCIDR updates the pod CIDR in the runtime state if it is different
 // from the current CIDR. Return true if pod CIDR is actually changed.
+// updatePodCIDR在运行时状态中更新pod CIDR，如果它与当前CIDR不同，则返回true。
 func (kl *Kubelet) updatePodCIDR(ctx context.Context, cidr string) (bool, error) {
 	kl.updatePodCIDRMux.Lock()
 	defer kl.updatePodCIDRMux.Unlock()
@@ -56,6 +58,7 @@ func (kl *Kubelet) updatePodCIDR(ctx context.Context, cidr string) (bool, error)
 	if err := kl.getRuntime().UpdatePodCIDR(ctx, cidr); err != nil {
 		// If updatePodCIDR would fail, theoretically pod CIDR could not change.
 		// But it is better to be on the safe side to still return true here.
+		// 如果updatePodCIDR失败，理论上pod CIDR将无法更改。 但是最好还是在安全一点，这里仍然返回true。
 		return true, fmt.Errorf("failed to update pod CIDR: %v", err)
 	}
 	klog.InfoS("Updating Pod CIDR", "originalPodCIDR", podCIDR, "newPodCIDR", cidr)
@@ -66,6 +69,7 @@ func (kl *Kubelet) updatePodCIDR(ctx context.Context, cidr string) (bool, error)
 // GetPodDNS returns DNS settings for the pod.
 // This function is defined in kubecontainer.RuntimeHelper interface so we
 // have to implement it.
+// GetPodDNS返回pod的DNS设置。 此函数在kubecontainer.RuntimeHelper接口中定义，因此我们必须实现它。
 func (kl *Kubelet) GetPodDNS(pod *v1.Pod) (*runtimeapi.DNSConfig, error) {
 	return kl.dnsConfigurer.GetPodDNS(pod)
 }

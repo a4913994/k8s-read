@@ -44,6 +44,7 @@ import (
 type EtcdOptions struct {
 	// The value of Paging on StorageConfig will be overridden by the
 	// calculated feature gate value.
+	// StorageConfig 上的 Paging 值将被计算出的特征门值覆盖。
 	StorageConfig                           storagebackend.Config
 	EncryptionProviderConfigFilepath        string
 	EncryptionProviderConfigAutomaticReload bool
@@ -214,6 +215,8 @@ func (s *EtcdOptions) AddFlags(fs *pflag.FlagSet) {
 // Complete must be called exactly once before using any of the Apply methods.  It is responsible for setting
 // up objects that must be created once and reused across multiple invocations such as storage transformers.
 // This method mutates the receiver (EtcdOptions).  It must never mutate the inputs.
+// Complete 必须在使用任何 Apply 方法之前调用一次。它负责设置必须创建一次并在多次调用中重用的对象，
+// 例如存储转换器。此方法改变接收器 (EtcdOptions)。它绝不能改变输入。
 func (s *EtcdOptions) Complete(
 	storageObjectCountTracker flowcontrolrequest.StorageObjectCountTracker,
 	stopCh <-chan struct{},

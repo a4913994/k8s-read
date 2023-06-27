@@ -36,6 +36,7 @@ type CounterMetric interface {
 
 // LocationStreamer is a resource that streams the contents of a particular
 // location URL.
+// LocationStreamer 是一个资源，它流式传输特定位置 URL 的内容。
 type LocationStreamer struct {
 	Location        *url.URL
 	Transport       http.RoundTripper
@@ -49,6 +50,7 @@ type LocationStreamer struct {
 }
 
 // a LocationStreamer must implement a rest.ResourceStreamer
+// LocationStreamer 必须实现 rest.ResourceStreamer
 var _ rest.ResourceStreamer = &LocationStreamer{}
 
 func (obj *LocationStreamer) GetObjectKind() schema.ObjectKind {
@@ -60,6 +62,7 @@ func (obj *LocationStreamer) DeepCopyObject() runtime.Object {
 
 // InputStream returns a stream with the contents of the URL location. If no location is provided,
 // a null stream is returned.
+// InputStream 返回一个流，其中包含 URL 位置的内容。 如果没有提供位置，则返回空流。
 func (s *LocationStreamer) InputStream(ctx context.Context, apiVersion, acceptHeader string) (stream io.ReadCloser, flush bool, contentType string, err error) {
 	if s.Location == nil {
 		// If no location was provided, return a null stream

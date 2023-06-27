@@ -30,6 +30,7 @@ import (
 // HorizontalPodAutoscaler is the configuration for a horizontal pod
 // autoscaler, which automatically manages the replica count of any resource
 // implementing the scale subresource based on the metrics specified.
+// HorizontalPodAutoscaler 是水平 pod 自动缩放器的配置，它根据指定的指标自动管理实现 scale 子资源的任何资源的副本计数。
 type HorizontalPodAutoscaler struct {
 	metav1.TypeMeta `json:",inline"`
 	// metadata is the standard object metadata.
@@ -48,9 +49,11 @@ type HorizontalPodAutoscaler struct {
 }
 
 // HorizontalPodAutoscalerSpec describes the desired functionality of the HorizontalPodAutoscaler.
+// HorizontalPodAutoscalerSpec 描述了 HorizontalPodAutoscaler 的所需功能。
 type HorizontalPodAutoscalerSpec struct {
 	// scaleTargetRef points to the target resource to scale, and is used to the pods for which metrics
 	// should be collected, as well as to actually change the replica count.
+	// scaleTargetRef 指向要缩放的目标资源，并用于收集指标的 pod，以及实际更改副本计数。
 	ScaleTargetRef CrossVersionObjectReference `json:"scaleTargetRef" protobuf:"bytes,1,opt,name=scaleTargetRef"`
 	// minReplicas is the lower limit for the number of replicas to which the autoscaler
 	// can scale down.  It defaults to 1 pod.  minReplicas is allowed to be 0 if the
@@ -58,9 +61,11 @@ type HorizontalPodAutoscalerSpec struct {
 	// metric is configured.  Scaling is active as long as at least one metric value is
 	// available.
 	// +optional
+	// minReplicas是自动缩放器可以缩小的副本数的下限。默认为 1 个 pod。如果启用了 alpha 特性门控 HPAScaleToZero 并且至少配置了一个 Object 或 External 指标，则允许 minReplicas 为 0。只要至少有一个指标值可用，缩放就会处于活动状态。
 	MinReplicas *int32 `json:"minReplicas,omitempty" protobuf:"varint,2,opt,name=minReplicas"`
 	// maxReplicas is the upper limit for the number of replicas to which the autoscaler can scale up.
 	// It cannot be less that minReplicas.
+	// maxReplicas 是自动缩放器可以扩展的副本数的上限。它不能小于 minReplicas。
 	MaxReplicas int32 `json:"maxReplicas" protobuf:"varint,3,opt,name=maxReplicas"`
 	// metrics contains the specifications for which to use to calculate the
 	// desired replica count (the maximum replica count across all metrics will
@@ -72,16 +77,19 @@ type HorizontalPodAutoscalerSpec struct {
 	// If not set, the default metric will be set to 80% average CPU utilization.
 	// +listType=atomic
 	// +optional
+	// metrics 包含要用于计算所需副本计数的规范（将使用所有指标的最大副本计数）。所需的副本计数是通过将目标值与当前值之间的比率与当前 pod 数量相乘来计算的。因此，必须在 pod 数量增加时减少指标的使用，反之亦然。有关每种指标类型必须如何响应的更多信息，请参阅各个指标源类型。如果未设置，则默认指标将设置为 80% 的平均 CPU 利用率。
 	Metrics []MetricSpec `json:"metrics,omitempty" protobuf:"bytes,4,rep,name=metrics"`
 
 	// behavior configures the scaling behavior of the target
 	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
 	// If not set, the default HPAScalingRules for scale up and scale down are used.
 	// +optional
+	// behavior 配置目标的缩放行为，分别在 Up 和 Down 方向（scaleUp 和 scaleDown 字段）。如果未设置，则使用默认的 HPAScalingRules 用于缩放。
 	Behavior *HorizontalPodAutoscalerBehavior `json:"behavior,omitempty" protobuf:"bytes,5,opt,name=behavior"`
 }
 
 // CrossVersionObjectReference contains enough information to let you identify the referred resource.
+// CrossVersionObjectReference 包含足够的信息，让您识别所引用的资源。
 type CrossVersionObjectReference struct {
 	// Kind of the referent; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
 	Kind string `json:"kind" protobuf:"bytes,1,opt,name=kind"`
@@ -94,21 +102,25 @@ type CrossVersionObjectReference struct {
 
 // MetricSpec specifies how to scale based on a single metric
 // (only `type` and one other matching field should be set at once).
+// MetricSpec 指定如何根据单个指标进行缩放（一次只能设置 `type` 和另一个匹配字段）。
 type MetricSpec struct {
 	// type is the type of metric source.  It should be one of "ContainerResource", "External",
 	// "Object", "Pods" or "Resource", each mapping to a matching field in the object.
 	// Note: "ContainerResource" type is available on when the feature-gate
 	// HPAContainerMetrics is enabled
+	// type 是指标源的类型。它应该是 "ContainerResource"、"External"、"Object"、"Pods" 或 "Resource" 中的一个，每个都映射到对象中的匹配字段。注意："ContainerResource" 类型仅在启用 feature-gate HPAContainerMetrics 时可用
 	Type MetricSourceType `json:"type" protobuf:"bytes,1,name=type"`
 
 	// object refers to a metric describing a single kubernetes object
 	// (for example, hits-per-second on an Ingress object).
 	// +optional
+	// object 指向描述单个 kubernetes 对象的指标（例如，Ingress 对象上的每秒点击数）。
 	Object *ObjectMetricSource `json:"object,omitempty" protobuf:"bytes,2,opt,name=object"`
 	// pods refers to a metric describing each pod in the current scale target
 	// (for example, transactions-processed-per-second).  The values will be
 	// averaged together before being compared to the target value.
 	// +optional
+	// pods 指向描述当前缩放目标中每个 pod 的指标（例如，每秒处理的事务数）。在与目标值进行比较之前，将对值进行平均。
 	Pods *PodsMetricSource `json:"pods,omitempty" protobuf:"bytes,3,opt,name=pods"`
 	// resource refers to a resource metric (such as those specified in
 	// requests and limits) known to Kubernetes describing each pod in the
@@ -116,6 +128,7 @@ type MetricSpec struct {
 	// Kubernetes, and have special scaling options on top of those available
 	// to normal per-pod metrics using the "pods" source.
 	// +optional
+	// resource 指向已知 Kubernetes 描述当前缩放目标中每个 pod 的资源指标（例如，CPU 或内存）。这些指标内置在 Kubernetes 中，并且在使用 "pods" 源的普通每个 pod 指标可用的基础上具有特殊的缩放选项。
 	Resource *ResourceMetricSource `json:"resource,omitempty" protobuf:"bytes,4,opt,name=resource"`
 	// containerResource refers to a resource metric (such as those specified in
 	// requests and limits) known to Kubernetes describing a single container in
@@ -124,6 +137,7 @@ type MetricSpec struct {
 	// available to normal per-pod metrics using the "pods" source.
 	// This is an alpha feature and can be enabled by the HPAContainerMetrics feature flag.
 	// +optional
+	// containerResource 指向已知 Kubernetes 描述当前缩放目标中每个 pod 中的单个容器的资源指标（例如，CPU 或内存）。这些指标内置在 Kubernetes 中，并且在使用 "pods" 源的普通每个 pod 指标可用的基础上具有特殊的缩放选项。这是一个 alpha 功能，可以通过 HPAContainerMetrics 功能标志启用。
 	ContainerResource *ContainerResourceMetricSource `json:"containerResource,omitempty" protobuf:"bytes,7,opt,name=containerResource"`
 	// external refers to a global metric that is not associated
 	// with any Kubernetes object. It allows autoscaling based on information
@@ -131,11 +145,13 @@ type MetricSpec struct {
 	// (for example length of queue in cloud messaging service, or
 	// QPS from loadbalancer running outside of cluster).
 	// +optional
+	// external 指向与任何 Kubernetes 对象都不相关的全局指标。它允许根据来自集群外运行的组件（例如，云消息服务中队列的长度，或来自集群外运行的负载均衡器的 QPS）的信息进行自动缩放。
 	External *ExternalMetricSource `json:"external,omitempty" protobuf:"bytes,5,opt,name=external"`
 }
 
 // HorizontalPodAutoscalerBehavior configures the scaling behavior of the target
 // in both Up and Down directions (scaleUp and scaleDown fields respectively).
+// HorizontalPodAutoscalerBehavior 配置目标的缩放行为，分别在 Up 和 Down 方向（分别为 scaleUp 和 scaleDown 字段）。
 type HorizontalPodAutoscalerBehavior struct {
 	// scaleUp is scaling policy for scaling Up.
 	// If not set, the default value is the higher of:
@@ -143,16 +159,22 @@ type HorizontalPodAutoscalerBehavior struct {
 	//   * double the number of pods per 60 seconds
 	// No stabilization is used.
 	// +optional
+	// scaleUp 是缩放 Up 的缩放策略。如果未设置，则默认值为：
+	// * 每 60 秒增加不超过 4 个 pod
+	// * 每 60 秒将 pod 数量加倍
+	// 不使用稳定性。
 	ScaleUp *HPAScalingRules `json:"scaleUp,omitempty" protobuf:"bytes,1,opt,name=scaleUp"`
 	// scaleDown is scaling policy for scaling Down.
 	// If not set, the default value is to allow to scale down to minReplicas pods, with a
 	// 300 second stabilization window (i.e., the highest recommendation for
 	// the last 300sec is used).
 	// +optional
+	// scaleDown 是缩放 Down 的缩放策略。如果未设置，则默认值为允许缩小到 minReplicas pod，具有 300 秒的稳定窗口（即，使用最后 300 秒的最高建议）。
 	ScaleDown *HPAScalingRules `json:"scaleDown,omitempty" protobuf:"bytes,2,opt,name=scaleDown"`
 }
 
 // ScalingPolicySelect is used to specify which policy should be used while scaling in a certain direction
+// ScalingPolicySelect 用于指定在某个方向上缩放时应使用哪个策略
 type ScalingPolicySelect string
 
 const (
@@ -170,6 +192,7 @@ const (
 // They can prevent flapping by specifying the stabilization window, so that the
 // number of replicas is not set instantly, instead, the safest value from the stabilization
 // window is chosen.
+// HPAScalingRules 配置一个方向的缩放行为。这些规则在从 HPA 的指标计算出 DesiredReplicas 之后应用。它们可以通过指定缩放策略来限制缩放速度。它们可以通过指定稳定窗口来防止抖动，以便不会立即设置副本数，而是从稳定窗口中选择最安全的值。
 type HPAScalingRules struct {
 	// StabilizationWindowSeconds is the number of seconds for which past recommendations should be
 	// considered while scaling up or scaling down.
@@ -178,10 +201,12 @@ type HPAScalingRules struct {
 	// - For scale up: 0 (i.e. no stabilization is done).
 	// - For scale down: 300 (i.e. the stabilization window is 300 seconds long).
 	// +optional
+	// StabilizationWindowSeconds 是在缩放 Up 或缩放 Down 时应考虑的过去建议的秒数。StabilizationWindowSeconds 必须大于或等于零且小于或等于 3600（一小时）。如果未设置，请使用默认值：
 	StabilizationWindowSeconds *int32 `json:"stabilizationWindowSeconds,omitempty" protobuf:"varint,3,opt,name=stabilizationWindowSeconds"`
 	// selectPolicy is used to specify which policy should be used.
 	// If not set, the default value Max is used.
 	// +optional
+	// selectPolicy 用于指定应使用哪个策略。如果未设置，则使用默认值 Max。
 	SelectPolicy *ScalingPolicySelect `json:"selectPolicy,omitempty" protobuf:"bytes,1,opt,name=selectPolicy"`
 	// policies is a list of potential scaling polices which can be used during scaling.
 	// At least one policy must be specified, otherwise the HPAScalingRules will be discarded as invalid
@@ -191,6 +216,7 @@ type HPAScalingRules struct {
 }
 
 // HPAScalingPolicyType is the type of the policy which could be used while making scaling decisions.
+// HPAScalingPolicyType 是在进行缩放决策时可以使用的策略的类型。
 type HPAScalingPolicyType string
 
 const (
@@ -202,6 +228,7 @@ const (
 )
 
 // HPAScalingPolicy is a single policy which must hold true for a specified past interval.
+// HPAScalingPolicy 是一个单一的策略，必须在指定的过去时间间隔内保持真实。
 type HPAScalingPolicy struct {
 	// Type is used to specify the scaling policy.
 	Type HPAScalingPolicyType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=HPAScalingPolicyType"`

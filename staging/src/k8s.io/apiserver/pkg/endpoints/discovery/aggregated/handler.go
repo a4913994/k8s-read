@@ -37,10 +37,14 @@ import (
 
 // This handler serves the /apis endpoint for an aggregated list of
 // api resources indexed by their group version.
+// 此处理程序为 api 端点提供由其组版本索引的 api 资源聚合列表。
 type ResourceManager interface {
 	// Adds knowledge of the given groupversion to the discovery document
 	// If it was already being tracked, updates the stored APIVersionDiscovery
 	// Thread-safe
+	// 添加对给定组版本的发现文档的知识
+	// 如果已经在跟踪中，则更新存储的 APIVersionDiscovery
+	// 线程安全
 	AddGroupVersion(groupName string, value apidiscoveryv2beta1.APIVersionDiscovery)
 
 	// Sets a priority to be used while sorting a specific group and
@@ -48,20 +52,24 @@ type ResourceManager interface {
 	// the group, the higher one will be used. If the group is not
 	// known, the priority is ignored. The priority for this version
 	// is forgotten once the group-version is forgotten
+	// 设置排序特定组和组版本时要使用的优先级。如果两个版本报告该组的不同优先级，则将使用较高的版本。如果该组未知，则忽略优先级。一旦忘记了组版本，这个版本的优先级就被忘记了
 	SetGroupVersionPriority(gv metav1.GroupVersion, grouppriority, versionpriority int)
 
 	// Removes all group versions for a given group
 	// Thread-safe
+	// 删除给定组的所有组版本
 	RemoveGroup(groupName string)
 
 	// Removes a specific groupversion. If all versions of a group have been
 	// removed, then the entire group is unlisted.
 	// Thread-safe
+	// 删除特定的组版本。如果删除了组的所有版本，则整个组都不会列出。
 	RemoveGroupVersion(gv metav1.GroupVersion)
 
 	// Resets the manager's known list of group-versions and replaces them
 	// with the given groups
 	// Thread-Safe
+	// 重置管理器的已知组版本列表，并用给定的组替换它们
 	SetGroups([]apidiscoveryv2beta1.APIGroupDiscovery)
 
 	http.Handler

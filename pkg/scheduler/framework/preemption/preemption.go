@@ -50,6 +50,7 @@ const (
 
 // Candidate represents a nominated node on which the preemptor can be scheduled,
 // along with the list of victims that should be evicted for the preemptor to fit the node.
+// Candidate表示一个指定的节点，抢占者可以在该节点上进行调度，以及应该清除的受害者列表，以便抢占者适合该节点。
 type Candidate interface {
 	// Victims wraps a list of to-be-preempted Pods and the number of PDB violation.
 	Victims() *extenderv1.Victims
@@ -108,6 +109,7 @@ func (cl *candidateList) get() []Candidate {
 
 // Interface is expected to be implemented by different preemption plugins as all those member
 // methods might have different behavior compared with the default preemption.
+// 接口被期望由不同的抢占插件实现，因为所有这些成员方法与默认的抢占相比可能有不同的行为。
 type Interface interface {
 	// GetOffsetAndNumCandidates chooses a random offset and calculates the number of candidates that should be
 	// shortlisted for dry running preemption.
@@ -149,6 +151,8 @@ type Evaluator struct {
 //
 //   - <non-nil PostFilterResult}, Success>. It's the regular happy path
 //     and the non-empty nominatedNodeName will be applied to the preemptor pod.
+//
+// Preempt返回一个PostFilterResult，携带建议的nomatednodename，以及一个Status。返回的<PostFilterResult, Status>在不同场景下语义不同:
 func (ev *Evaluator) Preempt(ctx context.Context, pod *v1.Pod, m framework.NodeToStatusMap) (*framework.PostFilterResult, *framework.Status) {
 	// 0) Fetch the latest version of <pod>.
 	// It's safe to directly fetch pod here. Because the informer cache has already been

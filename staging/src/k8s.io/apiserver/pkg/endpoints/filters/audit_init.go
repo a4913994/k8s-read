@@ -30,6 +30,9 @@ import (
 //
 // a. If the caller does not specify a value for Audit-ID in the request header, we generate a new audit ID
 // b. We echo the Audit-ID value to the caller via the response Header 'Audit-ID'.
+// WithAuditInit 初始化审计上下文并附加与请求关联的 Audit-ID。
+// a。如果调用者没有在请求标头中为 Audit-ID 指定值，我们将生成一个新的审计 ID
+// b。我们通过响应标头“Audit-ID”将 Audit-ID 值回显给调用方。
 func WithAuditInit(handler http.Handler) http.Handler {
 	return withAuditInit(handler, func() string {
 		return uuid.New().String()

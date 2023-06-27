@@ -26,35 +26,44 @@ import (
 
 const (
 	// NamespaceDefault means the object is in the default namespace which is applied when not specified by clients
+	// NamespaceDefault意味着对象位于默认命名空间中，当客户端未指定时将应用该命名空间
 	NamespaceDefault = "default"
 	// NamespaceAll is the default argument to specify on a context when you want to list or filter resources across all namespaces
 	NamespaceAll = ""
 	// NamespaceNone is the argument for a context when there is no namespace.
 	NamespaceNone = ""
 	// NamespaceSystem is the system namespace where we place system components.
+	// NamespaceSystem是我们放置系统组件的系统命名空间。
 	NamespaceSystem = "kube-system"
 	// NamespacePublic is the namespace where we place public info (ConfigMaps)
+	// NamespacePublic是我们放置公共信息（ConfigMaps）的命名空间。
 	NamespacePublic = "kube-public"
 	// NamespaceNodeLease is the namespace where we place node lease objects (used for node heartbeats)
+	// NamespaceNodeLease是我们放置节点租约对象的命名空间（用于节点心跳）
 	NamespaceNodeLease = "kube-node-lease"
 	// TerminationMessagePathDefault means the default path to capture the application termination message running in a container
+	// TerminationMessagePathDefault意味着捕获容器中运行的应用程序终止消息的默认路径
 	TerminationMessagePathDefault = "/dev/termination-log"
 )
 
 // Volume represents a named volume in a pod that may be accessed by any containers in the pod.
+// Volume表示pod中的命名卷，pod中的任何容器都可以访问它。
 type Volume struct {
 	// Required: This must be a DNS_LABEL.  Each volume in a pod must have
 	// a unique name.
+	// 需要: 这必须是DNS_LABEL。pod中的每个卷都必须具有唯一的名称。
 	Name string
 	// The VolumeSource represents the location and type of a volume to mount.
 	// This is optional for now. If not specified, the Volume is implied to be an EmptyDir.
 	// This implied behavior is deprecated and will be removed in a future version.
 	// +optional
+	// VolumeSource表示要挂载的卷的位置和类型。这是可选的。如果未指定，则卷被隐含为EmptyDir。这种隐含的行为已被弃用，并将在以后的版本中删除。
 	VolumeSource
 }
 
 // VolumeSource represents the source location of a volume to mount.
 // Only one of its members may be specified.
+// VolumeSource表示要挂载的卷的源位置。只能指定其成员之一。
 type VolumeSource struct {
 	// HostPath represents file or directory on the host machine that is
 	// directly exposed to the container. This is generally used for system
@@ -64,6 +73,7 @@ type VolumeSource struct {
 	// TODO(jonesdl) We need to restrict who can use host directory mounts and who can/can not
 	// mount host directories as read/write.
 	// +optional
+	// HostPath表示直接暴露给容器的主机机器上的文件或目录。这通常用于系统代理或其他允许查看主机机器的特权事项。大多数容器不需要这个。
 	HostPath *HostPathVolumeSource
 	// EmptyDir represents a temporary directory that shares a pod's lifetime.
 	// +optional
@@ -699,6 +709,7 @@ const (
 )
 
 // Protocol defines network protocols supported for things like container ports.
+// Protocol定义支持的网络协议，例如容器端口。
 type Protocol string
 
 const (
@@ -2165,6 +2176,7 @@ const (
 type Capability string
 
 // Capabilities represent POSIX capabilities that can be added or removed to a running container.
+// Capabilities表示可以添加或删除到运行容器的POSIX功能。
 type Capabilities struct {
 	// Added capabilities
 	// +optional
@@ -3288,6 +3300,7 @@ type PodSecurityContext struct {
 // SeccompProfile defines a pod/container's seccomp profile settings.
 // Only one profile source may be set.
 // +union
+// SeccompProfile 定义了 pod/container 的 seccomp 配置 profile 设置。
 type SeccompProfile struct {
 	// +unionDiscriminator
 	Type SeccompProfileType
@@ -5131,6 +5144,7 @@ type LimitRangeSpec struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // LimitRange sets resource usage limits for each kind of resource in a Namespace
+// LimitRange为命名空间中的每种资源设置资源使用限制
 type LimitRange struct {
 	metav1.TypeMeta
 	// +optional
@@ -5144,6 +5158,7 @@ type LimitRange struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // LimitRangeList is a list of LimitRange items.
+// LimitRangeList是LimitRange项目的列表
 type LimitRangeList struct {
 	metav1.TypeMeta
 	// +optional
@@ -5154,6 +5169,7 @@ type LimitRangeList struct {
 }
 
 // The following identify resource constants for Kubernetes object types
+// 下面是Kubernetes对象类型的资源常量
 const (
 	// Pods, number
 	ResourcePods ResourceName = "pods"
@@ -5190,15 +5206,20 @@ const (
 )
 
 // The following identify resource prefix for Kubernetes object types
+// 下面是Kubernetes对象类型的标识资源前缀
 const (
 	// HugePages request, in bytes. (500Gi = 500GiB = 500 * 1024 * 1024 * 1024)
 	// As burst is not supported for HugePages, we would only quota its request, and ignore the limit.
+	// HugePages请求，以字节为单位。(500Gi = 500GiB = 500 * 1024 * 1024 * 1024)
+	//由于HugePages不支持突发，因此我们只会对其请求进行配额，而忽略限制。
 	ResourceRequestsHugePagesPrefix = "requests.hugepages-"
 	// Default resource requests prefix
+	// 默认资源请求前缀
 	DefaultResourceRequestsPrefix = "requests."
 )
 
 // ResourceQuotaScope defines a filter that must match each object tracked by a quota
+// ResourceQuotaScope定义必须与配额跟踪的每个对象匹配的过滤器
 type ResourceQuotaScope string
 
 // These are valid values for resource quota spec
@@ -5218,22 +5239,27 @@ const (
 )
 
 // ResourceQuotaSpec defines the desired hard limits to enforce for Quota
+// ResourceQuotaSpec定义要强制执行的硬限制的所需限制
 type ResourceQuotaSpec struct {
 	// Hard is the set of desired hard limits for each named resource
 	// +optional
+	// Hard是每个命名资源的所需硬限制集
 	Hard ResourceList
 	// A collection of filters that must match each object tracked by a quota.
 	// If not specified, the quota matches all objects.
 	// +optional
+	// 必须与由配额跟踪的每个对象匹配的过滤器集合。
 	Scopes []ResourceQuotaScope
 	// ScopeSelector is also a collection of filters like Scopes that must match each object tracked by a quota
 	// but expressed using ScopeSelectorOperator in combination with possible values.
 	// +optional
+	// ScopeSelector也是一组过滤器，如Scopes，它们必须与由配额跟踪的每个对象匹配， 但使用ScopeSelectorOperator与可能的值结合使用。
 	ScopeSelector *ScopeSelector
 }
 
 // ScopeSelector represents the AND of the selectors represented
 // by the scoped-resource selector terms.
+// ScopeSelector表示由范围资源选择器术语表示的选择器的AND。
 type ScopeSelector struct {
 	// A list of scope selector requirements by scope of the resources.
 	// +optional
@@ -5242,25 +5268,33 @@ type ScopeSelector struct {
 
 // ScopedResourceSelectorRequirement is a selector that contains values, a scope name, and an operator
 // that relates the scope name and values.
+// ScopedResourceSelectorRequirement是包含值、范围名称和与范围名称和值相关的运算符的选择器。
 type ScopedResourceSelectorRequirement struct {
 	// The name of the scope that the selector applies to.
+	// 选择器应用的范围的名称。
 	ScopeName ResourceQuotaScope
 	// Represents a scope's relationship to a set of values.
 	// Valid operators are In, NotIn, Exists, DoesNotExist.
+	// 表示范围与一组值的关系。有效的操作符是In, NotIn, Exists, DoesNotExist。
 	Operator ScopeSelectorOperator
 	// An array of string values. If the operator is In or NotIn,
 	// the values array must be non-empty. If the operator is Exists or DoesNotExist,
 	// the values array must be empty.
 	// This array is replaced during a strategic merge patch.
 	// +optional
+	// 字符串值的数组。如果运算符是In或NotIn，则值数组必须非空。
+	// 如果运算符是Exists或DoesNotExist，则值数组必须为空。
+	// 在战略合并补丁期间，将替换此数组。
 	Values []string
 }
 
 // ScopeSelectorOperator is the set of operators that can be used in
 // a scope selector requirement.
+// ScopeSelectorOperator是可以在范围选择器要求中使用的一组运算符。
 type ScopeSelectorOperator string
 
 // These are the valid values for ScopeSelectorOperator
+// 这是ScopeSelectorOperator的有效值
 const (
 	ScopeSelectorOpIn           ScopeSelectorOperator = "In"
 	ScopeSelectorOpNotIn        ScopeSelectorOperator = "NotIn"
@@ -5269,18 +5303,22 @@ const (
 )
 
 // ResourceQuotaStatus defines the enforced hard limits and observed use
+// ResourceQuotaStatus定义强制执行的硬限制和观察到的使用情况
 type ResourceQuotaStatus struct {
 	// Hard is the set of enforced hard limits for each named resource
 	// +optional
+	// Hard是每个命名资源的强制硬限制
 	Hard ResourceList
 	// Used is the current observed total usage of the resource in the namespace
 	// +optional
+	// Used是命名空间中资源的当前观察到的总使用量
 	Used ResourceList
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ResourceQuota sets aggregate quota restrictions enforced per namespace
+// ResourceQuota设置每个命名空间强制执行的聚合配额限制
 type ResourceQuota struct {
 	metav1.TypeMeta
 	// +optional
@@ -5298,6 +5336,7 @@ type ResourceQuota struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ResourceQuotaList is a list of ResourceQuota items
+// ResourceQuotaList是ResourceQuota项目的列表
 type ResourceQuotaList struct {
 	metav1.TypeMeta
 	// +optional
@@ -5311,6 +5350,7 @@ type ResourceQuotaList struct {
 
 // Secret holds secret data of a certain type.  The total bytes of the values in
 // the Data field must be less than MaxSecretSize bytes.
+// Secret处理某种类型的秘密数据。Data字段中值的总字节数必须小于MaxSecretSize字节。
 type Secret struct {
 	metav1.TypeMeta
 	// +optional
@@ -5335,14 +5375,18 @@ type Secret struct {
 }
 
 // MaxSecretSize represents the max secret size.
+// MaxSecretSize表示最大的Secret大小
 const MaxSecretSize = 1 * 1024 * 1024
 
 // SecretType defines the types of secrets
+// SecretType定义了Secret的类型
 type SecretType string
 
 // These are the valid values for SecretType
+// 这些是SecretType的有效值
 const (
 	// SecretTypeOpaque is the default; arbitrary user-defined data
+	// 这是默认值，任意用户定义的数据
 	SecretTypeOpaque SecretType = "Opaque"
 
 	// SecretTypeServiceAccountToken contains a token that identifies a service account to the API
@@ -5351,9 +5395,16 @@ const (
 	// - Secret.Annotations["kubernetes.io/service-account.name"] - the name of the ServiceAccount the token identifies
 	// - Secret.Annotations["kubernetes.io/service-account.uid"] - the UID of the ServiceAccount the token identifies
 	// - Secret.Data["token"] - a token that identifies the service account to the API
+	// SecretTypeServiceAccountToken包含一个标识服务帐户的令牌
+	//
+	//需要字段：
+	//-Secret.Annotations["kubernetes.io/service-account.name"] - 标识令牌的服务帐户的名称
+	//-Secret.Annotations["kubernetes.io/service-account.uid"] - 标识令牌的服务帐户的UID
+	//-Secret.Data["token"] - 标识服务帐户到API的令牌
 	SecretTypeServiceAccountToken SecretType = "kubernetes.io/service-account-token"
 
 	// ServiceAccountNameKey is the key of the required annotation for SecretTypeServiceAccountToken secrets
+	// ServiceAccountNameKey是SecretTypeServiceAccountToken密钥的必需注释的键
 	ServiceAccountNameKey = "kubernetes.io/service-account.name"
 	// ServiceAccountUIDKey is the key of the required annotation for SecretTypeServiceAccountToken secrets
 	ServiceAccountUIDKey = "kubernetes.io/service-account.uid"
@@ -5428,6 +5479,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // SecretList represents the list of secrets
+// SecretList表示密钥列表
 type SecretList struct {
 	metav1.TypeMeta
 	// +optional
@@ -5439,6 +5491,7 @@ type SecretList struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ConfigMap holds configuration data for components or applications to consume.
+// ConfigMap处理组件或应用程序使用的配置数据。
 type ConfigMap struct {
 	metav1.TypeMeta
 	// +optional
@@ -5447,6 +5500,7 @@ type ConfigMap struct {
 	// Immutable field, if set, ensures that data stored in the ConfigMap cannot
 	// be updated (only object metadata can be modified).
 	// +optional
+	// Immutable字段，如果设置，确保存储在ConfigMap中的数据不能被更新(只有对象元数据可以被修改)。
 	Immutable *bool
 
 	// Data contains the configuration data.
@@ -5455,6 +5509,7 @@ type ConfigMap struct {
 	// The keys stored in Data must not overlap with the keys in
 	// the BinaryData field, this is enforced during validation process.
 	// +optional
+	// Data包含配置数据。每个键必须由字母数字字符组成，'-'，'_'或'.'。具有非UTF-8字节序列的值必须使用BinaryData字段。存储在Data中的键不得与BinaryData字段中的键重叠，这在验证过程中强制执行。
 	Data map[string]string
 
 	// BinaryData contains the binary data.
@@ -5465,12 +5520,14 @@ type ConfigMap struct {
 	// Using this field will require 1.10+ apiserver and
 	// kubelet.
 	// +optional
+	// BinaryData包含二进制数据。每个键必须由字母数字字符组成，'-'，'_'或'.'。BinaryData可以包含不在UTF-8范围内的字节序列。存储在BinaryData中的键不得与Data字段中的键重叠，这在验证过程中强制执行。使用此字段将需要1.10+的apiserver和kubelet。
 	BinaryData map[string][]byte
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ConfigMapList is a resource containing a list of ConfigMap objects.
+// ConfigMapList是包含ConfigMap对象列表的资源。
 type ConfigMapList struct {
 	metav1.TypeMeta
 	// +optional
@@ -5487,6 +5544,7 @@ type ConfigMapList struct {
 // to create pkg/exec and pkg/portforward just to contain a single file with
 // constants in it.  Suggestions for more appropriate alternatives are
 // definitely welcome!
+// 这些常量用于远程命令执行和端口转发，客户端和服务器端组件都可以使用。
 const (
 	// Enable stdin for remote command execution
 	ExecStdinParam = "input"
@@ -5522,6 +5580,7 @@ const (
 )
 
 // ComponentConditionType defines type and constants for component health validation.
+// ComponentConditionType定义组件健康验证的类型和常量。
 type ComponentConditionType string
 
 // These are the valid conditions for the component.
@@ -5530,6 +5589,7 @@ const (
 )
 
 // ComponentCondition represents the condition of a component
+// ComponentCondition表示组件的条件
 type ComponentCondition struct {
 	Type   ComponentConditionType
 	Status ConditionStatus
@@ -5543,6 +5603,7 @@ type ComponentCondition struct {
 
 // ComponentStatus (and ComponentStatusList) holds the cluster validation info.
 // Deprecated: This API is deprecated in v1.19+
+// ComponentStatus（和ComponentStatusList）保存集群验证信息。
 type ComponentStatus struct {
 	metav1.TypeMeta
 	// +optional
@@ -5556,6 +5617,7 @@ type ComponentStatus struct {
 
 // ComponentStatusList represents the list of component statuses
 // Deprecated: This API is deprecated in v1.19+
+// ComponentStatusList 代表组件状态列表
 type ComponentStatusList struct {
 	metav1.TypeMeta
 	// +optional
@@ -5567,17 +5629,24 @@ type ComponentStatusList struct {
 // SecurityContext holds security configuration that will be applied to a container.
 // Some fields are present in both SecurityContext and PodSecurityContext.  When both
 // are set, the values in SecurityContext take precedence.
+// SecurityContext处理容器的安全配置。一些字段同时存在于SecurityContext和PodSecurityContext中。
+// 当两者都设置时，SecurityContext中的值优先。
 type SecurityContext struct {
 	// The capabilities to add/drop when running containers.
 	// Defaults to the default set of capabilities granted by the container runtime.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// 运行容器时add/drop的功能。
+	// 默认为容器运行时授予的默认功能集。
+	// 注意，当spec.os.name为windows时，无法设置此字段。
 	Capabilities *Capabilities
 	// Run container in privileged mode.
 	// Processes in privileged containers are essentially equivalent to root on the host.
 	// Defaults to false.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// 在特权模式下运行容器。
+	// 特权容器中的进程在本质上等同于主机上的root。 默认为false。 注意，当spec.os.name为windows时，无法设置此字段。
 	Privileged *bool
 	// The SELinux context to be applied to the container.
 	// If unspecified, the container runtime will allocate a random SELinux context for each
@@ -5585,12 +5654,15 @@ type SecurityContext struct {
 	// PodSecurityContext, the value specified in SecurityContext takes precedence.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// 要应用于容器的SELinux上下文。 如果未指定，容器运行时将为每个容器分配一个随机的SELinux上下文。 也可以在PodSecurityContext中设置。
+	// 如果在SecurityContext和PodSecurityContext中都设置，则优先使用SecurityContext中指定的值。 注意，当spec.os.name为windows时，无法设置此字段。
 	SELinuxOptions *SELinuxOptions
 	// The Windows specific settings applied to all containers.
 	// If unspecified, the options from the PodSecurityContext will be used.
 	// If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.
 	// Note that this field cannot be set when spec.os.name is linux.
 	// +optional
+	// 应用于所有容器的Windows特定设置。 如果未指定，则将使用PodSecurityContext中的选项。 如果在SecurityContext和PodSecurityContext中都设置，则优先使用SecurityContext中指定的值。
 	WindowsOptions *WindowsSecurityContextOptions
 	// The UID to run the entrypoint of the container process.
 	// Defaults to user specified in image metadata if unspecified.
@@ -5598,6 +5670,8 @@ type SecurityContext struct {
 	// PodSecurityContext, the value specified in SecurityContext takes precedence.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// 运行容器进程的入口点的UID。 如果未指定，则默认为镜像元数据中指定的用户。 也可以在PodSecurityContext中设置。
+	// 如果在SecurityContext和PodSecurityContext中都设置，则优先使用SecurityContext中指定的值。 注意，当spec.os.name为windows时，无法设置此字段。
 	RunAsUser *int64
 	// The GID to run the entrypoint of the container process.
 	// Uses runtime default if unset.
@@ -5605,6 +5679,8 @@ type SecurityContext struct {
 	// PodSecurityContext, the value specified in SecurityContext takes precedence.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// 运行容器进程的入口点的GID。 如果未设置，则使用运行时默认值。 也可以在PodSecurityContext中设置。
+	// 如果在SecurityContext和PodSecurityContext中都设置，则优先使用SecurityContext中指定的值。 注意，当spec.os.name为windows时，无法设置此字段。
 	RunAsGroup *int64
 	// Indicates that the container must run as a non-root user.
 	// If true, the Kubelet will validate the image at runtime to ensure that it
@@ -5613,48 +5689,58 @@ type SecurityContext struct {
 	// May also be set in PodSecurityContext.  If set in both SecurityContext and
 	// PodSecurityContext, the value specified in SecurityContext takes precedence.
 	// +optional
+	// 表示容器必须以非root用户运行。 如果为true，则Kubelet将在运行时验证镜像，以确保它不以UID 0（root）运行，并且如果运行，则无法启动容器。
+	// 如果未设置或为false，则不会执行此类验证。 也可以在PodSecurityContext中设置。 如果在SecurityContext和PodSecurityContext中都设置，则优先使用SecurityContext中指定的值。
 	RunAsNonRoot *bool
 	// The read-only root filesystem allows you to restrict the locations that an application can write
 	// files to, ensuring the persistent data can only be written to mounts.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// 只读根文件系统允许您限制应用程序可以写入文件的位置，确保持久数据只能写入挂载点。 注意，当spec.os.name为windows时，无法设置此字段。
 	ReadOnlyRootFilesystem *bool
 	// AllowPrivilegeEscalation controls whether a process can gain more
 	// privileges than its parent process. This bool directly controls if
 	// the no_new_privs flag will be set on the container process.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// AllowPrivilegeEscalation控制进程是否可以获得比其父进程更多的特权。 此bool直接控制是否将no_new_privs标志设置为容器进程。 注意，当spec.os.name为windows时，无法设置此字段。
 	AllowPrivilegeEscalation *bool
 	// ProcMount denotes the type of proc mount to use for the containers.
 	// The default is DefaultProcMount which uses the container runtime defaults for
 	// readonly paths and masked paths.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// ProcMount表示要用于容器的proc挂载类型。 默认值为DefaultProcMount，它使用容器运行时的默认值来设置只读路径和屏蔽路径。 注意，当spec.os.name为windows时，无法设置此字段。
 	ProcMount *ProcMountType
 	// The seccomp options to use by this container. If seccomp options are
 	// provided at both the pod & container level, the container options
 	// override the pod options.
 	// Note that this field cannot be set when spec.os.name is windows.
 	// +optional
+	// 此容器要使用的seccomp选项。 如果在pod和容器级别都提供了seccomp选项，则容器选项将覆盖pod选项。 注意，当spec.os.name为windows时，无法设置此字段。
 	SeccompProfile *SeccompProfile
 }
 
 // ProcMountType defines the type of proc mount
+// ProcMountType定义了proc挂载的类型
 type ProcMountType string
 
 const (
 	// DefaultProcMount uses the container runtime defaults for readonly and masked
 	// paths for /proc.  Most container runtimes mask certain paths in /proc to avoid
 	// accidental security exposure of special devices or information.
+	// DefaultProcMount使用容器运行时的默认值来设置/proc的只读和屏蔽路径。 大多数容器运行时会屏蔽/proc中的某些路径，以避免意外的特殊设备或信息的安全泄露。
 	DefaultProcMount ProcMountType = "Default"
 
 	// UnmaskedProcMount bypasses the default masking behavior of the container
 	// runtime and ensures the newly created /proc the container stays intact with
 	// no modifications.
+	// UnmaskedProcMount绕过容器运行时的默认屏蔽行为，并确保新创建的容器的/proc保持完整，没有任何修改。
 	UnmaskedProcMount ProcMountType = "Unmasked"
 )
 
 // SELinuxOptions are the labels to be applied to the container.
+// SELinuxOptions是要应用于容器的标签。
 type SELinuxOptions struct {
 	// SELinux user label
 	// +optional
@@ -5709,6 +5795,10 @@ type WindowsSecurityContextOptions struct {
 // binary range.  Consumers should use annotations to record additional information (schema version,
 // data encoding hints). A range allocation should *ALWAYS* be recreatable at any time by observation
 // of the cluster, thus the object is less strongly typed than most.
+// RangeAllocation是一个不透明的API对象（不向最终用户公开），可以将其持久化以记录集群的全局分配状态。
+// Range和Data的模式是通用的，即Range应该是一个字符串表示范围的输入（例如，对于IP分配，它可能是一个CIDR），而Data是一个不透明的blob，
+// 它是一个二进制范围，通常由分配器理解。 消费者应该使用注释来记录其他信息（模式版本，数据编码提示）。 RangeAllocation应该*总是*可以通过观察集群来重新创建，
+// 因此该对象的类型比大多数对象更弱。
 type RangeAllocation struct {
 	metav1.TypeMeta
 	// +optional
@@ -5716,11 +5806,14 @@ type RangeAllocation struct {
 	// A string representing a unique label for a range of resources, such as a CIDR "10.0.0.0/8" or
 	// port range "10000-30000". Range is not strongly schema'd here. The Range is expected to define
 	// a start and end unless there is an implicit end.
+	// 用于资源范围的唯一标签的字符串，例如CIDR"10.0.0.0/8"或者端口范围"10000-30000"。 Range在这里没有强制的模式。 除非有隐含的结束，否则Range应该定义开始和结束。
 	Range string
 	// A byte array representing the serialized state of a range allocation. Additional clarifiers on
 	// the type or format of data should be represented with annotations. For IP allocations, this is
 	// represented as a bit array starting at the base IP of the CIDR in Range, with each bit representing
 	// a single allocated address (the fifth bit on CIDR 10.0.0.0/8 is 10.0.0.4).
+	// 表示范围分配的序列化状态的字节数组。 数据类型或格式的其他说明应该用注释表示。 对于IP分配，它表示为从Range中的CIDR的基本IP开始的位数组，
+	// 每个位表示一个分配的地址
 	Data []byte
 }
 
@@ -5736,29 +5829,36 @@ const (
 
 // UnsatisfiableConstraintAction defines the actions that can be taken for an
 // unsatisfiable constraint.
+// UnsatisfiableConstraintAction定义了可以对不可满足的约束执行的操作。
 type UnsatisfiableConstraintAction string
 
 const (
 	// DoNotSchedule instructs the scheduler not to schedule the pod
 	// when constraints are not satisfied.
+	// DoNotSchedule指示调度程序在不满足约束时不要调度pod。
 	DoNotSchedule UnsatisfiableConstraintAction = "DoNotSchedule"
 	// ScheduleAnyway instructs the scheduler to schedule the pod
 	// even if constraints are not satisfied.
+	// ScheduleAnyway指示调度程序即使不满足约束也要调度pod。
 	ScheduleAnyway UnsatisfiableConstraintAction = "ScheduleAnyway"
 )
 
 // NodeInclusionPolicy defines the type of node inclusion policy
 // +enum
+// NodeInclusionPolicy定义节点包含策略的类型
 type NodeInclusionPolicy string
 
 const (
 	// NodeInclusionPolicyIgnore means ignore this scheduling directive when calculating pod topology spread skew.
+	// NodeInclusionPolicyIgnore表示在计算pod拓扑分布偏斜时忽略此调度指令。
 	NodeInclusionPolicyIgnore NodeInclusionPolicy = "Ignore"
 	// NodeInclusionPolicyHonor means use this scheduling directive when calculating pod topology spread skew.
+	// NodeInclusionPolicyHonor表示在计算pod拓扑分布偏斜时使用此调度指令。
 	NodeInclusionPolicyHonor NodeInclusionPolicy = "Honor"
 )
 
 // TopologySpreadConstraint specifies how to spread matching pods among the given topology.
+// TopologySpreadConstraint指定如何在给定拓扑之间分散匹配的pod。
 type TopologySpreadConstraint struct {
 	// MaxSkew describes the degree to which pods may be unevenly distributed.
 	// When `whenUnsatisfiable=DoNotSchedule`, it is the maximum permitted difference
@@ -5780,6 +5880,20 @@ type TopologySpreadConstraint struct {
 	// When `whenUnsatisfiable=ScheduleAnyway`, it is used to give higher precedence
 	// to topologies that satisfy it.
 	// It's a required field. Default value is 1 and 0 is not allowed.
+	// MaxSkew描述了pod可能不均匀分布的程度。
+	// 当`whenUnsatisfiable=DoNotSchedule`时，它是目标拓扑中匹配pod的数量与全局最小值之间允许的最大差异。
+	// 全局最小值是合格域中匹配pod的最小数量，如果合格域的数量少于MinDomains，则为零。
+	// 例如，在3个区域的集群中，MaxSkew设置为1，并且具有相同labelSelector的pod分布为2/2/1：
+	// 在这种情况下，全局最小值为1。
+	// +-------+-------+-------+
+	// | zone1 | zone2 | zone3 |
+	// +-------+-------+-------+
+	// |  P P  |  P P  |   P   |
+	// +-------+-------+-------+
+	// - 如果MaxSkew为1，则传入的pod只能调度到zone3以变为2/2/2; 将其调度到zone1(zone2)将使zone1(zone2)上的ActualSkew(3-1)违反MaxSkew(1)。
+	// - 如果MaxSkew为2，则传入的pod可以调度到任何区域。
+	// 当`whenUnsatisfiable=ScheduleAnyway`时，它用于给满足它的拓扑更高的优先级。
+	// 这是一个必填字段。默认值为1，不允许为0。
 	MaxSkew int32
 	// TopologyKey is the key of node labels. Nodes that have a label with this key
 	// and identical values are considered to be in the same topology.
@@ -5791,6 +5905,13 @@ type TopologySpreadConstraint struct {
 	// e.g. If TopologyKey is "kubernetes.io/hostname", each Node is a domain of that topology.
 	// And, if TopologyKey is "topology.kubernetes.io/zone", each zone is a domain of that topology.
 	// It's a required field.
+	// TopologyKey是节点标签的键。具有此键和相同值的标签的节点被认为是在同一拓扑中。
+	// 我们将每个<key，value>视为一个“桶”，并尝试将平衡数量的pod放入每个桶中。
+	// 我们将域定义为拓扑的特定实例。
+	// 此外，我们将合格域定义为其节点满足nodeAffinityPolicy和nodeTaintsPolicy要求的域。
+	// 例如，如果TopologyKey是"kubernetes.io/hostname"，则每个节点都是该拓扑的域。
+	// 并且，如果TopologyKey是"topology.kubernetes.io/zone"，则每个区域都是该拓扑的域。
+	// 这是一个必填字段。
 	TopologyKey string
 	// WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy
 	// the spread constraint.
@@ -5813,11 +5934,27 @@ type TopologySpreadConstraint struct {
 	// MaxSkew(1). In other words, the cluster can still be imbalanced, but scheduler
 	// won't make it *more* imbalanced.
 	// It's a required field.
+	// WhenUnsatisfiable指示如果pod不满足分散约束，如何处理它。
+	// - DoNotSchedule（默认）告诉调度程序不要调度它。
+	// - ScheduleAnyway告诉调度程序在任何位置调度pod，但是给予更高优先级的拓扑，以帮助减少倾斜。
+	// 如果仅当该pod的每个可能的节点分配都会违反某些拓扑上的“MaxSkew”时，才将约束视为传入pod的“不可满足”。
+	// 例如，在3个区域的集群中，MaxSkew设置为1，并且具有相同labelSelector的pod分布为3/1/1：
+	// +-------+-------+-------+
+	// | zone1 | zone2 | zone3 |
+	// +-------+-------+-------+
+	// | P P P |   P   |   P   |
+	// +-------+-------+-------+
+	// 如果WhenUnsatisfiable设置为DoNotSchedule，则传入的pod只能调度到zone2(zone3)以变为3/2/1(3/1/2)，因为zone2(zone3)上的ActualSkew(2-1)满足MaxSkew(1)。
+	// 换句话说，集群仍然可能不平衡，但调度程序不会使其更不平衡。
+	// 这是一个必填字段。
 	WhenUnsatisfiable UnsatisfiableConstraintAction
 	// LabelSelector is used to find matching pods.
 	// Pods that match this label selector are counted to determine the number of pods
 	// in their corresponding topology domain.
 	// +optional
+	// LabelSelector用于查找匹配的pod。
+	// 匹配此标签选择器的pod用于确定其相应拓扑域中的pod数量。
+	// +可选
 	LabelSelector *metav1.LabelSelector
 	// MinDomains indicates a minimum number of eligible domains.
 	// When the number of eligible domains with matching topology keys is less than minDomains,
@@ -5844,6 +5981,24 @@ type TopologySpreadConstraint struct {
 	//
 	// This is a beta field and requires the MinDomainsInPodTopologySpread feature gate to be enabled (enabled by default).
 	// +optional
+	// MinDomains表示可选域的最小数量。
+	// 当与匹配的拓扑密钥匹配的可选域的数量少于minDomains时，Pod拓扑扩展将“全局最小”视为0，然后执行偏斜计算。
+	// 当与匹配的拓扑密钥匹配的可选域的数量等于或大于minDomains时，此值对调度没有影响。
+	// 因此，当可选域的数量少于minDomains时，调度程序不会将超过maxSkew个Pod调度到这些域。
+	// 如果值为nil，则约束的行为就好像MinDomains等于1。
+	// 有效值是大于0的整数。
+	// 当值不为nil时，WhenUnsatisfiable必须为DoNotSchedule。
+	//
+	// 例如，在3个区域的集群中，MaxSkew设置为2，MinDomains设置为5，并且具有相同labelSelector的pod分布为2/2/2：
+	// +-------+-------+-------+
+	// | zone1 | zone2 | zone3 |
+	// +-------+-------+-------+
+	// |  P P  |  P P  |  P P  |
+	// +-------+-------+-------+
+	// 域的数量少于5（MinDomains），因此“全局最小”被视为0。
+	// 在这种情况下，具有相同labelSelector的新pod无法被调度，因为如果将新Pod调度到这三个区域的任何一个，则计算出的偏斜将为3（3-0），这将违反MaxSkew。
+	//
+	// 这是一个beta字段，需要启用MinDomainsInPodTopologySpread功能门（默认情况下启用）。
 	MinDomains *int32
 	// NodeAffinityPolicy indicates how we will treat Pod's nodeAffinity/nodeSelector
 	// when calculating pod topology spread skew. Options are:
@@ -5853,6 +6008,13 @@ type TopologySpreadConstraint struct {
 	// If this value is nil, the behavior is equivalent to the Honor policy.
 	// This is a beta-level feature default enabled by the NodeInclusionPolicyInPodTopologySpread feature flag.
 	// +optional
+	// NodeAffinityPolicy指示我们如何处理Pod的nodeAffinity/nodeSelector，以计算pod拓扑扩展偏斜。
+	// 选项是：
+	// - Honor：仅包含与nodeAffinity/nodeSelector匹配的节点在计算中。
+	// - Ignore：nodeAffinity/nodeSelector被忽略。所有节点都包含在计算中。
+	//
+	// 如果此值为nil，则行为等同于Honor策略。
+	// 这是一个beta级功能，通过NodeInclusionPolicyInPodTopologySpread功能标志默认启用。
 	NodeAffinityPolicy *NodeInclusionPolicy
 	// NodeTaintsPolicy indicates how we will treat node taints when calculating
 	// pod topology spread skew. Options are:
@@ -5863,6 +6025,13 @@ type TopologySpreadConstraint struct {
 	// If this value is nil, the behavior is equivalent to the Ignore policy.
 	// This is a beta-level feature default enabled by the NodeInclusionPolicyInPodTopologySpread feature flag.
 	// +optional
+	// NodeTaintsPolicy指示我们如何处理节点污点，以计算pod拓扑扩展偏斜。
+	// 选项是：
+	// - Honor：包括没有污点的节点以及传入pod具有容忍度的污点的节点。
+	// - Ignore：忽略节点污点。包括所有节点。
+	//
+	// 如果此值为nil，则行为等同于Ignore策略。
+	// 这是一个beta级功能，通过NodeInclusionPolicyInPodTopologySpread功能标志默认启用。
 	NodeTaintsPolicy *NodeInclusionPolicy
 	// MatchLabelKeys is a set of pod label keys to select the pods over which
 	// spreading will be calculated. The keys are used to lookup values from the
@@ -5872,6 +6041,9 @@ type TopologySpreadConstraint struct {
 	// be ignored. A null or empty list means only match against labelSelector.
 	// +listType=atomic
 	// +optional
+	// MatchLabelKeys是一组pod标签键，用于选择要计算扩展的pod。
+	// 该键用于从传入的pod标签中查找值，这些键值标签与labelSelector进行AND操作，以选择要计算传入pod的扩展的现有pod组。
+	// 传入pod标签中不存在的键将被忽略。空列表或空列表表示仅与labelSelector匹配。
 	MatchLabelKeys []string
 }
 
@@ -5884,10 +6056,13 @@ const (
 )
 
 // PortStatus represents the error condition of a service port
+// PortStatus表示业务端口的错误情况
 type PortStatus struct {
 	// Port is the port number of the service port of which status is recorded here
+	// Port是此处记录状态的业务端口的端口号
 	Port int32
 	// Protocol is the protocol of the service port of which status is recorded here
+	// Protocol是此处记录状态的业务端口的协议
 	Protocol Protocol
 	// Error is to record the problem with the service port
 	// The format of the error shall comply with the following rules:
@@ -5901,5 +6076,11 @@ type PortStatus struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Pattern=`^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$`
 	// +kubebuilder:validation:MaxLength=316
+	// Error用于记录业务端口的问题
+	// 错误的格式应符合以下规则：
+	// - 内置错误值应在此文件中指定，并且应使用CamelCase名称
+	// - 云提供商特定的错误值必须符合foo.example.com/CamelCase格式。
+	// ---
+	// 它匹配的正则表达式是（dns1123SubdomainFmt/）？（qualifiedNameFmt）
 	Error *string
 }

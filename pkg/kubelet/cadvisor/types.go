@@ -23,7 +23,7 @@ import (
 	cadvisorapiv2 "github.com/google/cadvisor/info/v2"
 )
 
-// Interface is an abstract interface for testability.  It abstracts the interface to cAdvisor.
+// 接口是一个抽象的接口，用于测试性。  它将接口抽象为cAdvisor。
 type Interface interface {
 	Start() error
 	DockerContainer(name string, req *cadvisorapi.ContainerInfoRequest) (cadvisorapi.ContainerInfo, error)

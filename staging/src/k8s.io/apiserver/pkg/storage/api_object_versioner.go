@@ -27,9 +27,11 @@ import (
 
 // APIObjectVersioner implements versioning and extracting etcd node information
 // for objects that have an embedded ObjectMeta or ListMeta field.
+// APIObjectVersioner 实现了对象的版本控制和提取 etcd 节点信息的功能，这些对象都有一个内嵌的 ObjectMeta 或者 ListMeta 字段。
 type APIObjectVersioner struct{}
 
 // UpdateObject implements Versioner
+// UpdateObject 实现了 Versioner 接口
 func (a APIObjectVersioner) UpdateObject(obj runtime.Object, resourceVersion uint64) error {
 	accessor, err := meta.Accessor(obj)
 	if err != nil {
@@ -44,6 +46,7 @@ func (a APIObjectVersioner) UpdateObject(obj runtime.Object, resourceVersion uin
 }
 
 // UpdateList implements Versioner
+// UpdateList 实现了 Versioner 接口
 func (a APIObjectVersioner) UpdateList(obj runtime.Object, resourceVersion uint64, nextKey string, count *int64) error {
 	if resourceVersion == 0 {
 		return fmt.Errorf("illegal resource version from storage: %d", resourceVersion)
@@ -60,6 +63,7 @@ func (a APIObjectVersioner) UpdateList(obj runtime.Object, resourceVersion uint6
 }
 
 // PrepareObjectForStorage clears resourceVersion and selfLink prior to writing to etcd.
+// PrepareObjectForStorage 在写入 etcd 之前清除 resourceVersion 和 selfLink。
 func (a APIObjectVersioner) PrepareObjectForStorage(obj runtime.Object) error {
 	accessor, err := meta.Accessor(obj)
 	if err != nil {
@@ -71,6 +75,7 @@ func (a APIObjectVersioner) PrepareObjectForStorage(obj runtime.Object) error {
 }
 
 // ObjectResourceVersion implements Versioner
+// ObjectResourceVersion 实现了 Versioner 接口
 func (a APIObjectVersioner) ObjectResourceVersion(obj runtime.Object) (uint64, error) {
 	accessor, err := meta.Accessor(obj)
 	if err != nil {
@@ -87,6 +92,8 @@ func (a APIObjectVersioner) ObjectResourceVersion(obj runtime.Object) (uint64, e
 // the etcd version. For watch we should pass to helper.Watch(). Because resourceVersion is
 // an opaque value, the default watch behavior for non-zero watch is to watch
 // the next value (if you pass "1", you will see updates from "2" onwards).
+// ParseResourceVersion 将一个资源版本参数转换为 etcd 版本。对于 watch，我们应该传递给 helper.Watch()。因为 resourceVersion 是一个不透明的值，
+// 对于非零 watch，默认的 watch 行为是观察下一个值（如果你传递 "1"，你将从 "2" 开始看到更新）。
 func (a APIObjectVersioner) ParseResourceVersion(resourceVersion string) (uint64, error) {
 	if resourceVersion == "" || resourceVersion == "0" {
 		return 0, nil
@@ -103,10 +110,12 @@ func (a APIObjectVersioner) ParseResourceVersion(resourceVersion string) (uint64
 }
 
 // Versioner implements Versioner
+// Versioner 实现了 Versioner 接口
 var _ Versioner = APIObjectVersioner{}
 
 // CompareResourceVersion compares etcd resource versions.  Outside this API they are all strings,
 // but etcd resource versions are special, they're actually ints, so we can easily compare them.
+// CompareResourceVersion 比较 etcd 资源版本。在这个 API 之外，它们都是字符串，但是 etcd 资源版本是特殊的，它们实际上是整数，所以我们可以轻松地比较它们。
 func (a APIObjectVersioner) CompareResourceVersion(lhs, rhs runtime.Object) int {
 	lhsVersion, err := a.ObjectResourceVersion(lhs)
 	if err != nil {

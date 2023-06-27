@@ -25,8 +25,10 @@ type AttachDetachControllerConfiguration struct {
 	// Reconciler runs a periodic loop to reconcile the desired state of the with
 	// the actual state of the world by triggering attach detach operations.
 	// This flag enables or disables reconcile.  Is false by default, and thus enabled.
+	// Reconciler 运行一个周期性循环，通过触发附加分离操作来协调所需的状态与实际的状态。此标志启用或禁用协调。默认情况下为 false，建议启用。
 	DisableAttachDetachReconcilerSync bool
 	// ReconcilerSyncLoopPeriod is the amount of time the reconciler sync states loop
 	// wait between successive executions. Is set to 5 sec by default.
+	// ReconcilerSyncLoopPeriod 是协调器同步状态循环在连续执行之间等待的时间量。默认设置为 5 秒。
 	ReconcilerSyncLoopPeriod metav1.Duration
 }

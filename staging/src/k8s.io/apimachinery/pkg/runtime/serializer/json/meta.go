@@ -34,17 +34,20 @@ type MetaFactory interface {
 // DefaultMetaFactory is a default factory for versioning objects in JSON. The object
 // in memory and in the default JSON serialization will use the "kind" and "apiVersion"
 // fields.
+// DefaultMetaFactory 是 JSON 中版本控制对象的默认工厂。内存中的对象和默认 JSON 序列化中的对象将使用“kind”和“apiVersion”字段。
 var DefaultMetaFactory = SimpleMetaFactory{}
 
 // SimpleMetaFactory provides default methods for retrieving the type and version of objects
 // that are identified with an "apiVersion" and "kind" fields in their JSON
 // serialization. It may be parameterized with the names of the fields in memory, or an
 // optional list of base structs to search for those fields in memory.
+// SimpleMetaFactory 提供默认方法来检索在其 JSON 序列化中使用“apiVersion”和“kind”字段标识的对象的类型和版本。它可以用内存中字段的名称或可选的基本结构列表进行参数化，以在内存中搜索这些字段。
 type SimpleMetaFactory struct {
 }
 
 // Interpret will return the APIVersion and Kind of the JSON wire-format
 // encoding of an object, or an error.
+// Interpret 将返回对象的 APIVersion 和 JSON 线格式编码的种类，或者错误。
 func (SimpleMetaFactory) Interpret(data []byte) (*schema.GroupVersionKind, error) {
 	findKind := struct {
 		// +optional

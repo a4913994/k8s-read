@@ -47,12 +47,19 @@ type KubeSchedulerConfiguration struct {
 	// config. Based on the versioned type set in this field, we make decisions;
 	// for example (1) during validation to check for usage of removed plugins,
 	// (2) writing config to a file, (3) initialising the scheduler.
+	// TypeMeta 包含 API 版本和种类。在 kube-scheduler 中，在从版本化的 KubeSchedulerConfiguration 类型转换为这个内部类型之后，
+	// 我们将 APIVersion 字段设置为我们group/version的类型的方案。
+	// 这是在 cmd/kube-scheduler 中的两个地方完成的：
+	//（1）从文件加载配置时，（2）生成默认配置。
+	// 基于该字段中设置的版本化类型，我们做出决定；例如（1）在验证期间检查已删除插件的使用情况，（2）将配置写入文件，（3）初始化调度程序
 	metav1.TypeMeta
 
 	// Parallelism defines the amount of parallelism in algorithms for scheduling a Pods. Must be greater than 0. Defaults to 16
+	// Parallelism 定义了用于调度 Pod 的算法中的并行度。必须大于 0。默认为 16
 	Parallelism int32
 
 	// LeaderElection defines the configuration of leader election client.
+	// LeaderElection 定义领导者选举客户端的配置。
 	LeaderElection componentbaseconfig.LeaderElectionConfiguration
 
 	// ClientConnection specifies the kubeconfig file and client connection

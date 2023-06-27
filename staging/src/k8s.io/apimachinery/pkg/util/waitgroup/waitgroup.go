@@ -22,6 +22,7 @@ import (
 )
 
 // SafeWaitGroup must not be copied after first use.
+// SafeWaitGroup 首次使用后不得复制 。
 type SafeWaitGroup struct {
 	wg sync.WaitGroup
 	mu sync.RWMutex
@@ -33,6 +34,7 @@ type SafeWaitGroup struct {
 // Add adds delta, which may be negative, similar to sync.WaitGroup.
 // If Add with a positive delta happens after Wait, it will return error,
 // which prevent unsafe Add.
+// Add 添加delta，可能是负数，类似于sync.WaitGroup。如果在 Wait 之后发生正增量的 Add，它将返回错误，从而防止不安全的 Add。
 func (wg *SafeWaitGroup) Add(delta int) error {
 	wg.mu.RLock()
 	defer wg.mu.RUnlock()

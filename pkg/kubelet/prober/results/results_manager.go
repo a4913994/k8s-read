@@ -25,31 +25,40 @@ import (
 )
 
 // Manager provides a probe results cache and channel of updates.
+// Manager提供了一个探测结果缓存和更新通道。
 type Manager interface {
 	// Get returns the cached result for the container with the given ID.
+	// Get返回给定ID的容器的缓存结果。
 	Get(kubecontainer.ContainerID) (Result, bool)
 	// Set sets the cached result for the container with the given ID.
 	// The pod is only included to be sent with the update.
+	// Set设置给定ID的容器的缓存结果。 pod仅包含与更新一起发送的内容。
 	Set(kubecontainer.ContainerID, Result, *v1.Pod)
 	// Remove clears the cached result for the container with the given ID.
+	// Remove清除给定ID的容器的缓存结果。
 	Remove(kubecontainer.ContainerID)
 	// Updates creates a channel that receives an Update whenever its result changes (but not
 	// removed).
 	// NOTE: The current implementation only supports a single updates channel.
+	// Updates创建一个通道，每当其结果更改时（但不是删除）都会收到一个Update。 注意：当前实现仅支持一个更新通道。
 	Updates() <-chan Update
 }
 
 // Result is the type for probe results.
+// Result是探测结果的类型。
 type Result int
 
 const (
 	// Unknown is encoded as -1 (type Result)
+	// Unknown是编码为-1（类型Result）
 	Unknown Result = iota - 1
 
 	// Success is encoded as 0 (type Result)
+	// Success是编码为0（类型Result）
 	Success
 
 	// Failure is encoded as 1 (type Result)
+	// Failure是编码为1（类型Result）
 	Failure
 )
 

@@ -21,5 +21,6 @@ type ReplicationControllerConfiguration struct {
 	// concurrentRCSyncs is the number of replication controllers that are
 	// allowed to sync concurrently. Larger number = more responsive replica
 	// management, but more CPU (and network) load.
+	// concurrentRCSyncs是允许同步的复制控制器的数量。更大的数量=更多的复制管理响应，但更多的CPU（和网络）负载。
 	ConcurrentRCSyncs int32
 }

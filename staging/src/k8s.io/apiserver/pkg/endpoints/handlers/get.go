@@ -46,10 +46,12 @@ import (
 
 // getterFunc performs a get request with the given context and object name. The request
 // may be used to deserialize an options object to pass to the getter.
+// getterFunc 使用给定的上下文和对象名称执行获取请求。该请求可用于反序列化选项对象以传递给 getter。
 type getterFunc func(ctx context.Context, name string, req *http.Request) (runtime.Object, error)
 
 // getResourceHandler is an HTTP handler function for get requests. It delegates to the
 // passed-in getterFunc to perform the actual get.
+// getResourceHandler 是用于获取请求的 HTTP 处理函数。它委托传入的 getterFunc 来执行实际的获取。
 func getResourceHandler(scope *RequestScope, getter getterFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()

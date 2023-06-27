@@ -41,6 +41,7 @@ const (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Job represents the configuration of a single job.
+// Job 表示单个作业的配置。
 type Job struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard object's metadata.
@@ -51,6 +52,7 @@ type Job struct {
 	// Specification of the desired behavior of a job.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 	// +optional
+	// 对作业期望行为的说明。
 	Spec JobSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	// Current status of a job.
@@ -74,6 +76,7 @@ type JobList struct {
 }
 
 // CompletionMode specifies how Pod completions of a Job are tracked.
+// CompletionMode 描述了如何跟踪作业的 Pod 完成情况。
 // +enum
 type CompletionMode string
 
@@ -81,17 +84,20 @@ const (
 	// NonIndexedCompletion is a Job completion mode. In this mode, the Job is
 	// considered complete when there have been .spec.completions
 	// successfully completed Pods. Pod completions are homologous to each other.
+	// NonIndexedCompletion 是作业完成模式。在此模式下，当成功完成了 .spec.completions 个 Pod 时，作业被视为已完成。Pod 完成彼此同等。
 	NonIndexedCompletion CompletionMode = "NonIndexed"
 
 	// IndexedCompletion is a Job completion mode. In this mode, the Pods of a
 	// Job get an associated completion index from 0 to (.spec.completions - 1).
 	// The Job is  considered complete when a Pod completes for each completion
 	// index.
+	// IndexedCompletion是作业完成模式。在此模式下，作业的 Pod 从 0 到 (.spec.completions - 1) 获得关联的完成索引。当每个完成索引的 Pod 完成时，作业被视为已完成。
 	IndexedCompletion CompletionMode = "Indexed"
 )
 
 // PodFailurePolicyAction specifies how a Pod failure is handled.
 // +enum
+// PodFailurePolicyAction 描述了 Pod 失败时的处理方式。
 type PodFailurePolicyAction string
 
 const (
@@ -124,12 +130,18 @@ const (
 // represented by the .status.containerStatuses and .status.initContainerStatuses
 // fields in the Pod status, respectively. Containers completed with success
 // (exit code 0) are excluded from the requirement check.
+// PodFailurePolicyOnExitCodesRequirement 描述了根据容器退出代码处理失败的 Pod 的要求。
+// 特别是，它查找每个应用程序容器和初始化容器状态的 .state.terminated.exitCode，
+// 由 Pod 状态中的 .status.containerStatuses 和 .status.initContainerStatuses 字段表示。
+// 完成成功的容器（退出代码 0）被排除在要求检查之外。
 type PodFailurePolicyOnExitCodesRequirement struct {
 	// Restricts the check for exit codes to the container with the
 	// specified name. When null, the rule applies to all containers.
 	// When specified, it should match one the container or initContainer
 	// names in the pod template.
 	// +optional
+	// 限制退出代码检查到指定名称的容器。当为 null 时，规则适用于所有容器。
+	// 当指定时，它应该与 pod 模板中的容器或 initContainer 名称之一匹配。
 	ContainerName *string `json:"containerName" protobuf:"bytes,1,opt,name=containerName"`
 
 	// Represents the relationship between the container exit code(s) and the
@@ -144,6 +156,10 @@ type PodFailurePolicyOnExitCodesRequirement struct {
 	//   by the 'containerName' field) is not in the set of specified values.
 	// Additional values are considered to be added in the future. Clients should
 	// react to an unknown operator by assuming the requirement is not satisfied.
+	// 表示容器退出码与指定值之间的关系。 完成成功的容器（退出代码 0）被排除在要求检查之外。 可能的值有：
+	// - In：如果至少有一个容器退出代码（如果有多个容器不受 'containerName' 字段的限制，则可能是多个）在指定值集合中，则满足要求。
+	// - NotIn：如果至少有一个容器退出代码（如果有多个容器不受 'containerName' 字段的限制，则可能是多个）不在指定值集合中，则满足要求。
+	// 将来会考虑添加其他值。 客户端应该通过假设要求不满足来对未知运算符做出反应。
 	Operator PodFailurePolicyOnExitCodesOperator `json:"operator" protobuf:"bytes,2,req,name=operator"`
 
 	// Specifies the set of values. Each returned container exit code (might be
@@ -152,24 +168,30 @@ type PodFailurePolicyOnExitCodesRequirement struct {
 	// and must not contain duplicates. Value '0' cannot be used for the In operator.
 	// At least one element is required. At most 255 elements are allowed.
 	// +listType=set
+	// 指定值集合。 每个返回的容器退出代码（如果有多个容器，则可能是多个）都会根据运算符与此值集合进行检查。
+	// 值列表必须有序且不得包含重复项。 值 '0' 不能用于 In 运算符。 至少需要一个元素。 最多允许 255 个元素。
 	Values []int32 `json:"values" protobuf:"varint,3,rep,name=values"`
 }
 
 // PodFailurePolicyOnPodConditionsPattern describes a pattern for matching
 // an actual pod condition type.
+// PodFailurePolicyOnPodConditionsPattern 描述了匹配实际 pod 条件类型的模式。
 type PodFailurePolicyOnPodConditionsPattern struct {
 	// Specifies the required Pod condition type. To match a pod condition
 	// it is required that specified type equals the pod condition type.
+	// 指定所需的Pod条件类型. 要匹配pod条件, 必须指定类型等于pod条件类型.
 	Type corev1.PodConditionType `json:"type" protobuf:"bytes,1,req,name=type"`
 
 	// Specifies the required Pod condition status. To match a pod condition
 	// it is required that the specified status equals the pod condition status.
 	// Defaults to True.
+	// 指定所需的Pod条件状态. 要匹配pod条件, 必须指定状态等于pod条件状态. 默认为True.
 	Status corev1.ConditionStatus `json:"status" protobuf:"bytes,2,req,name=status"`
 }
 
 // PodFailurePolicyRule describes how a pod failure is handled when the requirements are met.
 // One of onExitCodes and onPodConditions, but not both, can be used in each rule.
+// PodFailurePolicyRule 描述了当满足要求时如何处理 pod 失败。 每个规则中可以使用 onExitCodes 和 onPodConditions 中的一个，但不能同时使用。
 type PodFailurePolicyRule struct {
 	// Specifies the action taken on a pod failure when the requirements are satisfied.
 	// Possible values are:
@@ -182,20 +204,28 @@ type PodFailurePolicyRule struct {
 	//   counter towards the .backoffLimit is incremented.
 	// Additional values are considered to be added in the future. Clients should
 	// react to an unknown action by skipping the rule.
+	// 指定满足要求时对pod故障所采取的操作 . 可能的值为：
+	// - FailJob：表示 pod 的 job 被标记为 Failed，并且终止所有正在运行的 pod。
+	// - Ignore：表示不会增加 .backoffLimit 的计数器，并且会创建一个替换 pod。
+	// - Count：表示以默认方式处理 pod - 增加 .backoffLimit 的计数器。
+	// 将来可能会添加其他值。 客户端应该通过跳过规则来响应未知操作。
 	Action PodFailurePolicyAction `json:"action" protobuf:"bytes,1,req,name=action"`
 
 	// Represents the requirement on the container exit codes.
 	// +optional
+	// 表示对容器退出代码的要求。
 	OnExitCodes *PodFailurePolicyOnExitCodesRequirement `json:"onExitCodes" protobuf:"bytes,2,opt,name=onExitCodes"`
 
 	// Represents the requirement on the pod conditions. The requirement is represented
 	// as a list of pod condition patterns. The requirement is satisfied if at
 	// least one pattern matches an actual pod condition. At most 20 elements are allowed.
 	// +listType=atomic
+	// 表示对Pod条件的要求。 要求以 Pod 条件模式列表表示。 如果至少有一个模式与实际 Pod 条件匹配，则满足要求。 最多允许 20 个元素。
 	OnPodConditions []PodFailurePolicyOnPodConditionsPattern `json:"onPodConditions" protobuf:"bytes,3,opt,name=onPodConditions"`
 }
 
 // PodFailurePolicy describes how failed pods influence the backoffLimit.
+// PodFailurePolicy 描述失败的 Pod 如何影响 backoffLimit。
 type PodFailurePolicy struct {
 	// A list of pod failure policy rules. The rules are evaluated in order.
 	// Once a rule matches a Pod failure, the remaining of the rules are ignored.
@@ -203,10 +233,13 @@ type PodFailurePolicy struct {
 	// counter of pod failures is incremented and it is checked against
 	// the backoffLimit. At most 20 elements are allowed.
 	// +listType=atomic
+	// pod故障策略规则列表。规则按顺序求值。
+	// 一旦规则匹配 Pod 故障，其余规则将被忽略。 当没有规则匹配 Pod 故障时，将应用默认处理 - pod 故障计数器将被递增，并检查它是否超过 backoffLimit。 最多允许 20 个元素。
 	Rules []PodFailurePolicyRule `json:"rules" protobuf:"bytes,1,opt,name=rules"`
 }
 
 // JobSpec describes how the job execution will look like.
+// JobSpec 描述作业执行的样子。
 type JobSpec struct {
 
 	// Specifies the maximum desired number of pods the job should
@@ -215,6 +248,7 @@ type JobSpec struct {
 	// i.e. when the work left to do is less than max parallelism.
 	// More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
 	// +optional
+	// 指定作业在任何给定时间应运行的最大期望pod数。在稳定状态下实际运行的pod数将小于此数字，即当（（.spec.completions - .status.successful）< .spec.parallelism）时，即当剩下的工作量小于最大并行性时。
 	Parallelism *int32 `json:"parallelism,omitempty" protobuf:"varint,1,opt,name=parallelism"`
 
 	// Specifies the desired number of successfully finished pods the
@@ -224,6 +258,7 @@ type JobSpec struct {
 	// pod signals the success of the job.
 	// More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
 	// +optional
+	// 指定作业应运行的成功完成的pod数。设置为null表示任何pod的成功都表示所有pod的成功，并且允许并行性具有任何正值。设置为1表示并行性限制为1，该pod的成功表示作业的成功。
 	Completions *int32 `json:"completions,omitempty" protobuf:"varint,2,opt,name=completions"`
 
 	// Specifies the duration in seconds relative to the startTime that the job
@@ -232,6 +267,7 @@ type JobSpec struct {
 	// update), this timer will effectively be stopped and reset when the Job is
 	// resumed again.
 	// +optional
+	// 指定相对于startTime的持续时间（以秒为单位），作业在系统尝试终止之前可以连续活动的时间；值必须为正整数。如果作业被暂停（在创建或通过更新时），则此计时器将被有效地停止并在作业再次恢复时重置。
 	ActiveDeadlineSeconds *int64 `json:"activeDeadlineSeconds,omitempty" protobuf:"varint,3,opt,name=activeDeadlineSeconds"`
 
 	// Specifies the policy of handling failed pods. In particular, it allows to
@@ -245,11 +281,13 @@ type JobSpec struct {
 	// This field is alpha-level. To use this field, you must enable the
 	// `JobPodFailurePolicy` feature gate (disabled by default).
 	// +optional
+	// 指定处理失败pod的策略。特别是，它允许指定需要满足的操作和条件的集合，以执行相关操作。如果为空，则应用默认行为 - 作业的 .status.failed 字段表示失败的pod的计数器被增加，并且它被检查是否超过了 backoffLimit。此字段不能与 restartPolicy=OnFailure 一起使用。
 	PodFailurePolicy *PodFailurePolicy `json:"podFailurePolicy,omitempty" protobuf:"bytes,11,opt,name=podFailurePolicy"`
 
 	// Specifies the number of retries before marking this job failed.
 	// Defaults to 6
 	// +optional
+	// 指定在将此作业标记为失败之前重试的次数。默认为 6
 	BackoffLimit *int32 `json:"backoffLimit,omitempty" protobuf:"varint,7,opt,name=backoffLimit"`
 
 	// TODO enabled it when https://github.com/kubernetes/kubernetes/issues/28486 has been fixed
@@ -261,6 +299,7 @@ type JobSpec struct {
 	// Normally, the system sets this field for you.
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 	// +optional
+	// 有关应匹配pod计数的pod的标签查询。通常，系统为您设置此字段
 	Selector *metav1.LabelSelector `json:"selector,omitempty" protobuf:"bytes,4,opt,name=selector"`
 
 	// manualSelector controls generation of pod labels and pod selectors.
@@ -274,10 +313,12 @@ type JobSpec struct {
 	// API.
 	// More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/#specifying-your-own-pod-selector
 	// +optional
+	// manualSelector 控制生成pod标签和pod选择器。除非您确定自己在做什么，否则不要设置 `manualSelector`。当为false或未设置时，系统会选择唯一的标签，将这些标签附加到pod模板。当为true时，用户负责选择唯一的标签并指定选择器。选择唯一标签可能会导致此作业和其他作业无法正常工作。但是，您可能会在使用旧的 `extensions/v1beta1` API创建的作业中看到 `manualSelector=true`。
 	ManualSelector *bool `json:"manualSelector,omitempty" protobuf:"varint,5,opt,name=manualSelector"`
 
 	// Describes the pod that will be created when executing a job.
 	// More info: https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/
+	// 描述在执行作业时将创建的pod。
 	Template corev1.PodTemplateSpec `json:"template" protobuf:"bytes,6,opt,name=template"`
 
 	// ttlSecondsAfterFinished limits the lifetime of a Job that has finished
@@ -288,6 +329,7 @@ type JobSpec struct {
 	// the Job won't be automatically deleted. If this field is set to zero,
 	// the Job becomes eligible to be deleted immediately after it finishes.
 	// +optional
+	// ttlSecondsAfterFinished 限制完成执行（无论是完成还是失败）的作业的生命周期。如果设置了此字段，则在作业完成后的 ttlSecondsAfterFinished 秒后，它将有资格被自动删除。当作业被删除时，将遵守其生命周期保证（例如 finalizers）。如果未设置此字段，则作业不会自动删除。如果将此字段设置为零，则作业在完成后立即有资格被删除。
 	TTLSecondsAfterFinished *int32 `json:"ttlSecondsAfterFinished,omitempty" protobuf:"varint,8,opt,name=ttlSecondsAfterFinished"`
 
 	// completionMode specifies how Pod completions are tracked. It can be
@@ -313,6 +355,10 @@ type JobSpec struct {
 	// is possible during upgrades due to version skew, the controller
 	// skips updates for the Job.
 	// +optional
+	// completionMode 指定如何跟踪 Pod 完成情况。可以是 `NonIndexed`（默认）或 `Indexed`。
+	// `NonIndexed` 意味着当有 .spec.completions 个成功完成的 Pod 时，作业被视为完成。每个 Pod 完成情况彼此相同。
+	// `Indexed` 意味着作业的 Pod 从 0 到 (.spec.completions - 1) 获得关联的完成索引，该索引可在注释 batch.kubernetes.io/job-completion-index 中使用。当每个索引都有一个成功完成的 Pod 时，作业被视为完成。当值为 `Indexed` 时，必须指定 .spec.completions，并且 `.spec.parallelism` 必须小于或等于 10^5。此外，Pod 名称采用形式 `$(job-name)-$(index)-$(random-string)`，Pod 主机名采用形式 `$(job-name)-$(index)`。
+	// 以后可以添加更多完成模式。如果作业控制器观察到它不认识的模式，这在升级期间由于版本偏差是可能的，控制器会跳过作业的更新。
 	CompletionMode *CompletionMode `json:"completionMode,omitempty" protobuf:"bytes,9,opt,name=completionMode,casttype=CompletionMode"`
 
 	// suspend specifies whether the Job controller should create Pods or not. If
@@ -324,10 +370,12 @@ type JobSpec struct {
 	// resetting the ActiveDeadlineSeconds timer too. Defaults to false.
 	//
 	// +optional
+	// suspend 指定作业控制器是否应创建 Pod。如果创建了将 suspend 设置为 true 的作业，则作业控制器不会创建任何 Pod。如果在创建作业之后将其暂停（即标志从 false 切换为 true），则作业控制器将删除与此作业相关联的所有活动 Pod。用户必须设计其工作负载以优雅地处理此情况。暂停作业将重置作业的 StartTime 字段，从而有效地重置 ActiveDeadlineSeconds 计时器。默认为 false。
 	Suspend *bool `json:"suspend,omitempty" protobuf:"varint,10,opt,name=suspend"`
 }
 
 // JobStatus represents the current state of a Job.
+// JobStatus 表示作业的当前状态。
 type JobStatus struct {
 	// The latest available observations of an object's current state. When a Job
 	// fails, one of the conditions will have type "Failed" and status true. When
@@ -340,6 +388,7 @@ type JobStatus struct {
 	// +patchMergeKey=type
 	// +patchStrategy=merge
 	// +listType=atomic
+	// 最新可用的对象当前状态的观察结果。当作业失败时，其中一个条件的类型将为 "Failed"，状态为 true。当作业被暂停时，其中一个条件的类型将为 "Suspended"，状态为 true；当作业恢复时，此条件的状态将变为 false。当作业完成时，其中一个条件的类型将为 "Complete"，状态为 true。
 	Conditions []JobCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 
 	// Represents time when the job controller started processing a job. When a
@@ -347,6 +396,7 @@ type JobStatus struct {
 	// first time it is resumed. This field is reset every time a Job is resumed
 	// from suspension. It is represented in RFC3339 form and is in UTC.
 	// +optional
+	// StartTime 表示作业控制器开始处理作业的时间。当作业在暂停状态下创建时，此字段在第一次恢复之前不会设置。每次从暂停状态恢复作业时，都会重置此字段。它以 RFC3339 形式表示，并且位于 UTC 时区。
 	StartTime *metav1.Time `json:"startTime,omitempty" protobuf:"bytes,2,opt,name=startTime"`
 
 	// Represents time when the job was completed. It is not guaranteed to
@@ -354,18 +404,22 @@ type JobStatus struct {
 	// It is represented in RFC3339 form and is in UTC.
 	// The completion time is only set when the job finishes successfully.
 	// +optional
+	// CompletionTime 表示作业完成的时间。不能保证在不同操作之间按发生顺序设置。它以 RFC3339 形式表示，并且位于 UTC 时区。仅当作业成功完成时，才会设置完成时间。
 	CompletionTime *metav1.Time `json:"completionTime,omitempty" protobuf:"bytes,3,opt,name=completionTime"`
 
 	// The number of pending and running pods.
 	// +optional
+	// 挂起和运行的pod的数量。
 	Active int32 `json:"active,omitempty" protobuf:"varint,4,opt,name=active"`
 
 	// The number of pods which reached phase Succeeded.
 	// +optional
+	// 到达 Succeeded 阶段的 pod 数量。
 	Succeeded int32 `json:"succeeded,omitempty" protobuf:"varint,5,opt,name=succeeded"`
 
 	// The number of pods which reached phase Failed.
 	// +optional
+	// 到达 Failed 阶段的 pod 数量。
 	Failed int32 `json:"failed,omitempty" protobuf:"varint,6,opt,name=failed"`
 
 	// completedIndexes holds the completed indexes when .spec.completionMode =
@@ -376,6 +430,8 @@ type JobStatus struct {
 	// For example, if the completed indexes are 1, 3, 4, 5 and 7, they are
 	// represented as "1,3-5,7".
 	// +optional
+	// completedIndexes 在文本格式中保存 .spec.completionMode = "Indexed" 时的已完成索引。索引表示为以逗号分隔的十进制整数。数字按升序排列。三个或更多连续的数字被压缩并由系列的第一个和最后一个元素表示，用连字符分隔。
+	// 例如，如果已完成的索引为 1、3、4、5 和 7，则它们表示为 "1,3-5,7"。
 	CompletedIndexes string `json:"completedIndexes,omitempty" protobuf:"bytes,7,opt,name=completedIndexes"`
 
 	// uncountedTerminatedPods holds the UIDs of Pods that have terminated but
@@ -393,6 +449,12 @@ type JobStatus struct {
 	// Old jobs might not be tracked using this field, in which case the field
 	// remains null.
 	// +optional
+	// uncountedTerminatedPods 保存已终止但作业控制器尚未在状态计数器中计算的 pod 的 UID。
+	// 作业控制器使用 finalizer 创建 pod。当 pod 终止（成功或失败）时，控制器执行三个步骤以在作业状态中对其进行计算：
+	// 1. 将 pod UID 添加到此字段中的数组中。
+	// 2. 删除 pod finalizer。
+	// 3. 从数组中删除 pod UID，同时增加相应的计数器。
+	// 旧作业可能无法使用此字段进行跟踪，此时该字段将保持空值。
 	UncountedTerminatedPods *UncountedTerminatedPods `json:"uncountedTerminatedPods,omitempty" protobuf:"bytes,8,opt,name=uncountedTerminatedPods"`
 
 	// The number of pods which have a Ready condition.
@@ -400,20 +462,25 @@ type JobStatus struct {
 	// This field is beta-level. The job controller populates the field when
 	// the feature gate JobReadyPods is enabled (enabled by default).
 	// +optional
+	// 处于Ready状态的Pods数。
+	// 此字段为 beta 级别。当启用了 JobReadyPods 特性门控（默认启用）时，作业控制器会填充该字段。
 	Ready *int32 `json:"ready,omitempty" protobuf:"varint,9,opt,name=ready"`
 }
 
 // UncountedTerminatedPods holds UIDs of Pods that have terminated but haven't
 // been accounted in Job status counters.
+// UncountedTerminatedPods 保存已终止但尚未在作业状态计数器中计算的 pod 的 UID。
 type UncountedTerminatedPods struct {
 	// succeeded holds UIDs of succeeded Pods.
 	// +listType=set
 	// +optional
+	// succeeded 保存成功的 pod 的 UID。
 	Succeeded []types.UID `json:"succeeded,omitempty" protobuf:"bytes,1,rep,name=succeeded,casttype=k8s.io/apimachinery/pkg/types.UID"`
 
 	// failed holds UIDs of failed Pods.
 	// +listType=set
 	// +optional
+	// failed 保存失败的 pod 的 UID。
 	Failed []types.UID `json:"failed,omitempty" protobuf:"bytes,2,rep,name=failed,casttype=k8s.io/apimachinery/pkg/types.UID"`
 }
 
@@ -432,35 +499,45 @@ const (
 )
 
 // JobCondition describes current state of a job.
+// JobCondition 用于描述作业的当前状态。
 type JobCondition struct {
 	// Type of job condition, Complete or Failed.
+	// 作业条件的类型，可以是 Complete 或 Failed。
 	Type JobConditionType `json:"type" protobuf:"bytes,1,opt,name=type,casttype=JobConditionType"`
 	// Status of the condition, one of True, False, Unknown.
+	// 作业条件的状态，可以是 True、False 或 Unknown。
 	Status corev1.ConditionStatus `json:"status" protobuf:"bytes,2,opt,name=status,casttype=k8s.io/api/core/v1.ConditionStatus"`
 	// Last time the condition was checked.
 	// +optional
+	// 上次检查了条件
 	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty" protobuf:"bytes,3,opt,name=lastProbeTime"`
 	// Last time the condition transit from one status to another.
 	// +optional
+	// 上次条件从一个状态转换到另一个状态
 	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty" protobuf:"bytes,4,opt,name=lastTransitionTime"`
 	// (brief) reason for the condition's last transition.
 	// +optional
+	// 条件最后一次转换的原因
 	Reason string `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
 	// Human readable message indicating details about last transition.
 	// +optional
+	// 人类可读的消息，显示上次转换的详细信息
 	Message string `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
 }
 
 // JobTemplateSpec describes the data a Job should have when created from a template
+// JobTemplateSpec 描述了从模板创建作业时应该具有的数据
 type JobTemplateSpec struct {
 	// Standard object's metadata of the jobs created from this template.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
 	// +optional
+	// 从此模板创建的作业的标准对象元数据。
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Specification of the desired behavior of the job.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 	// +optional
+	// 作业的期望行为的规范。
 	Spec JobSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 }
 
@@ -468,21 +545,25 @@ type JobTemplateSpec struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // CronJob represents the configuration of a single cron job.
+// CronJob 表示单个 cron 作业的配置。
 type CronJob struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard object's metadata.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
 	// +optional
+	// 标准对象的元数据。
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Specification of the desired behavior of a cron job, including the schedule.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 	// +optional
+	// cron 作业的期望行为的规范，包括调度。
 	Spec CronJobSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	// Current status of a cron job.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
 	// +optional
+	// cron 作业的当前状态。
 	Status CronJobStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
@@ -502,9 +583,11 @@ type CronJobList struct {
 }
 
 // CronJobSpec describes how the job execution will look like and when it will actually run.
+// CronJobSpec 描述了作业执行的外观以及何时实际运行。
 type CronJobSpec struct {
 
 	// The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
+	// 以 Cron 格式的调度，参见 https://en.wikipedia.org/wiki/Cron。
 	Schedule string `json:"schedule" protobuf:"bytes,1,opt,name=schedule"`
 
 	// The time zone name for the given schedule, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
@@ -518,11 +601,14 @@ type CronJobSpec struct {
 	// More information can be found in https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones
 	// This is beta field and must be enabled via the `CronJobTimeZone` feature gate.
 	// +optional
+	// 给定调度的时区名称，参见 https://en.wikipedia.org/wiki/List_of_tz_database_time_zones。
+	// 如果未指定，则默认为 kube-controller-manager 进程的时区。 有效的时区名称和时区偏移量由 API 服务器在 CronJob 验证期间从系统范围的时区数据库加载，并且由控制器管理器在执行期间加载。 如果找不到系统范围的时区数据库，则将使用数据库的捆绑版本。 如果时区名称在 CronJob 的生命周期或主机配置更改期间变得无效，则控制器将停止创建新的新作业，并将创建一个系统事件，原因为 UnknownTimeZone。 有关更多信息，请参阅 https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones 这是 beta 字段，必须通过 `CronJobTimeZone` 功能门控启用。
 	TimeZone *string `json:"timeZone,omitempty" protobuf:"bytes,8,opt,name=timeZone"`
 
 	// Optional deadline in seconds for starting the job if it misses scheduled
 	// time for any reason.  Missed jobs executions will be counted as failed ones.
 	// +optional
+	// 如果由于任何原因错过了调度时间而启动作业的可选截止时间（以秒为单位）。错过的作业执行将被计为失败的执行。
 	StartingDeadlineSeconds *int64 `json:"startingDeadlineSeconds,omitempty" protobuf:"varint,2,opt,name=startingDeadlineSeconds"`
 
 	// Specifies how to treat concurrent executions of a Job.
@@ -532,24 +618,29 @@ type CronJobSpec struct {
 	// - "Forbid": forbids concurrent runs, skipping next run if previous run hasn't finished yet;
 	// - "Replace": cancels currently running job and replaces it with a new one
 	// +optional
+	// 指定如何处理作业的并发执行。有效值为： - “允许”（默认）：允许 CronJobs 并发运行； - “禁止”：禁止并发运行，如果上一个运行尚未完成，则跳过下一个运行； - “替换”：取消当前运行的作业，并用新作业替换它
 	ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty" protobuf:"bytes,3,opt,name=concurrencyPolicy,casttype=ConcurrencyPolicy"`
 
 	// This flag tells the controller to suspend subsequent executions, it does
 	// not apply to already started executions.  Defaults to false.
 	// +optional
+	// 此标志告诉控制器暂停后续执行，但不适用于已经开始的执行。 默认为 false。
 	Suspend *bool `json:"suspend,omitempty" protobuf:"varint,4,opt,name=suspend"`
 
 	// Specifies the job that will be created when executing a CronJob.
+	// 指定在执行CronJob时将创建的作业。
 	JobTemplate JobTemplateSpec `json:"jobTemplate" protobuf:"bytes,5,opt,name=jobTemplate"`
 
 	// The number of successful finished jobs to retain. Value must be non-negative integer.
 	// Defaults to 3.
 	// +optional
+	// 要保留的成功完成的作业数。 值必须为非负整数。 默认为 3。
 	SuccessfulJobsHistoryLimit *int32 `json:"successfulJobsHistoryLimit,omitempty" protobuf:"varint,6,opt,name=successfulJobsHistoryLimit"`
 
 	// The number of failed finished jobs to retain. Value must be non-negative integer.
 	// Defaults to 1.
 	// +optional
+	// 要保留的失败完成的作业数。 值必须为非负整数。 默认为 1。
 	FailedJobsHistoryLimit *int32 `json:"failedJobsHistoryLimit,omitempty" protobuf:"varint,7,opt,name=failedJobsHistoryLimit"`
 }
 
@@ -557,33 +648,41 @@ type CronJobSpec struct {
 // Only one of the following concurrent policies may be specified.
 // If none of the following policies is specified, the default one
 // is AllowConcurrent.
+// ConcurrencyPolicy 描述了作业将如何处理。 只能指定以下并发策略之一。 如果未指定以下任何策略，则默认为 AllowConcurrent。
 // +enum
 type ConcurrencyPolicy string
 
 const (
 	// AllowConcurrent allows CronJobs to run concurrently.
+	// AllowConcurrent 允许 CronJobs 并发运行。
 	AllowConcurrent ConcurrencyPolicy = "Allow"
 
 	// ForbidConcurrent forbids concurrent runs, skipping next run if previous
 	// hasn't finished yet.
+	// ForbidConcurrent 禁止并发运行，如果上一个运行尚未完成，则跳过下一个运行。
 	ForbidConcurrent ConcurrencyPolicy = "Forbid"
 
 	// ReplaceConcurrent cancels currently running job and replaces it with a new one.
+	// ReplaceConcurrent 取消当前运行的作业，并用新作业替换它。
 	ReplaceConcurrent ConcurrencyPolicy = "Replace"
 )
 
 // CronJobStatus represents the current state of a cron job.
+// CronJobStatus 表示 cron 作业的当前状态。
 type CronJobStatus struct {
 	// A list of pointers to currently running jobs.
 	// +optional
 	// +listType=atomic
+	// 指向当前正在运行作业的指针列表。
 	Active []corev1.ObjectReference `json:"active,omitempty" protobuf:"bytes,1,rep,name=active"`
 
 	// Information when was the last time the job was successfully scheduled.
 	// +optional
+	// 信息是最后一次成功调度作业的时间。
 	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty" protobuf:"bytes,4,opt,name=lastScheduleTime"`
 
 	// Information when was the last time the job successfully completed.
 	// +optional
+	// 信息是最后一次作业成功完成的时间。
 	LastSuccessfulTime *metav1.Time `json:"lastSuccessfulTime,omitempty" protobuf:"bytes,5,opt,name=lastSuccessfulTime"`
 }

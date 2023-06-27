@@ -52,9 +52,11 @@ var (
 // of the total number of objects for each resource.
 // {group}.{resource} is used as the key name to update and retrieve
 // the total number of objects for a given resource.
+// StorageObjectCountTracker 是一个接口，用于跟踪每个资源的对象总数。 {group}.{resource} 用作键名来更新和检索给定资源的对象总数。
 type StorageObjectCountTracker interface {
 	// Set is invoked to update the current number of total
 	// objects for the given resource
+	// 调用 Set 来更新给定资源的当前对象总数
 	Set(string, int64)
 
 	// Get returns the total number of objects for the given resource.
@@ -63,6 +65,9 @@ type StorageObjectCountTracker interface {
 	//    failures ObjectCountStaleErr is returned.
 	//  - if the given resource is not being tracked then
 	//    ObjectCountNotFoundErr is returned.
+	// Get 返回给定资源的对象总数。返回以下错误：
+	//	- 如果给定资源的计数由于暂时性故障而过时，则返回 ObjectCountStaleErr。
+	//	- 如果未跟踪给定资源，则返回 ObjectCountNotFoundErr。
 	Get(string) (int64, error)
 
 	// RunUntil starts all the necessary maintenance.
@@ -72,6 +77,7 @@ type StorageObjectCountTracker interface {
 // NewStorageObjectCountTracker returns an instance of
 // StorageObjectCountTracker interface that can be used to
 // keep track of the total number of objects for each resource.
+// NewStorageObjectCountTracker 返回 StorageObjectCountTracker 接口的实例，可用于跟踪每个资源的对象总数。
 func NewStorageObjectCountTracker() StorageObjectCountTracker {
 	return &objectCountTracker{
 		clock:  &clock.RealClock{},
@@ -81,6 +87,7 @@ func NewStorageObjectCountTracker() StorageObjectCountTracker {
 
 // timestampedCount stores the count of a given resource with a last updated
 // timestamp so we can prune it after it goes stale for certain threshold.
+// timestampedCount 存储给定资源的计数和最后更新的时间戳，因此我们可以在它过时达到某个阈值后对其进行修剪。
 type timestampedCount struct {
 	count         int64
 	lastUpdatedAt time.Time

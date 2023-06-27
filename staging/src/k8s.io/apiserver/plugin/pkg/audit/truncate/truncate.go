@@ -28,28 +28,35 @@ import (
 
 const (
 	// PluginName is the name reported in error metrics.
+	// PluginName 是报告错误指标的名称。
 	PluginName = "truncate"
 
 	// annotationKey defines the name of the annotation used to indicate truncation.
+	// annotationKey 定义用于指示截断的注释的名称。
 	annotationKey = "audit.k8s.io/truncated"
 	// annotationValue defines the value of the annotation used to indicate truncation.
+	// annotationValue 定义用于指示截断的注释的值。
 	annotationValue = "true"
 )
 
 // Config represents truncating backend configuration.
+// Config 表示截断后端配置。
 type Config struct {
 	// MaxEventSize defines max allowed size of the event. If the event is larger,
 	// truncating will be performed.
+	// MaxEventSize 定义事件的最大允许大小。如果事件更大，则将执行截断。
 	MaxEventSize int64
 
 	// MaxBatchSize defined max allowed size of the batch of events, passed to the backend.
 	// If the total size of the batch is larger than this number, batch will be split. Actual
 	// size of the serialized request might be slightly higher, on the order of hundreds of bytes.
+	// MaxBatchSize 定义传递给后端的事件批处理的最大允许大小。如果批处理的总大小大于此数字，则批处理将被拆分。序列化请求的实际大小可能略高，约为数百字节。
 	MaxBatchSize int64
 }
 
 type backend struct {
 	// The delegate backend that actually exports events.
+	// 实际导出事件的委托后端。
 	delegateBackend audit.Backend
 
 	// Configuration used for truncation.
@@ -63,6 +70,7 @@ var _ audit.Backend = &backend{}
 
 // NewBackend returns a new truncating backend, using configuration passed in the parameters.
 // Truncate backend automatically runs and shut downs the delegate backend.
+// NewBackend 返回一个新的截断后端，使用参数中传递的配置。截断后端会自动运行和关闭委托后端。
 func NewBackend(delegateBackend audit.Backend, config Config, groupVersion schema.GroupVersion) audit.Backend {
 	return &backend{
 		delegateBackend: delegateBackend,
@@ -119,6 +127,7 @@ func (b *backend) ProcessEvents(events ...*auditinternal.Event) bool {
 
 // truncate removed request and response objects from the audit events,
 // to try and keep at least metadata.
+// truncate 从审计事件中删除请求和响应对象，以尝试保留至少元数据。
 func truncate(e *auditinternal.Event) *auditinternal.Event {
 	// Make a shallow copy to avoid copying response/request objects.
 	newEvent := &auditinternal.Event{}

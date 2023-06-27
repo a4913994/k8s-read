@@ -56,49 +56,62 @@ var (
 const (
 	// storageWatchListPageSize is the cacher's request chunk size of
 	// initial and resync watch lists to storage.
+	// storageWatchListPageSize 是 cacher 的初始和重新同步 watch 列表的存储请求块大小。
 	storageWatchListPageSize = int64(10000)
 	// defaultBookmarkFrequency defines how frequently watch bookmarks should be send
 	// in addition to sending a bookmark right before watch deadline.
 	//
+	// defaultBookmarkFrequency 定义了应该多久发送一次 watch 书签，除了在 watch 截止之前发送一次书签。
 	// NOTE: Update `eventFreshDuration` when changing this value.
 	defaultBookmarkFrequency = time.Minute
 )
 
 // Config contains the configuration for a given Cache.
+// Config 包含给定 Cache 的配置。
 type Config struct {
 	// An underlying storage.Interface.
+	// 底层的 storage.Interface。
 	Storage storage.Interface
 
 	// An underlying storage.Versioner.
+	// 底层的 storage.Versioner。
 	Versioner storage.Versioner
 
 	// The GroupResource the cacher is caching. Used for disambiguating *unstructured.Unstructured (CRDs) in logging
 	// and metrics.
+	// cacher 正在缓存的 GroupResource。用于在日志和指标中消除 *unstructured.Unstructured（CRDs）的歧义。
 	GroupResource schema.GroupResource
 
 	// The Cache will be caching objects of a given Type and assumes that they
 	// are all stored under ResourcePrefix directory in the underlying database.
+	// Cache 将缓存给定类型的对象，并且假设它们都存储在底层数据库中 ResourcePrefix 目录下。
 	ResourcePrefix string
 
 	// KeyFunc is used to get a key in the underlying storage for a given object.
+	// KeyFunc 用于获取给定对象在底层存储中的键。
 	KeyFunc func(runtime.Object) (string, error)
 
 	// GetAttrsFunc is used to get object labels, fields
+	// GetAttrsFunc 用于获取对象标签、字段
 	GetAttrsFunc func(runtime.Object) (label labels.Set, field fields.Set, err error)
 
 	// IndexerFuncs is used for optimizing amount of watchers that
 	// needs to process an incoming event.
+	// IndexerFuncs 用于优化需要处理传入事件的观察者数量。
 	IndexerFuncs storage.IndexerFuncs
 
 	// Indexers is used to accelerate the list operation, falls back to regular list
 	// operation if no indexer found.
+	// Indexers 用于加速列表操作，如果找不到索引器，则回退到常规列表操作。
 	Indexers *cache.Indexers
 
 	// NewFunc is a function that creates new empty object storing a object of type Type.
+	// NewFunc 是一个函数，用于创建新的空对象，该对象存储类型为 Type 的对象。
 	NewFunc func() runtime.Object
 
 	// NewList is a function that creates new empty object storing a list of
 	// objects of type Type.
+	// NewList 是一个函数，用于创建新的空对象，该对象存储类型为 Type 的对象列表。
 	NewListFunc func() runtime.Object
 
 	Codec runtime.Codec
@@ -1228,6 +1241,7 @@ func (c *errWatcher) Stop() {
 
 // cacheWatcher implements watch.Interface
 // this is not thread-safe
+// cacheWatcher 实现了 watch.Interface 接口
 type cacheWatcher struct {
 	input     chan *watchCacheEvent
 	result    chan watch.Event
@@ -1287,6 +1301,7 @@ func (c *cacheWatcher) Stop() {
 }
 
 // we rely on the fact that stopLocked is actually protected by Cacher.Lock()
+// 我们依赖于 stopLocked 实际上被 Cacher.Lock() 保护
 func (c *cacheWatcher) stopLocked() {
 	if !c.stopped {
 		c.stopped = true
@@ -1318,6 +1333,7 @@ func (c *cacheWatcher) nonblockingAdd(event *watchCacheEvent) bool {
 }
 
 // Nil timer means that add will not block (if it can't send event immediately, it will break the watcher)
+// nil timer 表示 add 不会阻塞（如果它不能立即发送事件，它将中断观察者）
 func (c *cacheWatcher) add(event *watchCacheEvent, timer *time.Timer) bool {
 	// Try to send the event immediately, without blocking.
 	if c.nonblockingAdd(event) {
@@ -1378,6 +1394,7 @@ func (c *cacheWatcher) nextBookmarkTime(now time.Time, bookmarkFrequency time.Du
 
 // setDrainInputBufferLocked if set to true indicates that we should delay closing this watcher
 // until we send all events residing in the input buffer.
+// setDrainInputBufferLocked 如果设置为 true，则表示我们应该延迟关闭此观察者，直到我们发送输入缓冲区中存在的所有事件。
 func (c *cacheWatcher) setDrainInputBufferLocked(drain bool) {
 	c.drainInputBuffer = drain
 }

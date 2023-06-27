@@ -32,6 +32,7 @@ import (
 
 // RESTDeleteStrategy defines deletion behavior on an object that follows Kubernetes
 // API conventions.
+// RESTDeleteStrategy 定义了遵循 Kubernetes API 约定的对象的删除行为。
 type RESTDeleteStrategy interface {
 	runtime.ObjectTyper
 }
@@ -48,18 +49,23 @@ const (
 
 // GarbageCollectionDeleteStrategy must be implemented by the registry that wants to
 // orphan dependents by default.
+// GarbageCollectionDeleteStrategy 必须由希望默认孤立依赖项的注册表实现。
 type GarbageCollectionDeleteStrategy interface {
 	// DefaultGarbageCollectionPolicy returns the default garbage collection behavior.
+	// DefaultGarbageCollectionPolicy 返回默认的垃圾收集行为。
 	DefaultGarbageCollectionPolicy(ctx context.Context) GarbageCollectionPolicy
 }
 
 // RESTGracefulDeleteStrategy must be implemented by the registry that supports
 // graceful deletion.
+// RESTGracefulDeleteStrategy 必须由支持优雅删除的注册表实现。
 type RESTGracefulDeleteStrategy interface {
 	// CheckGracefulDelete should return true if the object can be gracefully deleted and set
 	// any default values on the DeleteOptions.
 	// NOTE: if return true, `options.GracePeriodSeconds` must be non-nil (nil will fail),
 	// that's what tells the deletion how "graceful" to be.
+	// CheckGracefulDelete 应该在对象可以优雅删除时返回 true，并在 DeleteOptions 上设置任何默认值。
+	// 注意：如果返回 true，则 `options.GracePeriodSeconds` 必须是非空的（nil 会失败），这就是告诉删除它有多“优雅”。
 	CheckGracefulDelete(ctx context.Context, obj runtime.Object, options *metav1.DeleteOptions) bool
 }
 
@@ -72,6 +78,9 @@ type RESTGracefulDeleteStrategy interface {
 // where we set deletionTimestamp is pkg/registry/generic/registry/store.go.
 // This function is responsible for setting deletionTimestamp during gracefulDeletion,
 // other one for cascading deletions.
+// BeforeDelete 测试对象是否可以优雅删除。
+// 如果设置了 graceful，则对象应该被优雅删除。如果设置了 gracefulPending，则对象已经被优雅删除（并且提供的宽限期比删除时间长）。如果无法检查条件或者 gracePeriodSeconds 无效，则返回错误。如果 graceful 为 true，则可以使用默认值更新 options 参数。第二个地方是 pkg/registry/generic/registry/store.go。
+// 这个函数负责在优雅删除期间设置 deletionTimestamp，其他一个负责级联删除。
 func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.Object, options *metav1.DeleteOptions) (graceful, gracefulPending bool, err error) {
 	objectMeta, gvk, kerr := objectMetaAndKind(strategy, obj)
 	if kerr != nil {
@@ -162,6 +171,7 @@ func BeforeDelete(strategy RESTDeleteStrategy, ctx context.Context, obj runtime.
 }
 
 // AdmissionToValidateObjectDeleteFunc returns a admission validate func for object deletion
+// AdmissionToValidateObjectDeleteFunc 返回一个用于对象删除的准入验证函数
 func AdmissionToValidateObjectDeleteFunc(admit admission.Interface, staticAttributes admission.Attributes, objInterfaces admission.ObjectInterfaces) ValidateObjectFunc {
 	mutatingAdmission, isMutatingAdmission := admit.(admission.MutationInterface)
 	validatingAdmission, isValidatingAdmission := admit.(admission.ValidationInterface)

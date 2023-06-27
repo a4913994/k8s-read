@@ -38,6 +38,7 @@ import (
 )
 
 // WithImpersonation is a filter that will inspect and check requests that attempt to change the user.Info for their requests
+// WithImpersonation 是一个过滤器，它将检查和检查试图更改 user.Info 的请求
 func WithImpersonation(handler http.Handler, a authorizer.Authorizer, s runtime.NegotiatedSerializer) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		impersonationRequests, err := buildImpersonationRequests(req.Header)

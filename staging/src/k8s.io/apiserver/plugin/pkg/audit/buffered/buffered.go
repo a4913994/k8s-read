@@ -32,53 +32,70 @@ import (
 const PluginName = "buffered"
 
 // BatchConfig represents batching delegate audit backend configuration.
+// BatchConfig 表示批处理委托审计后端配置。
 type BatchConfig struct {
 	// BufferSize defines a size of the buffering queue.
+	// BufferSize 定义缓冲队列的大小。
 	BufferSize int
 	// MaxBatchSize defines maximum size of a batch.
+	// MaxBatchSize 定义批处理的最大大小。
 	MaxBatchSize int
 	// MaxBatchWait indicates the maximum interval between two batches.
+	// MaxBatchWait 指示两个批处理之间的最大间隔。
 	MaxBatchWait time.Duration
 
 	// ThrottleEnable defines whether throttling will be applied to the batching process.
+	// ThrottleEnable 定义是否将限流应用于批处理过程。
 	ThrottleEnable bool
 	// ThrottleQPS defines the allowed rate of batches per second sent to the delegate backend.
+	// ThrottleQPS 定义发送到委托后端的每秒允许的批处理速率。
 	ThrottleQPS float32
 	// ThrottleBurst defines the maximum number of requests sent to the delegate backend at the same moment in case
 	// the capacity defined by ThrottleQPS was not utilized.
+	// ThrottleBurst 定义在未使用由 ThrottleQPS 定义的容量的情况下，同时发送到委托后端的最大请求数。
 	ThrottleBurst int
 
 	// Whether the delegate backend should be called asynchronously.
+	// 是否应异步调用委托后端.
 	AsyncDelegate bool
 }
 
 type bufferedBackend struct {
 	// The delegate backend that actually exports events.
+	// 实际导出事件的委托后端。
 	delegateBackend audit.Backend
 
 	// Channel to buffer events before sending to the delegate backend.
+	// 用于在发送到委托后端之前缓冲事件的通道。
 	buffer chan *auditinternal.Event
 	// Maximum number of events in a batch sent to the delegate backend.
+	// 发送到委托后端的批处理中的最大事件数。
 	maxBatchSize int
 	// Amount of time to wait after sending a batch to the delegate backend before sending another one.
+	// 发送批处理到委托后端后等待的时间，然后再发送另一个批处理。
 	//
 	// Receiving maxBatchSize events will always trigger sending a batch, regardless of the amount of time passed.
+	// 接收 maxBatchSize 事件将始终触发发送批处理，而不管经过的时间量。
 	maxBatchWait time.Duration
 
 	// Whether the delegate backend should be called asynchronously.
+	// 是否应异步调用委托后端。
 	asyncDelegate bool
 
 	// Channel to signal that the batching routine has processed all remaining events and exited.
 	// Once `shutdownCh` is closed no new events will be sent to the delegate backend.
+	// 用于表示批处理例程已处理所有剩余事件并退出的通道。
 	shutdownCh chan struct{}
 
 	// WaitGroup to control the concurrency of sending batches to the delegate backend.
 	// Worker routine calls Add before sending a batch and
 	// then spawns a routine that calls Done after batch was processed by the delegate backend.
 	// This WaitGroup is used to wait for all sending routines to finish before shutting down audit backend.
+	// 用于控制将批处理发送到委托后端的并发性的 WaitGroup。
 	wg sync.WaitGroup
 
 	// Limits the number of batches sent to the delegate backend per second.
+	// 限制每秒发送到委托后端的批处理数。
 	throttle flowcontrol.RateLimiter
 }
 
@@ -86,6 +103,8 @@ var _ audit.Backend = &bufferedBackend{}
 
 // NewBackend returns a buffered audit backend that wraps delegate backend.
 // Buffered backend automatically runs and shuts down the delegate backend.
+// NewBackend 返回一个缓冲的审计后端，该后端包装委托后端。
+// 缓冲后端会自动运行和关闭委托后端。
 func NewBackend(delegate audit.Backend, config BatchConfig) audit.Backend {
 	var throttle flowcontrol.RateLimiter
 	if config.ThrottleEnable {

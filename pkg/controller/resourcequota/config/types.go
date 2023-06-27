@@ -24,9 +24,11 @@ import (
 type ResourceQuotaControllerConfiguration struct {
 	// resourceQuotaSyncPeriod is the period for syncing quota usage status
 	// in the system.
+	// resourceQuotaSyncPeriod是系统中同步配额使用状态的周期。
 	ResourceQuotaSyncPeriod metav1.Duration
 	// concurrentResourceQuotaSyncs is the number of resource quotas that are
 	// allowed to sync concurrently. Larger number = more responsive quota
 	// management, but more CPU (and network) load.
+	// concurrentResourceQuotaSyncs是允许并发同步的资源配额的数量。更大的数量=更灵敏的配额管理，但更多的CPU（和网络）负载。
 	ConcurrentResourceQuotaSyncs int32
 }

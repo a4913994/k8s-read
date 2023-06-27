@@ -21,5 +21,6 @@ type DaemonSetControllerConfiguration struct {
 	// concurrentDaemonSetSyncs is the number of daemonset objects that are
 	// allowed to sync concurrently. Larger number = more responsive daemonset,
 	// but more CPU (and network) load.
+	// concurrentDaemonSetSyncs 是允许并发同步的 daemonset 对象的数量。更大的数字 = 更多的守护进程，但有更多的 CPU（和网络）负载
 	ConcurrentDaemonSetSyncs int32
 }

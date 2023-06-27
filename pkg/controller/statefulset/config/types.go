@@ -21,5 +21,6 @@ type StatefulSetControllerConfiguration struct {
 	// concurrentStatefulSetSyncs is the number of statefulset objects that are
 	// allowed to sync concurrently. Larger number = more responsive statefulsets,
 	// but more CPU (and network) load.
+	// concurrentStatefulSetSyncs是允许并发同步的状态集对象的数量。更大的数量=更多的状态集响应，但更多的CPU（和网络）负载。
 	ConcurrentStatefulSetSyncs int32
 }

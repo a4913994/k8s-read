@@ -44,12 +44,14 @@ import (
 var directDialer utilnet.DialFunc = http.DefaultTransport.(*http.Transport).DialContext
 
 // EgressSelector is the map of network context type to context dialer, for network egress.
+// EgressSelector 是网络上下文类型到上下文拨号器的映射，用于网络出口。
 type EgressSelector struct {
 	egressToDialer map[EgressType]utilnet.DialFunc
 }
 
 // EgressType is an indicator of which egress selection should be used for sending traffic.
 // See https://github.com/kubernetes/enhancements/blob/master/keps/sig-api-machinery/1281-network-proxy/README.md#network-context
+// EgressType 是用于发送流量的出口选择的指示器。
 type EgressType int
 
 const (
@@ -62,6 +64,7 @@ const (
 )
 
 // NetworkContext is the struct used by Kubernetes API Server to indicate where it intends traffic to be sent.
+// NetworkContext 是 Kubernetes API 服务器用来指示它打算将流量发送到哪里的结构。
 type NetworkContext struct {
 	// EgressSelectionName is the unique name of the
 	// EgressSelectorConfiguration which determines
@@ -70,6 +73,7 @@ type NetworkContext struct {
 }
 
 // Lookup is the interface to get the dialer function for the network context.
+// Lookup 是获取网络上下文的拨号器函数的接口。
 type Lookup func(networkContext NetworkContext) (utilnet.DialFunc, error)
 
 // String returns the canonical string representation of the egress type
@@ -87,6 +91,7 @@ func (s EgressType) String() string {
 }
 
 // AsNetworkContext is a helper function to make it easy to get the basic NetworkContext objects.
+// AsNetworkContext 是一个帮助函数，可以轻松获取基本的 NetworkContext 对象。
 func (s EgressType) AsNetworkContext() NetworkContext {
 	return NetworkContext{EgressSelectionName: s}
 }

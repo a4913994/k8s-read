@@ -78,6 +78,7 @@ const (
 )
 
 // Get a list of pods that have data directories.
+// 获取具有数据目录的pod列表。
 func (kl *Kubelet) listPodsFromDisk() ([]types.UID, error) {
 	podInfos, err := os.ReadDir(kl.getPodsDir())
 	if err != nil {
@@ -100,6 +101,10 @@ func (kl *Kubelet) listPodsFromDisk() ([]types.UID, error) {
 // deleted but may still be terminating, which means resources assigned to
 // those pods during admission may still be in use. See
 // https://github.com/kubernetes/kubernetes/issues/104824
+// GetActivePods 返回已被 kubelet 批准的 pod 列表，这些 pod 不是完全终止的。
+// 这映射到 kubelet 的“期望状态” - 应该运行哪些 pod。
+// 警告：当前，此列表不包括已被强制删除但可能仍在终止的 pod，
+// 这意味着在批准期间分配给这些 pod 的资源仍在使用中。
 func (kl *Kubelet) GetActivePods() []*v1.Pod {
 	allPods := kl.podManager.GetPods()
 	activePods := kl.filterOutInactivePods(allPods)
@@ -108,6 +113,7 @@ func (kl *Kubelet) GetActivePods() []*v1.Pod {
 
 // makeBlockVolumes maps the raw block devices specified in the path of the container
 // Experimental
+// makeBlockVolumes 将容器中指定的原始块设备映射到路径。
 func (kl *Kubelet) makeBlockVolumes(pod *v1.Pod, container *v1.Container, podVolumes kubecontainer.VolumeMap, blkutil volumepathhandler.BlockVolumePathHandler) ([]kubecontainer.DeviceInfo, error) {
 	var devices []kubecontainer.DeviceInfo
 	for _, device := range container.VolumeDevices {
@@ -146,6 +152,12 @@ func (kl *Kubelet) makeBlockVolumes(pod *v1.Pod, container *v1.Container, podVol
 // Kubernetes will not mount /etc/hosts if:
 // - when the Pod sandbox is being created, its IP is still unknown. Hence, PodIP will not have been set.
 // - Windows pod contains a hostProcess container
+// shouldMountHostsFile 检查节点的 /etc/hosts 是否应该被挂载 Kubernetes 只有在以下情况下才会挂载 /etc/hosts：
+// - 容器不是基础架构（暂停）容器
+// - 容器没有挂载在 /etc/hosts 上
+// Kubernetes 不会挂载 /etc/hosts 如果：
+// - 当 Pod 沙盒正在创建时，其 IP 仍然未知。因此，PodIP 将不会被设置。
+// - Windows pod 包含一个 hostProcess 容器
 func shouldMountHostsFile(pod *v1.Pod, podIPs []string) bool {
 	shouldMount := len(podIPs) > 0
 	if runtime.GOOS == "windows" {
@@ -155,6 +167,7 @@ func shouldMountHostsFile(pod *v1.Pod, podIPs []string) bool {
 }
 
 // makeMounts determines the mount points for the given container.
+// makeMounts 确定给定容器的挂载点。
 func makeMounts(pod *v1.Pod, podDir string, container *v1.Container, hostName, hostDomain string, podIPs []string, podVolumes kubecontainer.VolumeMap, hu hostutil.HostUtils, subpather subpath.Interface, expandEnvs []kubecontainer.EnvVar) ([]kubecontainer.Mount, func(), error) {
 	mountEtcHostsFile := shouldMountHostsFile(pod, podIPs)
 	klog.V(3).InfoS("Creating hosts mount for container", "pod", klog.KObj(pod), "containerName", container.Name, "podIPs", podIPs, "path", mountEtcHostsFile)
@@ -278,6 +291,7 @@ func makeMounts(pod *v1.Pod, podDir string, container *v1.Container, hostName, h
 
 // translateMountPropagation transforms v1.MountPropagationMode to
 // runtimeapi.MountPropagation.
+// translateMountPropagation transforms v1.MountPropagationMode to runtimeapi.MountPropagation.
 func translateMountPropagation(mountMode *v1.MountPropagationMode) (runtimeapi.MountPropagation, error) {
 	if runtime.GOOS == "windows" {
 		// Windows containers doesn't support mount propagation, use private for it.
@@ -301,6 +315,7 @@ func translateMountPropagation(mountMode *v1.MountPropagationMode) (runtimeapi.M
 }
 
 // getEtcHostsPath returns the full host-side path to a pod's generated /etc/hosts file
+// getEtcHostsPath返回pod生成的/etc/hosts文件的完整主机侧路径
 func getEtcHostsPath(podDir string) string {
 	hostsFilePath := filepath.Join(podDir, "etc-hosts")
 	// Volume Mounts fail on Windows if it is not of the form C:/
@@ -310,6 +325,7 @@ func getEtcHostsPath(podDir string) string {
 // makeHostsMount makes the mountpoint for the hosts file that the containers
 // in a pod are injected with. podIPs is provided instead of podIP as podIPs
 // are present even if dual-stack feature flag is not enabled.
+// makeHostsMount为pod中的容器注入的hosts文件创建挂载点。podIPs提供了podIP，而不是podIP，因为即使未启用双栈功能标志，podIPs也存在。
 func makeHostsMount(podDir string, podIPs []string, hostName, hostDomainName string, hostAliases []v1.HostAlias, useHostNetwork bool) (*kubecontainer.Mount, error) {
 	hostsFilePath := getEtcHostsPath(podDir)
 	if err := ensureHostsFile(hostsFilePath, podIPs, hostName, hostDomainName, hostAliases, useHostNetwork); err != nil {
@@ -326,6 +342,7 @@ func makeHostsMount(podDir string, podIPs []string, hostName, hostDomainName str
 
 // ensureHostsFile ensures that the given host file has an up-to-date ip, host
 // name, and domain name.
+// ensureHostsFile确保给定的主机文件具有最新的ip，主机名和域名。
 func ensureHostsFile(fileName string, hostIPs []string, hostName, hostDomainName string, hostAliases []v1.HostAlias, useHostNetwork bool) error {
 	var hostsFileContent []byte
 	var err error
@@ -347,6 +364,7 @@ func ensureHostsFile(fileName string, hostIPs []string, hostName, hostDomainName
 }
 
 // nodeHostsFileContent reads the content of node's hosts file.
+// nodeHostsFileContent读取节点的hosts文件的内容。
 func nodeHostsFileContent(hostsFilePath string, hostAliases []v1.HostAlias) ([]byte, error) {
 	hostsFileContent, err := os.ReadFile(hostsFilePath)
 	if err != nil {
@@ -361,6 +379,7 @@ func nodeHostsFileContent(hostsFilePath string, hostAliases []v1.HostAlias) ([]b
 
 // managedHostsFileContent generates the content of the managed etc hosts based on Pod IPs and other
 // information.
+// managedHostsFileContent根据Pod IP和其他信息生成托管的etc hosts的内容。
 func managedHostsFileContent(hostIPs []string, hostName, hostDomainName string, hostAliases []v1.HostAlias) []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString(managedHostsHeader)
@@ -402,6 +421,7 @@ func hostsEntriesFromHostAliases(hostAliases []v1.HostAlias) []byte {
 }
 
 // truncatePodHostnameIfNeeded truncates the pod hostname if it's longer than 63 chars.
+// truncatePodHostnameIfNeeded截断pod主机名（如果它的长度超过63个字符）。
 func truncatePodHostnameIfNeeded(podName, hostname string) (string, error) {
 	// Cap hostname at 63 chars (specification is 64bytes which is 63 chars and the null terminating char).
 	const hostnameMaxLen = 63
@@ -420,6 +440,7 @@ func truncatePodHostnameIfNeeded(podName, hostname string) (string, error) {
 }
 
 // GetOrCreateUserNamespaceMappings returns the configuration for the sandbox user namespace
+// GetOrCreateUserNamespaceMappings 返回沙盒用户命名空间的配置
 func (kl *Kubelet) GetOrCreateUserNamespaceMappings(pod *v1.Pod) (*runtimeapi.UserNamespace, error) {
 	return kl.usernsManager.GetOrCreateUserNamespaceMappings(pod)
 }
@@ -430,6 +451,7 @@ func (kl *Kubelet) getHostIDsForPod(pod *v1.Pod, containerUID, containerGID *int
 
 // GeneratePodHostNameAndDomain creates a hostname and domain name for a pod,
 // given that pod's spec and annotations or returns an error.
+// GeneratePodHostNameAndDomain为pod创建一个主机名和域名，给定pod的规范和注释或返回错误。
 func (kl *Kubelet) GeneratePodHostNameAndDomain(pod *v1.Pod) (string, string, error) {
 	clusterDomain := kl.dnsConfigurer.ClusterDomain
 
@@ -458,6 +480,7 @@ func (kl *Kubelet) GeneratePodHostNameAndDomain(pod *v1.Pod) (string, string, er
 }
 
 // GetPodCgroupParent gets pod cgroup parent from container manager.
+// GetPodCgroupParent从容器管理器获取pod cgroup父级。
 func (kl *Kubelet) GetPodCgroupParent(pod *v1.Pod) string {
 	pcm := kl.containerManager.NewPodContainerManager()
 	_, cgroupParent := pcm.GetPodContainerName(pod)
@@ -466,6 +489,7 @@ func (kl *Kubelet) GetPodCgroupParent(pod *v1.Pod) string {
 
 // GenerateRunContainerOptions generates the RunContainerOptions, which can be used by
 // the container runtime to set parameters for launching a container.
+// GenerateRunContainerOptions生成RunContainerOptions，该选项可由容器运行时用于设置启动容器的参数。
 func (kl *Kubelet) GenerateRunContainerOptions(ctx context.Context, pod *v1.Pod, container *v1.Container, podIP string, podIPs []string) (*kubecontainer.RunContainerOptions, func(), error) {
 	opts, err := kl.containerManager.GetResources(pod, container)
 	if err != nil {
@@ -529,6 +553,7 @@ var masterServices = sets.NewString("kubernetes")
 
 // getServiceEnvVarMap makes a map[string]string of env vars for services a
 // pod in namespace ns should see.
+// getServiceEnvVarMap为pod在ns命名空间中的服务创建一个map[string]string的环境变量。
 func (kl *Kubelet) getServiceEnvVarMap(ns string, enableServiceLinks bool) (map[string]string, error) {
 	var (
 		serviceMap = make(map[string]*v1.Service)
@@ -580,6 +605,7 @@ func (kl *Kubelet) getServiceEnvVarMap(ns string, enableServiceLinks bool) (map[
 }
 
 // Make the environment variables for a pod in the given namespace.
+// makeEnvironmentVariables为pod在ns命名空间中创建环境变量。
 func (kl *Kubelet) makeEnvironmentVariables(pod *v1.Pod, container *v1.Container, podIP string, podIPs []string) ([]kubecontainer.EnvVar, error) {
 	if pod.Spec.EnableServiceLinks == nil {
 		return nil, fmt.Errorf("nil pod.spec.enableServiceLinks encountered, cannot construct envvars")
@@ -811,6 +837,7 @@ func (kl *Kubelet) makeEnvironmentVariables(pod *v1.Pod, container *v1.Container
 
 // podFieldSelectorRuntimeValue returns the runtime value of the given
 // selector for a pod.
+// podFieldSelectorRuntimeValue返回给定选择器的运行时值。
 func (kl *Kubelet) podFieldSelectorRuntimeValue(fs *v1.ObjectFieldSelector, pod *v1.Pod, podIP string, podIPs []string) (string, error) {
 	internalFieldPath, _, err := podshelper.ConvertDownwardAPIFieldLabel(fs.APIVersion, fs.FieldPath, "")
 	if err != nil {
@@ -843,6 +870,7 @@ func (kl *Kubelet) podFieldSelectorRuntimeValue(fs *v1.ObjectFieldSelector, pod 
 }
 
 // containerResourceRuntimeValue returns the value of the provided container resource
+// containerResourceRuntimeValue返回提供的容器资源的值
 func containerResourceRuntimeValue(fs *v1.ResourceFieldSelector, pod *v1.Pod, container *v1.Container) (string, error) {
 	containerName := fs.ContainerName
 	if len(containerName) == 0 {
@@ -854,6 +882,7 @@ func containerResourceRuntimeValue(fs *v1.ResourceFieldSelector, pod *v1.Pod, co
 // killPod instructs the container runtime to kill the pod. This method requires that
 // the pod status contains the result of the last syncPod, otherwise it may fail to
 // terminate newly created containers and sandboxes.
+// killPod指示容器运行时杀死pod。此方法要求pod状态包含上次syncPod的结果，否则它可能无法终止新创建的容器和沙箱。
 func (kl *Kubelet) killPod(ctx context.Context, pod *v1.Pod, p kubecontainer.Pod, gracePeriodOverride *int64) error {
 	// Call the container runtime KillPod method which stops all known running containers of the pod
 	if err := kl.containerRuntime.KillPod(ctx, pod, p, gracePeriodOverride); err != nil {
@@ -866,6 +895,7 @@ func (kl *Kubelet) killPod(ctx context.Context, pod *v1.Pod, p kubecontainer.Pod
 }
 
 // makePodDataDirs creates the dirs for the pod datas.
+// makePodDataDirs为pod数据创建目录。
 func (kl *Kubelet) makePodDataDirs(pod *v1.Pod) error {
 	uid := pod.UID
 	if err := os.MkdirAll(kl.getPodDir(uid), 0750); err != nil && !os.IsExist(err) {
@@ -882,6 +912,7 @@ func (kl *Kubelet) makePodDataDirs(pod *v1.Pod) error {
 
 // getPullSecretsForPod inspects the Pod and retrieves the referenced pull
 // secrets.
+// getPullSecretsForPod检查Pod并检索引用的拉取秘密。
 func (kl *Kubelet) getPullSecretsForPod(pod *v1.Pod) []v1.Secret {
 	pullSecrets := []v1.Secret{}
 
@@ -925,6 +956,7 @@ func countRunningContainerStatus(status v1.PodStatus) int {
 
 // PodCouldHaveRunningContainers returns true if the pod with the given UID could still have running
 // containers. This returns false if the pod has not yet been started or the pod is unknown.
+// PodCouldHaveRunningContainers返回true，如果具有给定UID的pod仍然可能有运行的容器。如果pod尚未启动或pod未知，则返回false。
 func (kl *Kubelet) PodCouldHaveRunningContainers(pod *v1.Pod) bool {
 	if kl.podWorkers.CouldHaveRunningContainers(pod.UID) {
 		return true
@@ -945,6 +977,7 @@ func (kl *Kubelet) PodCouldHaveRunningContainers(pod *v1.Pod) bool {
 
 // PodResourcesAreReclaimed returns true if all required node-level resources that a pod was consuming have
 // been reclaimed by the kubelet.  Reclaiming resources is a prerequisite to deleting a pod from the API server.
+// PodResourcesAreReclaimed返回true，如果pod正在使用的所有必需的节点级资源都已由kubelet回收。回收资源是从API服务器删除pod的先决条件。
 func (kl *Kubelet) PodResourcesAreReclaimed(pod *v1.Pod, status v1.PodStatus) bool {
 	if kl.podWorkers.CouldHaveRunningContainers(pod.UID) {
 		// We shouldn't delete pods that still have running containers
@@ -979,6 +1012,7 @@ func (kl *Kubelet) PodResourcesAreReclaimed(pod *v1.Pod, status v1.PodStatus) bo
 }
 
 // podResourcesAreReclaimed simply calls PodResourcesAreReclaimed with the most up-to-date status.
+// podResourcesAreReclaimed只是使用最新的状态调用PodResourcesAreReclaimed。
 func (kl *Kubelet) podResourcesAreReclaimed(pod *v1.Pod) bool {
 	status, ok := kl.statusManager.GetPodStatus(pod.UID)
 	if !ok {
@@ -991,6 +1025,7 @@ func (kl *Kubelet) podResourcesAreReclaimed(pod *v1.Pod) bool {
 // or are known to be fully terminated. This method should only be used
 // when the set of pods being filtered is upstream of the pod worker, i.e.
 // the pods the pod manager is aware of.
+// filterOutInactivePods返回不在终端阶段或已知完全终止的pod。此方法仅在过滤pod的集合是pod worker的上游时使用，即pod管理器知道的pod。
 func (kl *Kubelet) filterOutInactivePods(pods []*v1.Pod) []*v1.Pod {
 	filteredPods := make([]*v1.Pod, 0, len(pods))
 	for _, p := range pods {
@@ -1015,6 +1050,8 @@ func (kl *Kubelet) filterOutInactivePods(pods []*v1.Pod) []*v1.Pod {
 // a terminal phase but the config source has not accepted it yet. This method
 // should only be used within the pod configuration loops that notify the pod
 // worker, other components should treat the pod worker as authoritative.
+// isAdmittedPodTerminal如果提供的配置源pod处于终端阶段，则返回true，或者如果Kubelet已经表明pod已经达到了终端阶段，
+// 但配置源尚未接受它。此方法仅在通知pod worker的pod配置循环中使用，其他组件应将pod worker视为权威。
 func (kl *Kubelet) isAdmittedPodTerminal(pod *v1.Pod) bool {
 	// pods are considered inactive if the config source has observed a
 	// terminal phase (if the Kubelet recorded that the pod reached a terminal
@@ -1034,6 +1071,7 @@ func (kl *Kubelet) isAdmittedPodTerminal(pod *v1.Pod) bool {
 
 // removeOrphanedPodStatuses removes obsolete entries in podStatus where
 // the pod is no longer considered bound to this node.
+// removeOrphanedPodStatuses删除podStatus中不再被视为绑定到此节点的pod的过时条目。
 func (kl *Kubelet) removeOrphanedPodStatuses(pods []*v1.Pod, mirrorPods []*v1.Pod) {
 	podUIDs := make(map[types.UID]bool)
 	for _, pod := range pods {
@@ -1048,6 +1086,7 @@ func (kl *Kubelet) removeOrphanedPodStatuses(pods []*v1.Pod, mirrorPods []*v1.Po
 // deleteOrphanedMirrorPods checks whether pod killer has done with orphaned mirror pod.
 // If pod killing is done, podManager.DeleteMirrorPod() is called to delete mirror pod
 // from the API server
+// deleteOrphanedMirrorPods检查pod killer是否已完成孤立的镜像pod。如果pod杀死完成，podManager.DeleteMirrorPod()将被调用
 func (kl *Kubelet) deleteOrphanedMirrorPods() {
 	mirrorPods := kl.podManager.GetOrphanedMirrorPodNames()
 	for _, podFullname := range mirrorPods {
@@ -1068,6 +1107,9 @@ func (kl *Kubelet) deleteOrphanedMirrorPods() {
 // is executing which means no new pods can appear.
 // NOTE: This function is executed by the main sync loop, so it
 // should not contain any blocking calls.
+// HandlePodCleanups执行一系列清理工作，包括终止pod worker，杀死不需要的pod，并删除孤立的卷/ pod目录。
+// 在执行此方法时，不会向pod worker发送任何配置更改，这意味着不能出现新的pod。
+// 注意：此函数由主同步循环执行，因此它不应包含任何阻塞调用。
 func (kl *Kubelet) HandlePodCleanups(ctx context.Context) error {
 	// The kubelet lacks checkpointing, so we need to introspect the set of pods
 	// in the cgroup tree prior to inspecting the set of pods in our pod manager.
@@ -1242,6 +1284,8 @@ func (kl *Kubelet) HandlePodCleanups(ctx context.Context) error {
 // of the container. The previous flag will only return the logs for the last terminated container, otherwise, the current
 // running container is preferred over a previous termination. If info about the container is not available then a specific
 // error is returned to the end user.
+// validateContainerLogStatus返回要检索日志的容器的容器ID，该容器的状态基于容器的状态。
+// previous标志仅返回上次终止的容器的日志，否则，首选当前运行的容器而不是先前的终止。 如果容器的信息不可用，则将返回特定的错误以供最终用户使用。
 func (kl *Kubelet) validateContainerLogStatus(podName string, podStatus *v1.PodStatus, containerName string, previous bool) (containerID kubecontainer.ContainerID, err error) {
 	var cID string
 
@@ -1305,6 +1349,7 @@ func (kl *Kubelet) validateContainerLogStatus(podName string, podStatus *v1.PodS
 }
 
 // GetKubeletContainerLogs returns logs from the container
+// GetKubeletContainerLogs返回容器的日志
 // TODO: this method is returning logs of random container attempts, when it should be returning the most recent attempt
 // or all of them.
 func (kl *Kubelet) GetKubeletContainerLogs(ctx context.Context, podFullName, containerName string, logOptions *v1.PodLogOptions, stdout, stderr io.Writer) error {
@@ -1353,6 +1398,7 @@ func (kl *Kubelet) GetKubeletContainerLogs(ctx context.Context, podFullName, con
 }
 
 // getPhase returns the phase of a pod given its container info.
+// getPhase根据容器信息返回pod的阶段
 func getPhase(spec *v1.PodSpec, info []v1.ContainerStatus) v1.PodPhase {
 	pendingInitialization := 0
 	failedInitialization := 0
@@ -1456,6 +1502,7 @@ func getPhase(spec *v1.PodSpec, info []v1.ContainerStatus) v1.PodPhase {
 
 // generateAPIPodStatus creates the final API pod status for a pod, given the
 // internal pod status. This method should only be called from within sync*Pod methods.
+// generateAPIPodStatus为pod创建最终的API pod状态，给定内部pod状态。此方法只能从sync*Pod方法内部调用。
 func (kl *Kubelet) generateAPIPodStatus(pod *v1.Pod, podStatus *kubecontainer.PodStatus) v1.PodStatus {
 	klog.V(3).InfoS("Generating pod status", "pod", klog.KObj(pod))
 	// use the previous pod status, or the api status, as the basis for this pod
@@ -1579,6 +1626,12 @@ func (kl *Kubelet) generateAPIPodStatus(pod *v1.Pod, podStatus *kubecontainer.Po
 // Pick out the first returned IP of the same IP family as the node IP
 // first, followed by the first IP of the opposite IP family (if any)
 // and use them for the Pod.Status.PodIPs and the Downward API environment variables
+// sortPodIPs返回按集群IP族首选项排序和截断的PodIPs。
+// 运行时pod状态可能具有任意数量的IP，顺序任意。
+// PodIPs由：func（m *kubeGenericRuntimeManager）determinePodSandboxIPs（）获得
+// 选择与节点IP相同IP族的第一个返回IP
+// 首先，然后选择相反IP族的第一个IP（如果有的话）
+// 并将其用于Pod.Status.PodIPs和Downward API环境变量
 func (kl *Kubelet) sortPodIPs(podIPs []string) []string {
 	ips := make([]string, 0, 2)
 	var validPrimaryIP, validSecondaryIP func(ip string) bool
@@ -1607,6 +1660,7 @@ func (kl *Kubelet) sortPodIPs(podIPs []string) []string {
 // convertStatusToAPIStatus initialize an api PodStatus for the given pod from
 // the given internal pod status and the previous state of the pod from the API.
 // It is purely transformative and does not alter the kubelet state at all.
+// convertStatusToAPIStatus为给定的pod从 初始化api PodStatus
 func (kl *Kubelet) convertStatusToAPIStatus(pod *v1.Pod, podStatus *kubecontainer.PodStatus, oldPodStatus v1.PodStatus) *v1.PodStatus {
 	var apiPodStatus v1.PodStatus
 

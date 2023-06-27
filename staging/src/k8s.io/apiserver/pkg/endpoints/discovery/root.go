@@ -32,6 +32,7 @@ import (
 
 // GroupManager is an interface that allows dynamic mutation of the existing webservice to handle
 // API groups being added or removed.
+// GroupManager 是一个接口，允许动态地改变现有的 webservice 来处理添加或删除的 API 组。
 type GroupManager interface {
 	AddGroup(apiGroup metav1.APIGroup)
 	RemoveGroup(groupName string)
@@ -42,6 +43,9 @@ type GroupManager interface {
 // rootAPIsHandler creates a webservice serving api group discovery.
 // The list of APIGroups may change while the server is running because additional resources
 // are registered or removed.  It is not safe to cache the values.
+// rootAPIsHandler 创建一个 webservice 用于 API 组发现。
+// APIGroups 的列表可能会在服务器运行时发生变化，因为注册或删除了其他资源。
+// 不要缓存这些值。
 type rootAPIsHandler struct {
 	// addresses is used to build cluster IPs for discovery.
 	addresses Addresses
@@ -120,6 +124,8 @@ func (s *rootAPIsHandler) restfulHandle(req *restful.Request, resp *restful.Resp
 
 // WebService returns a webservice serving api group discovery.
 // Note: during the server runtime apiGroups might change.
+// WebService 返回一个 webservice 用于 API 组发现。
+// 注意：在服务器运行时，apiGroups 可能会发生变化。
 func (s *rootAPIsHandler) WebService() *restful.WebService {
 	mediaTypes, _ := negotiation.MediaTypesForSerializer(s.serializer)
 	ws := new(restful.WebService)

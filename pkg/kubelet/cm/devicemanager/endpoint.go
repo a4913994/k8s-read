@@ -26,9 +26,9 @@ import (
 	plugin "k8s.io/kubernetes/pkg/kubelet/cm/devicemanager/plugin/v1beta1"
 )
 
-// endpoint maps to a single registered device plugin. It is responsible
-// for managing gRPC communications with the device plugin and caching
-// device states reported by the device plugin.
+// 端点映射到一个单一的注册设备插件。它负责
+// 负责管理与设备插件的gRPC通信和缓存
+// 由设备插件报告的设备状态。
 type endpoint interface {
 	getPreferredAllocation(available, mustInclude []string, size int) (*pluginapi.PreferredAllocationResponse, error)
 	allocate(devs []string) (*pluginapi.AllocateResponse, error)

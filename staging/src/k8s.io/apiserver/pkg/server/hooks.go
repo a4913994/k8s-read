@@ -71,6 +71,7 @@ type PostStartHookConfigEntry struct {
 	hook PostStartHookFunc
 	// originatingStack holds the stack that registered postStartHooks. This allows us to show a more helpful message
 	// for duplicate registration.
+	// originatingStack 持有注册 postStartHooks 的堆栈。这使我们能够为重复注册显示更有用的消息。
 	originatingStack string
 }
 
@@ -152,6 +153,7 @@ func (s *GenericAPIServer) AddPreShutdownHookOrDie(name string, hook PreShutdown
 }
 
 // RunPostStartHooks runs the PostStartHooks for the server
+// RunPostStartHooks 运行服务器的 PostStartHooks
 func (s *GenericAPIServer) RunPostStartHooks(stopCh <-chan struct{}) {
 	s.postStartHookLock.Lock()
 	defer s.postStartHookLock.Unlock()

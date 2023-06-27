@@ -34,6 +34,7 @@ var (
 // WithLatencyTrackers adds a LatencyTrackers instance to the
 // context associated with a request so that we can measure latency
 // incurred in various components within the apiserver.
+// WithLatencyTrackers 将 LatencyTrackers 实例添加到与请求关联的上下文中，以便我们可以测量 apiserver 中各种组件产生的延迟。
 func WithLatencyTrackers(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()

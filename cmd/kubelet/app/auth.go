@@ -37,8 +37,8 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/server"
 )
 
-// BuildAuth creates an authenticator, an authorizer, and a matching authorizer attributes getter compatible with the kubelet's needs
-// It returns AuthInterface, a run method to start internal controllers (like cert reloading) and error.
+// BuildAuth创建一个认证器、一个授权器和一个与kubelet的需求相匹配的授权器属性获取器。
+// 它返回AuthInterface，一个运行方法来启动内部控制器（如证书重载）和错误。
 func BuildAuth(nodeName types.NodeName, client clientset.Interface, config kubeletconfig.KubeletConfiguration) (server.AuthInterface, func(<-chan struct{}), error) {
 	// Get clients, if provided
 	var (
@@ -65,7 +65,7 @@ func BuildAuth(nodeName types.NodeName, client clientset.Interface, config kubel
 	return server.NewKubeletAuth(authenticator, attributes, authorizer), runAuthenticatorCAReload, nil
 }
 
-// BuildAuthn creates an authenticator compatible with the kubelet's needs
+// BuildAuthn创建了一个与kubelet需求兼容的认证器
 func BuildAuthn(client authenticationclient.AuthenticationV1Interface, authn kubeletconfig.KubeletAuthentication) (authenticator.Request, func(<-chan struct{}), error) {
 	var dynamicCAContentFromFile *dynamiccertificates.DynamicFileCAContent
 	var err error
@@ -112,7 +112,7 @@ func BuildAuthn(client authenticationclient.AuthenticationV1Interface, authn kub
 	}, err
 }
 
-// BuildAuthz creates an authorizer compatible with the kubelet's needs
+// BuildAuthz创建了一个与kubelet需求兼容的授权器
 func BuildAuthz(client authorizationclient.AuthorizationV1Interface, authz kubeletconfig.KubeletAuthorization) (authorizer.Authorizer, error) {
 	switch authz.Mode {
 	case kubeletconfig.KubeletAuthorizationModeAlwaysAllow:

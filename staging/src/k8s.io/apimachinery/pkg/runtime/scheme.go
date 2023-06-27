@@ -43,37 +43,48 @@ import (
 //
 // Schemes are not expected to change at runtime and are only threadsafe after
 // registration is complete.
+// Scheme定义了用于序列化和反序列化API对象的方法，用于在Go模式之间转换组、版本和种类信息的类型注册表，以及不同版本的Go模式之间的映射。随着时间的推移，Scheme是版本化API和版本化配置的基础。
+// 在Scheme中，Type是一个特定的Go结构体，Version是该Type的特定表示形式的时间点标识符(通常向后兼容)，Kind是版本中该Type的唯一名称，Group标识一组版本、种类和类型，这些类型会随着时间的推移而发展。未版本化类型是指尚未正式绑定到类型并承诺向后兼容的类型(实际上是类型的“v1”，将来不会中断)。
+// 方案不期望在运行时更改，并且只有在注册完成后才是线程安全的。
 type Scheme struct {
 	// gvkToType allows one to figure out the go type of an object with
 	// the given version and name.
+	// gvkToType允许使用给定的版本和名称找出对象的go类型。
 	gvkToType map[schema.GroupVersionKind]reflect.Type
 
 	// typeToGVK allows one to find metadata for a given go object.
 	// The reflect.Type we index by should *not* be a pointer.
+	// typeToGVK允许查找给定go对象的元数据。反映。索引的类型不应该是指针。
 	typeToGVK map[reflect.Type][]schema.GroupVersionKind
 
 	// unversionedTypes are transformed without conversion in ConvertToVersion.
+	// 在ConvertToVersion中，unversionedTypes在没有转换的情况下进行转换。
 	unversionedTypes map[reflect.Type]schema.GroupVersionKind
 
 	// unversionedKinds are the names of kinds that can be created in the context of any group
 	// or version
+	// unversionedtypes是可以在任何组或版本的上下文中创建的类型的名称
 	// TODO: resolve the status of unversioned types.
 	unversionedKinds map[string]reflect.Type
 
 	// Map from version and resource to the corresponding func to convert
 	// resource field labels in that version to internal version.
+	// 从版本和资源映射到相应的func，将该版本中的资源字段标签转换为内部版本。
 	fieldLabelConversionFuncs map[schema.GroupVersionKind]FieldLabelConversionFunc
 
 	// defaulterFuncs is a map to funcs to be called with an object to provide defaulting
 	// the provided object must be a pointer.
+	// defaulterFuncs是一个到funcs的映射，该funcs将被一个对象调用，默认情况下，提供的对象必须是一个指针。
 	defaulterFuncs map[reflect.Type]func(interface{})
 
 	// converter stores all registered conversion functions. It also has
 	// default converting behavior.
+	// Converter存储所有注册的转换函数。它还有默认的转换行为。
 	converter *conversion.Converter
 
 	// versionPriority is a map of groups to ordered lists of versions for those groups indicating the
 	// default priorities of these versions as registered in the scheme
+	// versionPriority是组到这些组的有序版本列表的映射，表示在方案中注册的这些版本的默认优先级
 	versionPriority map[string][]string
 
 	// observedVersions keeps track of the order we've seen versions during type registration
@@ -116,9 +127,11 @@ func (s *Scheme) Converter() *conversion.Converter {
 // Whenever an object of this type is serialized, it is serialized with the provided group version and is not
 // converted. Thus unversioned objects are expected to remain backwards compatible forever, as if they were in an
 // API group and version that would never be updated.
+// AddUnversionedTypes 将提供的类型注册为“未版本化”，这意味着它们遵循特殊规则。每当序列化此类型的对象时，它都会使用提供的组版本进行序列化，并且不会进行转换。因此，未版本化的对象应该永远保持向后兼容，就好像它们在一个永远不会更新的 API 组和版本中一样。
 //
 // TODO: there is discussion about removing unversioned and replacing it with objects that are manifest into
 // every version with particular schemas. Resolve this method at that point.
+// 每个版本都有特定的模式。此时解决此方法。
 func (s *Scheme) AddUnversionedTypes(version schema.GroupVersion, types ...Object) {
 	s.addObservedVersion(version)
 	s.AddKnownTypes(version, types...)
@@ -137,6 +150,8 @@ func (s *Scheme) AddUnversionedTypes(version schema.GroupVersion, types ...Objec
 // All objects passed to types should be pointers to structs. The name that go reports for
 // the struct becomes the "kind" field when encoding. Version may not be empty - use the
 // APIVersionInternal constant if you have a type that does not have a formal version.
+// AddKnownTypes 将“types”中传递的所有类型注册为版本“version”的成员。传递给类型的所有对象都应该是指向结构的指针。
+// go 为结构报告的名称在编码时成为“种类”字段。版本不能为空 - 如果您的类型没有正式版本，请使用 APIVersionInternal 常量。
 func (s *Scheme) AddKnownTypes(gv schema.GroupVersion, types ...Object) {
 	s.addObservedVersion(gv)
 	for _, obj := range types {

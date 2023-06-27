@@ -41,7 +41,8 @@ const (
 	reasonError    = "internal error"
 )
 
-// WithAuthorizationCheck passes all authorized requests on to handler, and returns a forbidden error otherwise.
+// WithAuthorization passes all authorized requests on to handler, and returns a forbidden error otherwise.
+// WithAuthorization 将所有授权请求传递给处理程序，否则返回禁止错误。
 func WithAuthorization(handler http.Handler, a authorizer.Authorizer, s runtime.NegotiatedSerializer) http.Handler {
 	if a == nil {
 		klog.Warning("Authorization is disabled")

@@ -52,7 +52,7 @@ type sourcesReadyStub struct{}
 func (s *sourcesReadyStub) AddSource(source string) {}
 func (s *sourcesReadyStub) AllReady() bool          { return true }
 
-// Manager interface provides methods for Kubelet to manage pod memory.
+// Manager接口为Kubelet提供了管理Pod内存的方法。
 type Manager interface {
 	// Start is called during Kubelet initialization.
 	Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady, podStatusProvider status.PodStatusProvider, containerRuntime runtimeService, initialContainers containermap.ContainerMap) error

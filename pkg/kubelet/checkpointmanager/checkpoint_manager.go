@@ -25,14 +25,14 @@ import (
 	utilfs "k8s.io/kubernetes/pkg/util/filesystem"
 )
 
-// Checkpoint provides the process checkpoint data
+// 检查点提供进程检查点数据
 type Checkpoint interface {
 	MarshalCheckpoint() ([]byte, error)
 	UnmarshalCheckpoint(blob []byte) error
 	VerifyChecksum() error
 }
 
-// CheckpointManager provides the interface to manage checkpoint
+// CheckpointManager提供了管理检查点的接口。
 type CheckpointManager interface {
 	// CreateCheckpoint persists checkpoint in CheckpointStore. checkpointKey is the key for utilstore to locate checkpoint.
 	// For file backed utilstore, checkpointKey is the file name to write the checkpoint data.

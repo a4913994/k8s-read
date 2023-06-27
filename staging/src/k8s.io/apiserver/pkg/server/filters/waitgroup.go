@@ -31,6 +31,7 @@ import (
 )
 
 // WithWaitGroup adds all non long-running requests to wait group, which is used for graceful shutdown.
+// WithWaitGroup 将所有非长时间运行的请求添加到等待组，用于优雅关闭。
 func WithWaitGroup(handler http.Handler, longRunning apirequest.LongRunningRequestCheck, wg *utilwaitgroup.SafeWaitGroup) http.Handler {
 	// NOTE: both WithWaitGroup and WithRetryAfter must use the same exact isRequestExemptFunc 'isRequestExemptFromRetryAfter,
 	// otherwise SafeWaitGroup might wait indefinitely and will prevent the server from shutting down gracefully.

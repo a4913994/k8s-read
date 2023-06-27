@@ -25,6 +25,7 @@ type EndpointControllerConfiguration struct {
 	// concurrentEndpointSyncs is the number of endpoint syncing operations
 	// that will be done concurrently. Larger number = faster endpoint updating,
 	// but more CPU (and network) load.
+	// concurrentEndpointSyncs 是将同时完成的端点同步操作的数量。更大的数字 = 更快的端点更新，但更多的 CPU（和网络）负载。
 	ConcurrentEndpointSyncs int32
 
 	// EndpointUpdatesBatchPeriod can be used to batch endpoint updates.
@@ -32,5 +33,7 @@ type EndpointControllerConfiguration struct {
 	// 'EndpointUpdatesBatchPeriod'. If other pods in the same endpoint change
 	// in that period, they will be batched to a single endpoint update.
 	// Default 0 value means that each pod update triggers an endpoint update.
+	// EndpointUpdatesBatchPeriod 可用于批量端点更新。由 pod 更改触发的所有端点更新将延迟最多“EndpointUpdatesBatchPeriod”。
+	// 如果同一端点中的其他 pod 在此期间发生更改，它们将被批处理到单个端点更新。默认 0 值意味着每个 pod 更新都会触发一个端点更新。
 	EndpointUpdatesBatchPeriod metav1.Duration
 }

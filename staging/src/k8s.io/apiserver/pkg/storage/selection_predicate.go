@@ -25,10 +25,12 @@ import (
 
 // AttrFunc returns label and field sets and the uninitialized flag for List or Watch to match.
 // In any failure to parse given object, it returns error.
+// AttrFunc 返回用于 List 或 Watch 匹配的标签和字段集合以及未初始化标志。
 type AttrFunc func(obj runtime.Object) (labels.Set, fields.Set, error)
 
 // FieldMutationFunc allows the mutation of the field selection fields.  It is mutating to
 // avoid the extra allocation on this common path
+// FieldMutationFunc 允许对字段选择字段进行变异。 它是可变的，以避免在这条常用路径上进行额外的分配
 type FieldMutationFunc func(obj runtime.Object, fieldSet fields.Set) error
 
 func DefaultClusterScopedAttr(obj runtime.Object) (labels.Set, fields.Set, error) {
@@ -70,6 +72,7 @@ func (f AttrFunc) WithFieldMutation(fieldMutator FieldMutationFunc) AttrFunc {
 }
 
 // SelectionPredicate is used to represent the way to select objects from api storage.
+// SelectionPredicate 用于表示从 api 存储中选择对象的方式。
 type SelectionPredicate struct {
 	Label               labels.Selector
 	Field               fields.Selector
@@ -84,6 +87,7 @@ type SelectionPredicate struct {
 // Matches returns true if the given object's labels and fields (as
 // returned by s.GetAttrs) match s.Label and s.Field. An error is
 // returned if s.GetAttrs fails.
+// Matches 返回 true，如果给定对象的标签和字段（由 s.GetAttrs 返回）与 s.Label 和 s.Field 匹配。 如果 s.GetAttrs 失败，则返回错误。
 func (s *SelectionPredicate) Matches(obj runtime.Object) (bool, error) {
 	if s.Empty() {
 		return true, nil
@@ -101,6 +105,7 @@ func (s *SelectionPredicate) Matches(obj runtime.Object) (bool, error) {
 
 // MatchesObjectAttributes returns true if the given labels and fields
 // match s.Label and s.Field.
+// MatchesObjectAttributes 返回 true，如果给定的标签和字段与 s.Label 和 s.Field 匹配。
 func (s *SelectionPredicate) MatchesObjectAttributes(l labels.Set, f fields.Set) bool {
 	if s.Label.Empty() && s.Field.Empty() {
 		return true
@@ -114,6 +119,7 @@ func (s *SelectionPredicate) MatchesObjectAttributes(l labels.Set, f fields.Set)
 
 // MatchesSingle will return (name, true) if and only if s.Field matches on the object's
 // name.
+// MatchesSingle 将在且仅当 s.Field 匹配对象的名称时返回（name，true）。
 func (s *SelectionPredicate) MatchesSingle() (string, bool) {
 	if len(s.Continue) > 0 {
 		return "", false
@@ -133,6 +139,7 @@ func (s *SelectionPredicate) Empty() bool {
 // For any index defined by IndexFields, if a matcher can match only (a subset)
 // of objects that return <value> for a given index, a pair (<index name>, <value>)
 // wil be returned.
+// 对于 IndexFields 定义的任何索引，如果匹配器只能匹配（子集）对象，则对于给定索引返回 <value>，则将返回一对（<index name>，<value>）。
 func (s *SelectionPredicate) MatcherIndex() []MatchValue {
 	var result []MatchValue
 	for _, field := range s.IndexFields {

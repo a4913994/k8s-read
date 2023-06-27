@@ -44,6 +44,11 @@ const (
 //
 // The StatefulSet guarantees that a given network identity will always
 // map to the same storage identity.
+// StatefulSet 表示一组具有一致标识的pod。
+// 标识定义为：
+// - 网络：单个稳定的DNS和主机名。
+// - 存储：根据请求的VolumeClaims数量。
+// StatefulSet保证给定的网络标识将始终映射到相同的存储标识。
 type StatefulSet struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard object's metadata.
@@ -53,11 +58,13 @@ type StatefulSet struct {
 
 	// Spec defines the desired identities of pods in this set.
 	// +optional
+	// Spec 定义此集中pod的期望标识。
 	Spec StatefulSetSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
 
 	// Status is the current status of Pods in this StatefulSet. This data
 	// may be out of date by some window of time.
 	// +optional
+	// Status 是此StatefulSet中Pods的当前状态。此数据可能会在某个时间窗口内过期。
 	Status StatefulSetStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
@@ -179,6 +186,7 @@ type StatefulSetOrdinals struct {
 }
 
 // A StatefulSetSpec is the specification of a StatefulSet.
+// StatefulSetSpec 是 StatefulSet 的规范。
 type StatefulSetSpec struct {
 	// replicas is the desired number of replicas of the given Template.
 	// These are replicas in the sense that they are instantiations of the
@@ -186,11 +194,14 @@ type StatefulSetSpec struct {
 	// If unspecified, defaults to 1.
 	// TODO: Consider a rename of this field.
 	// +optional
+	// replicas是给定模板的期望副本数。这些副本在某种意义上是相同模板的实例，但是每个副本也具有一致的身份。
+	// 如果未指定，默认为1。
 	Replicas *int32 `json:"replicas,omitempty" protobuf:"varint,1,opt,name=replicas"`
 
 	// selector is a label query over pods that should match the replica count.
 	// It must match the pod template's labels.
 	// More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
+	// selector 是一个标签查询，用于选择应该匹配副本计数的 pod。它必须与 pod 模板的标签匹配。
 	Selector *metav1.LabelSelector `json:"selector" protobuf:"bytes,2,opt,name=selector"`
 
 	// template is the object that describes the pod that will be created if
@@ -199,6 +210,8 @@ type StatefulSetSpec struct {
 	// of the StatefulSet. Each pod will be named with the format
 	// <statefulsetname>-<podindex>. For example, a pod in a StatefulSet named
 	// "web" with index number "3" would be named "web-3".
+	// template 是描述如果检测到不足的副本，则将创建的 pod 的对象。StatefulSet 印制的每个 pod 都将满足此模板，但是与 StatefulSet 的其余部分具有唯一的身份。
+	// 每个 pod 将以格式 <statefulsetname>-<podindex> 命名。例如，名为 “web” 的 StatefulSet 中索引号为 “3” 的 pod 将被命名为 “web-3”。
 	Template v1.PodTemplateSpec `json:"template" protobuf:"bytes,3,opt,name=template"`
 
 	// volumeClaimTemplates is a list of claims that pods are allowed to reference.
@@ -209,6 +222,8 @@ type StatefulSetSpec struct {
 	// any volumes in the template, with the same name.
 	// TODO: Define the behavior if a claim already exists with the same name.
 	// +optional
+	// volumeClaimTemplates 是允许 pod 引用的声明列表。StatefulSet 控制器负责以一种维护 pod 的身份的方式将网络标识映射到声明。
+	// 此列表中的每个声明都必须在模板中的一个容器中至少有一个匹配（按名称）的 volumeMount。此列表中的声明优先于模板中具有相同名称的任何卷。
 	VolumeClaimTemplates []v1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty" protobuf:"bytes,4,rep,name=volumeClaimTemplates"`
 
 	// serviceName is the name of the service that governs this StatefulSet.

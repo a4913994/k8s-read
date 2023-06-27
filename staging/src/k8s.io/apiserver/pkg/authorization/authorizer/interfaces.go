@@ -25,6 +25,7 @@ import (
 
 // Attributes is an interface used by an Authorizer to get information about a request
 // that is used to make an authorization decision.
+// Attributes 是授权方用来获取有关用于做出授权决定的请求的信息的接口。
 type Attributes interface {
 	// GetUser returns the user.Info object to authorize
 	GetUser() user.Info
@@ -67,6 +68,7 @@ type Attributes interface {
 // Authorizer makes an authorization decision based on information gained by making
 // zero or more calls to methods of the Attributes interface.  It returns nil when an action is
 // authorized, otherwise it returns an error.
+// Authorizer 根据通过零次或多次调用 Attributes 接口的方法获得的信息做出授权决定。当一个动作被授权时它返回 nil，否则它返回一个错误。
 type Authorizer interface {
 	Authorize(ctx context.Context, a Attributes) (authorized Decision, reason string, err error)
 }
@@ -78,17 +80,21 @@ func (f AuthorizerFunc) Authorize(ctx context.Context, a Attributes) (Decision, 
 }
 
 // RuleResolver provides a mechanism for resolving the list of rules that apply to a given user within a namespace.
+// RuleResolver 提供了一种机制，用于解析适用于命名空间内给定用户的规则列表。
 type RuleResolver interface {
 	// RulesFor get the list of cluster wide rules, the list of rules in the specific namespace, incomplete status and errors.
+	// 规则 用于获取集群范围规则列表、特定命名空间中的规则列表、不完整状态和错误。
 	RulesFor(user user.Info, namespace string) ([]ResourceRuleInfo, []NonResourceRuleInfo, bool, error)
 }
 
 // RequestAttributesGetter provides a function that extracts Attributes from an http.Request
+// RequestAttributesGetter 提供了一个从 http.Request 中提取属性的函数
 type RequestAttributesGetter interface {
 	GetRequestAttributes(user.Info, *http.Request) Attributes
 }
 
 // AttributesRecord implements Attributes interface.
+// AttributesRecord 实现了 Attributes 接口。
 type AttributesRecord struct {
 	User            user.Info
 	Verb            string

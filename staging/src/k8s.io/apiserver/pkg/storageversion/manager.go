@@ -33,46 +33,60 @@ import (
 
 // ResourceInfo contains the information to register the resource to the
 // storage version API.
+// ResourceInfo 包含将资源注册到存储版本 API 的信息。
 type ResourceInfo struct {
 	GroupResource schema.GroupResource
 
 	EncodingVersion string
 	// Used to calculate decodable versions. Can only be used after all
 	// equivalent versions are registered by InstallREST.
+	// 用于计算可解码版本。只能在 InstallREST 注册所有等效版本后才能使用。
 	EquivalentResourceMapper runtime.EquivalentResourceRegistry
 
 	// DirectlyDecodableVersions is a list of versions that the converter for REST storage knows how to convert.  This
 	// contains items like apiextensions.k8s.io/v1beta1 even if we don't serve that version.
+	// DirectlyDecodableVersions 是 REST 存储转换器知道如何转换的版本列表。这包含 apiextensions.k8s.iov1beta1 之类的项目，即使我们不提供该版本
 	DirectlyDecodableVersions []schema.GroupVersion
 }
 
 // Manager records the resources whose StorageVersions need updates, and provides a method to update those StorageVersions.
+// Manager 记录需要更新其 StorageVersions 的资源，并提供更新这些 StorageVersions 的方法。
 type Manager interface {
 	// AddResourceInfo records resources whose StorageVersions need updates
+	// AddResourceInfo 记录其 StorageVersions 需要更新的资源
 	AddResourceInfo(resources ...*ResourceInfo)
 	// UpdateStorageVersions tries to update the StorageVersions of the recorded resources
+	// UpdateStorageVersions 尝试更新记录的资源的 StorageVersions
 	UpdateStorageVersions(kubeAPIServerClientConfig *rest.Config, apiserverID string)
 	// PendingUpdate returns true if the StorageVersion of the given resource is still pending update.
+	// PendingUpdate 返回给定资源的 StorageVersion 是否仍在等待更新。
 	PendingUpdate(gr schema.GroupResource) bool
 	// LastUpdateError returns the last error hit when updating the storage version of the given resource.
+	// LastUpdateError 返回更新给定资源的存储版本时遇到的最后一个错误。
 	LastUpdateError(gr schema.GroupResource) error
 	// Completed returns true if updating StorageVersions of all recorded resources has completed.
+	// Completed 返回是否已完成对所有记录的资源的 StorageVersions 的更新。
 	Completed() bool
 }
 
 var _ Manager = &defaultManager{}
 
 // defaultManager indicates if an apiserver has completed reporting its storage versions.
+// defaultManager 指示 apiserver 是否已完成报告其存储版本。
 type defaultManager struct {
 	completed atomic.Bool
 
 	mu sync.RWMutex
 	// managedResourceInfos records the ResourceInfos whose StorageVersions will get updated in the next
 	// UpdateStorageVersions call
+	// managedResourceInfos 记录其 StorageVersions 将在下一次 UpdateStorageVersions 调用中更新的 ResourceInfos
 	managedResourceInfos map[*ResourceInfo]struct{}
 	// managedStatus records the update status of StorageVersion for each GroupResource. Since one
 	// ResourceInfo may expand into multiple GroupResource (e.g. ingresses.networking.k8s.io and ingresses.extensions),
 	// this map allows quick status lookup for a GroupResource, during API request handling.
+	// managedStatus记录了每个GroupResource的StorageVersion的更新状态。
+	// 由于一个 ResourceInfo 可能扩展为多个 GroupResource（例如 ingresses.networking.k8s.io 和 ingresses.extensions）
+	// ，此映射允许在 API 请求处理期间快速查找 GroupResource 的状态。
 	managedStatus map[schema.GroupResource]*updateStatus
 }
 

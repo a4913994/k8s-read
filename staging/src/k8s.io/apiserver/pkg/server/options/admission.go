@@ -52,33 +52,45 @@ func init() {
 }
 
 // AdmissionOptions holds the admission options
+// AdmissionOptions 处理 admission 控制器的配置
 type AdmissionOptions struct {
 	// RecommendedPluginOrder holds an ordered list of plugin names we recommend to use by default
+	// RecommendedPluginOrder 处理 admission 控制器的顺序
 	RecommendedPluginOrder []string
 	// DefaultOffPlugins is a set of plugin names that is disabled by default
+	// DefaultOffPlugins 是默认关闭的 admission 控制器
 	DefaultOffPlugins sets.String
 
 	// EnablePlugins indicates plugins to be enabled passed through `--enable-admission-plugins`.
+	// EnablePlugins 是默认开启的 admission 控制器
 	EnablePlugins []string
 	// DisablePlugins indicates plugins to be disabled passed through `--disable-admission-plugins`.
+	// DisablePlugins 是默认关闭的 admission 控制器
 	DisablePlugins []string
 	// ConfigFile is the file path with admission control configuration.
+	// ConfigFile 是 admission 控制器的配置文件
 	ConfigFile string
 	// Plugins contains all registered plugins.
+	// Plugins 是 admission 控制器的插件
 	Plugins *admission.Plugins
 	// Decorators is a list of admission decorator to wrap around the admission plugins
+	// Decorators 是 admission 控制器的装饰器
 	Decorators admission.Decorators
 }
 
 // NewAdmissionOptions creates a new instance of AdmissionOptions
+// NewAdmissionOptions 创建一个 AdmissionOptions 实例
 // Note:
 //
-//	In addition it calls RegisterAllAdmissionPlugins to register
-//	all generic admission plugins.
+//		In addition it calls RegisterAllAdmissionPlugins to register
+//		all generic admission plugins.
+//	 除此之外，它还调用 RegisterAllAdmissionPlugins 来注册所有通用的 admission 控制器。
 //
-//	Provides the list of RecommendedPluginOrder that holds sane values
-//	that can be used by servers that don't care about admission chain.
-//	Servers that do care can overwrite/append that field after creation.
+//		Provides the list of RecommendedPluginOrder that holds sane values
+//		that can be used by servers that don't care about admission chain.
+//		Servers that do care can overwrite/append that field after creation.
+//	 提供 RecommendedPluginOrder 列表，该列表包含了一些可以被不关心 admission 链的服务器使用的值。
+//	 关心的服务器可以在创建后覆盖/追加该字段。
 func NewAdmissionOptions() *AdmissionOptions {
 	options := &AdmissionOptions{
 		Plugins:    admission.NewPlugins(),

@@ -44,6 +44,8 @@ const maxQueuedEvents = 1000
 // EventSink must respect the namespace that will be embedded in 'event'.
 // It is assumed that EventSink will return the same sorts of errors as
 // pkg/client's REST client.
+// EventSink知道如何存储事件（client.Client实现了它。）
+// EventSink必须尊重将被嵌入'event'的命名空间。假设EventSink将返回与pkgclient的REST客户端相同的各种错误。
 type EventSink interface {
 	Create(event *v1.Event) (*v1.Event, error)
 	Update(event *v1.Event) (*v1.Event, error)
@@ -88,6 +90,7 @@ type CorrelatorOptions struct {
 }
 
 // EventRecorder knows how to record events on behalf of an EventSource.
+// EventRecorder知道如何记录一个EventSource事件。
 type EventRecorder interface {
 	// Event constructs an event from the given information and puts it in the queue for sending.
 	// 'object' is the object this event is about. Event will make a reference-- or you may also
@@ -100,39 +103,55 @@ type EventRecorder interface {
 	// 'message' is intended to be human readable.
 	//
 	// The resulting event will be created in the same namespace as the reference object.
+	// 事件从给定的信息中构造一个事件，并把它放在队列中进行发送。
+	// object'是这个事件所涉及的对象。事件将做一个引用--或者你也可以直接传递一个对象的引用。
+	//'eventtype'这个事件的，可以是Normal、Warning中的一种。
+	// 新的类型可以在将来添加 '原因' 是这个事件产生的原因。
+	// '原因'应该是简短和唯一的；它应该是UpperCamelCase格式（以大写字母开头）。
+	// "原因 "将被用来自动处理事件，所以想象一下人们写开关语句来处理它们。你想让这一切变得简单。
+	// 消息 "是为了让人可读。产生的事件将在与引用对象相同的命名空间中创建。
 	Event(object runtime.Object, eventtype, reason, message string)
 
 	// Eventf is just like Event, but with Sprintf for the message field.
+	// Eventf就像Event一样，但用Sprintf表示消息字段。
 	Eventf(object runtime.Object, eventtype, reason, messageFmt string, args ...interface{})
 
 	// AnnotatedEventf is just like eventf, but with annotations attached
+	// AnnotatedEventf就像eventf一样，但附加了注释
 	AnnotatedEventf(object runtime.Object, annotations map[string]string, eventtype, reason, messageFmt string, args ...interface{})
 }
 
 // EventBroadcaster knows how to receive events and send them to any EventSink, watcher, or log.
+// EventBroadcaster知道如何接收事件并将其发送到任何EventSink、watcher或log。
 type EventBroadcaster interface {
 	// StartEventWatcher starts sending events received from this EventBroadcaster to the given
 	// event handler function. The return value can be ignored or used to stop recording, if
 	// desired.
+	// StartEventWatcher开始发送从这个EventBroadcaster收到的事件到给定的事件处理函数。如果需要，返回值可以被忽略或用于停止记录。
 	StartEventWatcher(eventHandler func(*v1.Event)) watch.Interface
 
 	// StartRecordingToSink starts sending events received from this EventBroadcaster to the given
 	// sink. The return value can be ignored or used to stop recording, if desired.
+	// StartRecordingToSink开始发送从这个EventBroadcaster收到的事件到给定的sink。如果需要，返回值可以被忽略或用于停止记录。
 	StartRecordingToSink(sink EventSink) watch.Interface
 
 	// StartLogging starts sending events received from this EventBroadcaster to the given logging
 	// function. The return value can be ignored or used to stop recording, if desired.
+	// StartLogging开始发送从这个EventBroadcaster收到的事件到给定的记录功能。如果需要，返回值可以被忽略或用于停止记录。
 	StartLogging(logf func(format string, args ...interface{})) watch.Interface
 
 	// StartStructuredLogging starts sending events received from this EventBroadcaster to the structured
 	// logging function. The return value can be ignored or used to stop recording, if desired.
+	// StartStructuredLogging开始发送从该EventBroadcaster收到的事件到结构化日志功能。如果需要，返回值可以被忽略或用于停止记录。
 	StartStructuredLogging(verbosity klog.Level) watch.Interface
 
 	// NewRecorder returns an EventRecorder that can be used to send events to this EventBroadcaster
 	// with the event source set to the given event source.
+	// NewRecorder返回一个EventRecorder，可用于向该EventBroadcaster发送事件，事件源设置为给定的事件源。
 	NewRecorder(scheme *runtime.Scheme, source v1.EventSource) EventRecorder
 
 	// Shutdown shuts down the broadcaster
+	// 关闭的广播接收者
 	Shutdown()
 }
 

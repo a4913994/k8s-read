@@ -28,8 +28,8 @@ import (
 	"k8s.io/klog/v2"
 )
 
-// Builder is a mutable builder for CPUSet. Functions that mutate instances
-// of this type are not thread-safe.
+// 构建器是CPUSet的一个可变体构建器。对该类型的实例进行变异的函数
+// 的函数不是线程安全的。
 type Builder struct {
 	result CPUSet
 	done   bool

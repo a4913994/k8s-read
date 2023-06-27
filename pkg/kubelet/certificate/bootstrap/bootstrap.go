@@ -49,12 +49,12 @@ import (
 
 const tmpPrivateKeyFile = "kubelet-client.key.tmp"
 
-// LoadClientConfig tries to load the appropriate client config for retrieving certs and for use by users.
-// If bootstrapPath is empty, only kubeconfigPath is checked. If bootstrap path is set and the contents
-// of kubeconfigPath are valid, both certConfig and userConfig will point to that file. Otherwise the
-// kubeconfigPath on disk is populated based on bootstrapPath but pointing to the location of the client cert
-// in certDir. This preserves the historical behavior of bootstrapping where on subsequent restarts the
-// most recent client cert is used to request new client certs instead of the initial token.
+// LoadClientConfig试图加载适当的客户端配置，以检索证书并供用户使用。
+// 如果bootstrapPath为空，只检查kubeconfigPath。如果bootstrap路径被设置，并且
+// 的内容是有效的，那么 certConfig 和 userConfig 都将指向该文件。否则
+// 磁盘上的 kubeconfigPath 是基于 bootstrapPath 填充的，但指向 certDir 中的客户证书的位置。
+// 在 certDir 中的位置。这保留了引导的历史行为，即在随后的重启中，最新的客户证书被用于
+// 在随后的重启中，最新的客户证书被用来请求新的客户证书，而不是最初的token。
 func LoadClientConfig(kubeconfigPath, bootstrapPath, certDir string) (certConfig, userConfig *restclient.Config, err error) {
 	if len(bootstrapPath) == 0 {
 		clientConfig, err := loadRESTClientConfig(kubeconfigPath)
@@ -101,10 +101,10 @@ func LoadClientConfig(kubeconfigPath, bootstrapPath, certDir string) (certConfig
 	return bootstrapClientConfig, clientConfig, nil
 }
 
-// LoadClientCert requests a client cert for kubelet if the kubeconfigPath file does not exist.
-// The kubeconfig at bootstrapPath is used to request a client certificate from the API server.
-// On success, a kubeconfig file referencing the generated key and obtained certificate is written to kubeconfigPath.
-// The certificate and key file are stored in certDir.
+// 如果kubeconfigPath文件不存在，LoadClientCert为kubelet请求一个客户证书。
+// bootstrapPath处的kubeconfig被用来向API服务器请求一个客户证书。
+// 成功后，一个引用了生成的密钥和获得的证书的kubeconfig文件被写入kubeconfigPath。
+// 证书和密钥文件被存储在certDir中。
 func LoadClientCert(ctx context.Context, kubeconfigPath, bootstrapPath, certDir string, nodeName types.NodeName) error {
 	// Short-circuit if the kubeconfig file exists and is valid.
 	ok, err := isClientConfigStillValid(kubeconfigPath)

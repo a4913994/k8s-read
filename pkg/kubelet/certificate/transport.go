@@ -33,26 +33,26 @@ import (
 	"k8s.io/client-go/util/connrotation"
 )
 
-// UpdateTransport instruments a restconfig with a transport that dynamically uses
-// certificates provided by the manager for TLS client auth.
+// UpdateTransport 用一个动态使用管理器提供的 TLS 客户端认证的运输工具来记录一个 restconfig。
+// 的证书用于TLS客户端认证。
 //
-// The config must not already provide an explicit transport.
+// 该配置必须没有提供一个明确的传输。
 //
-// The returned function allows forcefully closing all active connections.
+// 返回的函数允许强行关闭所有活动连接。
 //
-// The returned transport periodically checks the manager to determine if the
-// certificate has changed. If it has, the transport shuts down all existing client
-// connections, forcing the client to re-handshake with the server and use the
-// new certificate.
+// 返回的运输工具会定期检查管理器以确定
+// 证书是否有变化。如果发生了变化，传输会关闭所有现有的客户
+// 连接，迫使客户端与服务器重新握手并使用
+// 新的证书。
 //
-// The exitAfter duration, if set, will terminate the current process if a certificate
-// is not available from the store (because it has been deleted on disk or is corrupt)
-// or if the certificate has expired and the server is responsive. This allows the
-// process parent or the bootstrap credentials an opportunity to retrieve a new initial
-// certificate.
+// 如果设置了 exitAfter 持续时间，则将终止当前进程，如果证书
+// 储存器中没有可用的证书（因为它已在磁盘上被删除或已损坏），则 exitAfter 持续时间将终止当前进程。
+// 或者，如果证书已经过期，而服务器是有反应的。这允许
+// 进程的父代或启动凭证有机会检索到一个新的初始
+// 证书。
 //
-// stopCh should be used to indicate when the transport is unused and doesn't need
-// to continue checking the manager.
+// stopCh 应该被用来表示当运输工具未被使用并且不需要
+// 继续检查管理器。
 func UpdateTransport(stopCh <-chan struct{}, clientConfig *restclient.Config, clientCertificateManager certificate.Manager, exitAfter time.Duration) (func(), error) {
 	return updateTransport(stopCh, 10*time.Second, clientConfig, clientCertificateManager, exitAfter)
 }

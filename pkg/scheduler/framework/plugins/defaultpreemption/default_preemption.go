@@ -47,6 +47,7 @@ import (
 const Name = names.DefaultPreemption
 
 // DefaultPreemption is a PostFilter plugin implements the preemption logic.
+// DefaultPreemption 是一个实现抢占逻辑的PostFilter插件。
 type DefaultPreemption struct {
 	fh        framework.Handle
 	args      config.DefaultPreemptionArgs
@@ -80,6 +81,7 @@ func New(dpArgs runtime.Object, fh framework.Handle, fts feature.Features) (fram
 }
 
 // PostFilter invoked at the postFilter extension point.
+// 在PostFilter扩展点调用的PostFilter。
 func (pl *DefaultPreemption) PostFilter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, m framework.NodeToStatusMap) (*framework.PostFilterResult, *framework.Status) {
 	defer func() {
 		metrics.PreemptionAttempts.Inc()
@@ -105,6 +107,7 @@ func (pl *DefaultPreemption) PostFilter(ctx context.Context, state *framework.Cy
 // method must produce from dry running based on the constraints given by
 // <minCandidateNodesPercentage> and <minCandidateNodesAbsolute>. The number of
 // candidates returned will never be greater than <numNodes>.
+// calculatenumcandidate返回findcandidate方法必须根据<minCandidateNodesPercentage>和<minCandidateNodesAbsolute>所给出的约束条件从干运行中生成的候选数。返回的候选数永远不会大于<numNodes>。
 func (pl *DefaultPreemption) calculateNumCandidates(numNodes int32) int32 {
 	n := (numNodes * pl.args.MinCandidateNodesPercentage) / 100
 	if n < pl.args.MinCandidateNodesAbsolute {
@@ -118,6 +121,7 @@ func (pl *DefaultPreemption) calculateNumCandidates(numNodes int32) int32 {
 
 // GetOffsetAndNumCandidates chooses a random offset and calculates the number
 // of candidates that should be shortlisted for dry running preemption.
+// getoffsetandnumcandidate选择一个随机偏移量，并计算应该入围干运行抢占的候选数量。
 func (pl *DefaultPreemption) GetOffsetAndNumCandidates(numNodes int32) (int32, int32) {
 	return rand.Int31n(numNodes), pl.calculateNumCandidates(numNodes)
 }
@@ -134,6 +138,7 @@ func (pl *DefaultPreemption) CandidatesToVictimsMap(candidates []preemption.Cand
 
 // SelectVictimsOnNode finds minimum set of pods on the given node that should be preempted in order to make enough room
 // for "pod" to be scheduled.
+// SelectVictimsOnNode查找给定节点上应该抢占的最小pod集，以便为“pod”预留足够的空间。
 func (pl *DefaultPreemption) SelectVictimsOnNode(
 	ctx context.Context,
 	state *framework.CycleState,
@@ -233,6 +238,8 @@ func (pl *DefaultPreemption) SelectVictimsOnNode(
 //  2. The pod has already preempted other pods and the victims are in their graceful termination period.
 //     Currently we check the node that is nominated for this pod, and as long as there are
 //     terminating pods on this node, we don't attempt to preempt more pods.
+//
+// PodEligibleToPreemptOthers返回一个bool值和一个字符串。bool值表示是否应该考虑将这个pod用于抢占其他pod。字符串中包含了不符合条件的原因。
 func (pl *DefaultPreemption) PodEligibleToPreemptOthers(pod *v1.Pod, nominatedNodeStatus *framework.Status) (bool, string) {
 	if pod.Spec.PreemptionPolicy != nil && *pod.Spec.PreemptionPolicy == v1.PreemptNever {
 		return false, "not eligible due to preemptionPolicy=Never."

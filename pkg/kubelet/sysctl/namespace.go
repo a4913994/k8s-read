@@ -47,6 +47,7 @@ var prefixNamespaces = map[string]Namespace{
 
 // NamespacedBy returns the namespace of the Linux kernel for a sysctl, or
 // unknownNamespace if the sysctl is not known to be namespaced.
+// NamespacedBy返回Linux内核的sysctl的命名空间，如果sysctl未知，则返回unknownNamespace。
 func NamespacedBy(val string) Namespace {
 	if ns, found := namespaces[val]; found {
 		return ns

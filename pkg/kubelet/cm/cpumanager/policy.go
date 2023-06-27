@@ -17,14 +17,13 @@ limitations under the License.
 package cpumanager
 
 import (
-	"k8s.io/api/core/v1"
-
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/state"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/kubernetes/pkg/kubelet/cm/topologymanager"
 )
 
-// Policy implements logic for pod container to CPU assignment.
+// 策略实现了pod容器到CPU分配的逻辑。
 type Policy interface {
 	Name() string
 	Start(s state.State) error

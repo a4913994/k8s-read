@@ -21,5 +21,6 @@ type ReplicaSetControllerConfiguration struct {
 	// concurrentRSSyncs is the number of replica sets that are  allowed to sync
 	// concurrently. Larger number = more responsive replica  management, but more
 	// CPU (and network) load.
+	// concurrentRSSyncs是允许同步的副本集的数量。更大的数量=更灵敏的副本管理，但更多的CPU（和网络）负载。
 	ConcurrentRSSyncs int32
 }

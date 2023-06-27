@@ -111,6 +111,7 @@ type RawExtension struct {
 // Unknown allows api objects with unknown types to be passed-through. This can be used
 // to deal with the API objects from a plug-in. Unknown objects still have functioning
 // TypeMeta features-- kind, version, etc.
+// Unknown 允许传递未知类型的 api 对象。这可用于处理来自插件的 API 对象。未知对象仍然具有正常运行的 TypeMeta 特性——种类、版本等。
 // TODO: Make this object have easy access to field based accessors and settors for
 // metadata and field mutatation.
 //
@@ -123,9 +124,11 @@ type Unknown struct {
 	// Raw will hold the complete serialized object which couldn't be matched
 	// with a registered type. Most likely, nothing should be done with this
 	// except for passing it through the system.
+	// Raw 将保存无法与注册类型匹配的完整序列化对象。最有可能的是，除了通过系统传递它之外，不应该对此做任何事情。
 	Raw []byte `protobuf:"bytes,2,opt,name=raw"`
 	// ContentEncoding is encoding used to encode 'Raw' data.
 	// Unspecified means no encoding.
+	// ContentEncoding 是用于对“原始”数据进行编码的编码。未指定意味着没有编码。
 	ContentEncoding string `protobuf:"bytes,3,opt,name=contentEncoding"`
 	// ContentType  is serialization method used to serialize 'Raw'.
 	// Unspecified means ContentTypeJSON.

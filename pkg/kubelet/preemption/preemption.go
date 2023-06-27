@@ -41,6 +41,13 @@ const message = "Preempted in order to admit critical pod"
 // minimal impact for guaranteed pods > minimal impact for burstable pods > minimal impact for besteffort pods.
 // minimal impact is defined as follows: fewest pods evicted > fewest total requests of pods.
 // finding the fewest total requests of pods is considered besteffort.
+// CriticalPodAdmissionHandler 是一个 AdmissionFailureHandler，用于处理关键 Pod 的准入失败。
+// 如果唯一的准入失败原因是资源不足，则 CriticalPodAdmissionHandler 会驱逐 Pod，以便可以准入关键 Pod。
+// 对于驱逐，CriticalPodAdmissionHandler 驱逐一组 Pod，以释放所需的资源请求。
+// Pod 集合旨在最小化影响，并按以下顺序进行优先级排序：
+// 保证 Pod 的最小影响 > 突发 Pod 的最小影响 > 最佳效果 Pod 的最小影响。
+// 最小影响的定义如下：驱逐最少的 Pod > 驱逐 Pod 的最少总请求。
+// 尽力寻找驱逐 Pod 的最少总请求被认为是最佳效果。
 type CriticalPodAdmissionHandler struct {
 	getPodsFunc eviction.ActivePodsFunc
 	killPodFunc eviction.KillPodFunc
@@ -59,12 +66,14 @@ func NewCriticalPodAdmissionHandler(getPodsFunc eviction.ActivePodsFunc, killPod
 
 // HandleAdmissionFailure gracefully handles admission rejection, and, in some cases,
 // to allow admission of the pod despite its previous failure.
+// HandleAdmissionFailure 优雅地处理准入拒绝，并且在某些情况下，允许准入 Pod 尽管其以前的失败。
 func (c *CriticalPodAdmissionHandler) HandleAdmissionFailure(admitPod *v1.Pod, failureReasons []lifecycle.PredicateFailureReason) ([]lifecycle.PredicateFailureReason, error) {
 	if !kubetypes.IsCriticalPod(admitPod) {
 		return failureReasons, nil
 	}
 	// InsufficientResourceError is not a reason to reject a critical pod.
 	// Instead of rejecting, we free up resources to admit it, if no other reasons for rejection exist.
+	// InsufficientResourceError 不是拒绝关键 Pod 的原因。 与其拒绝，我们释放资源以准入它（如果没有其他拒绝原因）。
 	nonResourceReasons := []lifecycle.PredicateFailureReason{}
 	resourceReasons := []*admissionRequirement{}
 	for _, reason := range failureReasons {
@@ -89,6 +98,8 @@ func (c *CriticalPodAdmissionHandler) HandleAdmissionFailure(admitPod *v1.Pod, f
 // evictPodsToFreeRequests takes a list of insufficient resources, and attempts to free them by evicting pods
 // based on requests.  For example, if the only insufficient resource is 200Mb of memory, this function could
 // evict a pod with request=250Mb.
+// evictPodsToFreeRequests 接受不足资源的列表，并尝试通过驱逐 Pod 来释放它们，基于请求。
+// 例如，如果唯一不足的资源是 200Mb 内存，则此函数可以驱逐请求 = 250Mb 的 Pod。
 func (c *CriticalPodAdmissionHandler) evictPodsToFreeRequests(admitPod *v1.Pod, insufficientResources admissionRequirementList) error {
 	podsToPreempt, err := getPodsToPreempt(admitPod, c.getPodsFunc(), insufficientResources)
 	if err != nil {
@@ -120,6 +131,7 @@ func (c *CriticalPodAdmissionHandler) evictPodsToFreeRequests(admitPod *v1.Pod, 
 }
 
 // getPodsToPreempt returns a list of pods that could be preempted to free requests >= requirements
+// getPodsToPreempt 返回一个 Pod 列表，可以驱逐 Pod 以释放请求 >= requirements
 func getPodsToPreempt(pod *v1.Pod, pods []*v1.Pod, requirements admissionRequirementList) ([]*v1.Pod, error) {
 	bestEffortPods, burstablePods, guaranteedPods := sortPodsByQOS(pod, pods)
 
@@ -152,6 +164,10 @@ func getPodsToPreempt(pod *v1.Pod, pods []*v1.Pod, requirements admissionRequire
 // it chooses the pod that has the "smaller resource request"
 // This method, by repeatedly choosing the pod that fulfills as much of the requirements as possible,
 // attempts to minimize the number of pods returned.
+// getPodsToPreemptByDistance 查找具有 Pod 请求 >= 准入要求的 Pod。
+// 选择距离要求最小的 Pod。
+// 如果存在多个 Pod 满足剩余要求，则选择具有“较小资源请求”的 Pod。
+// 通过重复选择满足尽可能多要求的 Pod，此方法尝试最小化返回的 Pod 数量。
 func getPodsToPreemptByDistance(pods []*v1.Pod, requirements admissionRequirementList) ([]*v1.Pod, error) {
 	podsToEvict := []*v1.Pod{}
 	// evict pods by shortest distance from remaining requirements, updating requirements every round.
@@ -190,6 +206,7 @@ type admissionRequirementList []*admissionRequirement
 // distance returns distance of the pods requests from the admissionRequirements.
 // The distance is measured by the fraction of the requirement satisfied by the pod,
 // so that each requirement is weighted equally, regardless of absolute magnitude.
+// distance 返回 Pod 请求与准入要求之间的距离。 距离由 Pod 满足要求的分数度量，因此每个要求都以相等的权重计算，而不考虑绝对大小。
 func (a admissionRequirementList) distance(pod *v1.Pod) float64 {
 	dist := float64(0)
 	for _, req := range a {
@@ -203,6 +220,7 @@ func (a admissionRequirementList) distance(pod *v1.Pod) float64 {
 
 // subtract returns a new admissionRequirementList containing remaining requirements if the provided pod
 // were to be preempted
+// subtract 如果提供的 Pod 被抢占，则返回包含剩余要求的新 admissionRequirementList
 func (a admissionRequirementList) subtract(pods ...*v1.Pod) admissionRequirementList {
 	newList := []*admissionRequirement{}
 	for _, req := range a {
@@ -233,6 +251,7 @@ func (a admissionRequirementList) toString() string {
 
 // sortPodsByQOS returns lists containing besteffort, burstable, and guaranteed pods that
 // can be preempted by preemptor pod.
+// sortPodsByQOS 返回包含可以被抢占者 Pod 抢占的 besteffort、burstable 和 guaranteed Pod 的列表。
 func sortPodsByQOS(preemptor *v1.Pod, pods []*v1.Pod) (bestEffort, burstable, guaranteed []*v1.Pod) {
 	for _, pod := range pods {
 		if kubetypes.Preemptable(preemptor, pod) {
@@ -252,6 +271,7 @@ func sortPodsByQOS(preemptor *v1.Pod, pods []*v1.Pod) (bestEffort, burstable, gu
 }
 
 // smallerResourceRequest returns true if pod1 has a smaller request than pod2
+// smallerResourceRequest 如果 pod1 的请求小于 pod2，则返回 true
 func smallerResourceRequest(pod1 *v1.Pod, pod2 *v1.Pod) bool {
 	priorityList := []v1.ResourceName{
 		v1.ResourceMemory,

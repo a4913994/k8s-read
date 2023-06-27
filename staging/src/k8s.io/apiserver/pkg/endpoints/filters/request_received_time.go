@@ -25,6 +25,7 @@ import (
 
 // WithRequestReceivedTimestamp attaches the ReceivedTimestamp (the time the request reached
 // the apiserver) to the context.
+// WithRequestReceivedTimestamp 将 ReceivedTimestamp（请求到达 apiserver 的时间）附加到上下文。
 func WithRequestReceivedTimestamp(handler http.Handler) http.Handler {
 	return withRequestReceivedTimestampWithClock(handler, clock.RealClock{})
 }

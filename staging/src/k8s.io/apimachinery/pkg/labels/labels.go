@@ -34,6 +34,7 @@ type Labels interface {
 }
 
 // Set is a map of label:value. It implements Labels.
+// Set 是一个 label:value 的 map，它实现了 Labels 接口。
 type Set map[string]string
 
 // String returns all labels listed as a human readable string.

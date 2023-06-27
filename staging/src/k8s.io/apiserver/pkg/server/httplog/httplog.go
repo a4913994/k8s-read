@@ -92,6 +92,7 @@ func (passthroughLogger) Addf(format string, data ...interface{}) {
 }
 
 // DefaultStacktracePred is the default implementation of StacktracePred.
+// DefaultStacktracePred 是 StacktracePred 的默认实现。
 func DefaultStacktracePred(status int) bool {
 	return (status < http.StatusOK || status >= http.StatusInternalServerError) && status != http.StatusSwitchingProtocols
 }

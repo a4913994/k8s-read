@@ -31,6 +31,7 @@ import (
 
 // cjControlInterface is an interface that knows how to update CronJob status
 // created as an interface to allow testing.
+// cjControlInterface是一个知道如何更新CronJob状态的接口，作为一个接口创建，以允许测试。
 type cjControlInterface interface {
 	UpdateStatus(ctx context.Context, cj *batchv1.CronJob) (*batchv1.CronJob, error)
 	// GetCronJob retrieves a CronJob.
@@ -79,6 +80,7 @@ func (c *fakeCJControl) UpdateStatus(ctx context.Context, cj *batchv1.CronJob) (
 
 // jobControlInterface is an interface that knows how to add or delete jobs
 // created as an interface to allow testing.
+// jobControlInterface是一个接口，知道如何添加或删除作为接口创建的作业，以允许测试。
 type jobControlInterface interface {
 	// GetJob retrieves a Job.
 	GetJob(namespace, name string) (*batchv1.Job, error)

@@ -37,13 +37,16 @@ import (
 // RESTCreateStrategy defines the minimum validation, accepted input, and
 // name generation behavior to create an object that follows Kubernetes
 // API conventions.
+// RESTCreateStrategy 定义了创建对象时的最小验证、接受的输入和名称生成行为，以遵循 Kubernetes API 约定。
 type RESTCreateStrategy interface {
 	runtime.ObjectTyper
 	// The name generator is used when the standard GenerateName field is set.
 	// The NameGenerator will be invoked prior to validation.
+	// 设置标准 GenerateName 字段时使用名称生成器。 NameGenerator 将在验证之前被调用。
 	names.NameGenerator
 
 	// NamespaceScoped returns true if the object must be within a namespace.
+	// NamespaceScoped 如果对象必须在命名空间中，则返回 true。
 	NamespaceScoped() bool
 	// PrepareForCreate is invoked on create before validation to normalize
 	// the object.  For example: remove fields that are not to be persisted,
@@ -54,11 +57,14 @@ type RESTCreateStrategy interface {
 	// status. Clear the status because status changes are internal. External
 	// callers of an api (users) should not be setting an initial status on
 	// newly created objects.
+	// PrepareForCreate 在创建之前调用验证以规范化对象。 例如：删除不要持久化的字段、排序不敏感的列表字段等。 这不应该删除其存在将被视为验证错误的字段。
+	// 通常作为类型检查和初始化或清除状态的实现。 清除状态是因为状态更改是内部的。 外部调用者的 api（用户）不应该在新创建的对象上设置初始状态。
 	PrepareForCreate(ctx context.Context, obj runtime.Object)
 	// Validate returns an ErrorList with validation errors or nil.  Validate
 	// is invoked after default fields in the object have been filled in
 	// before the object is persisted.  This method should not mutate the
 	// object.
+	// Validate 返回带有验证错误或 nil 的 ErrorList。 在对象持久化之前，Validate 在对象中填充默认字段之后被调用。 此方法不应该改变对象。
 	Validate(ctx context.Context, obj runtime.Object) field.ErrorList
 	// WarningsOnCreate returns warnings to the client performing a create.
 	// WarningsOnCreate is invoked after default fields in the object have been filled in
@@ -79,6 +85,19 @@ type RESTCreateStrategy interface {
 	//
 	// Warnings should not be returned for fields which cannot be resolved by the caller.
 	// For example, do not warn about spec fields in a subresource creation request.
+	// WarningsOnCreate 在对象中填充默认字段之后、在 Validate 通过之后、在 Canonicalize 被调用之前、在对象被持久化之前被调用。
+	// 此方法不应该改变对象。
+	// 请简洁; 如果可能，请将警告限制在 120 个字符以内。
+	// 不要在消息中包含“警告：”前缀（客户端在输出时会添加该前缀）。
+	// 关于特定字段的警告应以“path.to.field: message”格式返回。
+	// 例如：`spec.imagePullSecrets[0].name: invalid empty name ""`
+	// 使用警告消息来描述客户端应该更正或注意的 API 请求的问题。
+	// 例如：
+	// - 将在未来版本中停止工作的已弃用字段/标签/注释
+	// - 不可用的过时字段/标签/注释
+	// - 阻止成功处理提交的对象的格式错误或无效的规范，但由于兼容性原因而不被验证拒绝
+	// 不应返回无法由调用者解决的字段的警告。
+	// 例如，不要在子资源创建请求中警告 spec 字段。
 	WarningsOnCreate(ctx context.Context, obj runtime.Object) []string
 	// Canonicalize allows an object to be mutated into a canonical form. This
 	// ensures that code that operates on these objects can rely on the common
@@ -86,12 +105,16 @@ type RESTCreateStrategy interface {
 	// validation has succeeded but before the object has been persisted.
 	// This method may mutate the object. Often implemented as a type check or
 	// empty method.
+	// Canonicalize 允许对象被转换为规范形式。 这确保了操作这些对象的代码可以依赖于比较等内容的公共形式。
+	// Canonicalize 在验证成功之后、对象被持久化之前被调用。 此方法可以改变对象。 通常作为类型检查或空方法的实现。
 	Canonicalize(obj runtime.Object)
 }
 
 // BeforeCreate ensures that common operations for all resources are performed on creation. It only returns
 // errors that can be converted to api.Status. It invokes PrepareForCreate, then Validate.
 // It returns nil if the object should be created.
+// BeforeCreate 确保所有资源的常见操作在创建时执行。 它只返回可以转换为 api.Status 的错误。 它调用 PrepareForCreate，然后调用 Validate。
+// 如果对象应该被创建，则返回 nil。
 func BeforeCreate(strategy RESTCreateStrategy, ctx context.Context, obj runtime.Object) error {
 	objectMeta, kind, kerr := objectMetaAndKind(strategy, obj)
 	if kerr != nil {
@@ -141,6 +164,7 @@ func BeforeCreate(strategy RESTCreateStrategy, ctx context.Context, obj runtime.
 
 // CheckGeneratedNameError checks whether an error that occurred creating a resource is due
 // to generation being unable to pick a valid name.
+// CheckGeneratedNameError  检查创建资源时发生的错误是否是由于生成无法选择有效名称导致的。
 func CheckGeneratedNameError(ctx context.Context, strategy RESTCreateStrategy, err error, obj runtime.Object) error {
 	if !errors.IsAlreadyExists(err) {
 		return err
@@ -169,6 +193,7 @@ func CheckGeneratedNameError(ctx context.Context, strategy RESTCreateStrategy, e
 }
 
 // objectMetaAndKind retrieves kind and ObjectMeta from a runtime object, or returns an error.
+// objectMetaAndKind 从运行时对象中检索 kind 和 ObjectMeta，或返回错误。
 func objectMetaAndKind(typer runtime.ObjectTyper, obj runtime.Object) (metav1.Object, schema.GroupVersionKind, error) {
 	objectMeta, err := meta.Accessor(obj)
 	if err != nil {
@@ -182,12 +207,15 @@ func objectMetaAndKind(typer runtime.ObjectTyper, obj runtime.Object) (metav1.Ob
 }
 
 // NamespaceScopedStrategy has a method to tell if the object must be in a namespace.
+// NamespaceScopedStrategy 有一个方法来告诉对象是否必须在命名空间中。
 type NamespaceScopedStrategy interface {
 	// NamespaceScoped returns if the object must be in a namespace.
+	// NamespaceScoped 返回对象是否必须在命名空间中。
 	NamespaceScoped() bool
 }
 
 // AdmissionToValidateObjectFunc converts validating admission to a rest validate object func
+// AdmissionToValidateObjectFunc 将验证准入转换为 rest 验证对象函数
 func AdmissionToValidateObjectFunc(admit admission.Interface, staticAttributes admission.Attributes, o admission.ObjectInterfaces) ValidateObjectFunc {
 	validatingAdmission, ok := admit.(admission.ValidationInterface)
 	if !ok {

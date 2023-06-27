@@ -25,6 +25,7 @@ import (
 )
 
 // WithRequestInfo attaches a RequestInfo to the context.
+// WithRequestInfo 将 RequestInfo 附加到上下文。
 func WithRequestInfo(handler http.Handler, resolver request.RequestInfoResolver) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()

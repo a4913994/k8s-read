@@ -26,15 +26,19 @@ import (
 )
 
 // ScopeNamer handles accessing names from requests and objects
+// ScopeNamer 处理来自请求和对象的访问名称
 type ScopeNamer interface {
 	// Namespace returns the appropriate namespace value from the request (may be empty) or an
 	// error.
+	// Namespace 从请求（可能为空）或错误中返回适当的命名空间值。
 	Namespace(req *http.Request) (namespace string, err error)
 	// Name returns the name from the request, and an optional namespace value if this is a namespace
 	// scoped call. An error is returned if the name is not available.
+	// Name 从请求返回名称，并返回可选的命名空间值（如果这是命名空间范围的调用）。 如果名称不可用，则返回错误。
 	Name(req *http.Request) (namespace, name string, err error)
 	// ObjectName returns the namespace and name from an object if they exist, or an error if the object
 	// does not support names.
+	// ObjectName 从对象返回命名空间和名称（如果它们存在），如果对象不支持名称，则返回错误。
 	ObjectName(obj runtime.Object) (namespace, name string, err error)
 }
 
@@ -44,6 +48,7 @@ type ContextBasedNaming struct {
 }
 
 // ContextBasedNaming implements ScopeNamer
+// ContextBasedNaming 实现 ScopeNamer
 var _ ScopeNamer = ContextBasedNaming{}
 
 func (n ContextBasedNaming) Namespace(req *http.Request) (namespace string, err error) {

@@ -46,6 +46,7 @@ const (
 // auditWrapper provides an http.Handler that audits a failed request.
 // longRunning returns true if he given request is a long running request.
 // requestTimeoutMaximum specifies the default request timeout value.
+// WithRequestDeadline 确定适用于给定请求的超时持续时间，并设置具有适当截止日期的新上下文。 auditWrapper 提供了一个 http.Handler 来审计失败的请求。如果他给定的请求是长时间运行的请求，则 longRunning 返回 true。 requestTimeoutMaximum 指定默认的请求超时值。
 func WithRequestDeadline(handler http.Handler, sink audit.Sink, policy audit.PolicyRuleEvaluator, longRunning request.LongRunningRequestCheck,
 	negotiatedSerializer runtime.NegotiatedSerializer, requestTimeoutMaximum time.Duration) http.Handler {
 	return withRequestDeadline(handler, sink, policy, longRunning, negotiatedSerializer, requestTimeoutMaximum, clock.RealClock{})

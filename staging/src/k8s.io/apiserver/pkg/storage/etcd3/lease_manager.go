@@ -31,14 +31,18 @@ const (
 )
 
 // LeaseManagerConfig is configuration for creating a lease manager.
+// LeaseManagerConfig 是用于创建租赁管理器的配置。
 type LeaseManagerConfig struct {
 	// ReuseDurationSeconds specifies time in seconds that each lease is reused
+	// ReuseDurationSeconds 指定每个租约被重用的时间（以秒为单位）
 	ReuseDurationSeconds int64
 	// MaxObjectCount specifies how many objects that a lease can attach
+	// MaxObjectCount 指定租约可以附加多少个对象
 	MaxObjectCount int64
 }
 
 // NewDefaultLeaseManagerConfig creates a LeaseManagerConfig with default values
+// NewDefaultLeaseManagerConfig 创建具有默认值的 LeaseManagerConfig
 func NewDefaultLeaseManagerConfig() LeaseManagerConfig {
 	return LeaseManagerConfig{
 		ReuseDurationSeconds: defaultLeaseReuseDurationSeconds,
@@ -51,6 +55,8 @@ func NewDefaultLeaseManagerConfig() LeaseManagerConfig {
 // lease will be reused to reduce the overhead of etcd, since lease operations
 // are expensive. In the implementation, we only store one previous lease,
 // since all the events have the same ttl.
+// leaseManager 用于管理从 etcd 请求的租约。如果新的写入需要一个与前一个租约具有相似到期时间的租约，
+// 旧租约将被重用以减少 etcd 的开销，因为租约操作是昂贵的。在实现中，我们只存储一个以前的租约，因为所有事件都有相同的 ttl。
 type leaseManager struct {
 	client                  *clientv3.Client // etcd client used to grant leases
 	leaseMu                 sync.Mutex
@@ -66,6 +72,7 @@ type leaseManager struct {
 }
 
 // newDefaultLeaseManager creates a new lease manager using default setting.
+// newDefaultLeaseManager 使用默认设置创建一个新的租赁管理器。
 func newDefaultLeaseManager(client *clientv3.Client, config LeaseManagerConfig) *leaseManager {
 	if config.MaxObjectCount <= 0 {
 		config.MaxObjectCount = defaultLeaseMaxObjectCount
@@ -76,6 +83,7 @@ func newDefaultLeaseManager(client *clientv3.Client, config LeaseManagerConfig) 
 // newLeaseManager creates a new lease manager with the number of buffered
 // leases, lease reuse duration in seconds and percentage. The percentage
 // value x means x*100%.
+// newLeaseManager 创建一个新的租赁管理器，其中包含缓冲租赁的数量、以秒为单位的租赁重用持续时间和百分比。百分比值 x 表示 x100%。
 func newLeaseManager(client *clientv3.Client, leaseReuseDurationSeconds int64, leaseReuseDurationPercent float64, maxObjectCount int64) *leaseManager {
 	return &leaseManager{
 		client:                      client,
@@ -87,6 +95,7 @@ func newLeaseManager(client *clientv3.Client, leaseReuseDurationSeconds int64, l
 
 // GetLease returns a lease based on requested ttl: if the cached previous
 // lease can be reused, reuse it; otherwise request a new one from etcd.
+// GetLease 根据请求的 ttl 返回一个租约：如果之前缓存的租约可以重用，则重用；否则从 etcd 请求一个新的。
 func (l *leaseManager) GetLease(ctx context.Context, ttl int64) (clientv3.LeaseID, error) {
 	now := time.Now()
 	l.leaseMu.Lock()
@@ -122,6 +131,7 @@ func (l *leaseManager) GetLease(ctx context.Context, ttl int64) (clientv3.LeaseI
 // getReuseDurationSecondsLocked returns the reusable duration in seconds
 // based on the configuration. Lock has to be acquired before calling this
 // function.
+// getReuseDurationSecondsLocked 根据配置返回可重复使用的持续时间（以秒为单位）。在调用此函数之前必须获取锁。
 func (l *leaseManager) getReuseDurationSecondsLocked(ttl int64) int64 {
 	reuseDurationSeconds := int64(l.leaseReuseDurationPercent * float64(ttl))
 	if reuseDurationSeconds > l.leaseReuseDurationSeconds {

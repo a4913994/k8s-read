@@ -42,6 +42,7 @@ type eventStrategy struct {
 
 // Strategy is the default logic that applies when creating and updating
 // Event objects via the REST API.
+// Strategy 是在通过 REST API 创建和更新 Event 对象时默认的逻辑。
 var Strategy = eventStrategy{legacyscheme.Scheme, names.SimpleNameGenerator}
 
 func (eventStrategy) DefaultGarbageCollectionPolicy(ctx context.Context) rest.GarbageCollectionPolicy {

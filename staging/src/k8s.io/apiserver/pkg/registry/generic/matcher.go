@@ -22,6 +22,7 @@ import (
 )
 
 // ObjectMetaFieldsSet returns a fields that represent the ObjectMeta.
+// ObjectMetaFieldsSet 返回一个表示 ObjectMeta 的字段。
 func ObjectMetaFieldsSet(objectMeta *metav1.ObjectMeta, hasNamespaceField bool) fields.Set {
 	if !hasNamespaceField {
 		return fields.Set{
@@ -35,6 +36,7 @@ func ObjectMetaFieldsSet(objectMeta *metav1.ObjectMeta, hasNamespaceField bool) 
 }
 
 // AdObjectMetaField add fields that represent the ObjectMeta to source.
+// AddObjectMetaFieldsSet 将表示 ObjectMeta 的字段添加到 source。
 func AddObjectMetaFieldsSet(source fields.Set, objectMeta *metav1.ObjectMeta, hasNamespaceField bool) fields.Set {
 	source["metadata.name"] = objectMeta.Name
 	if hasNamespaceField {
@@ -44,6 +46,7 @@ func AddObjectMetaFieldsSet(source fields.Set, objectMeta *metav1.ObjectMeta, ha
 }
 
 // MergeFieldsSets merges a fields'set from fragment into the source.
+// MergeFieldsSets 将 fragment 中的字段集合合并到 source 中。
 func MergeFieldsSets(source fields.Set, fragment fields.Set) fields.Set {
 	for k, value := range fragment {
 		source[k] = value

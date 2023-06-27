@@ -43,6 +43,7 @@ import (
 )
 
 // ProbeVolumePlugins collects all volume plugins into an easy to use list.
+// ProbeVolumePlugins 收集所有的卷插件到一个易于使用的列表中
 func ProbeVolumePlugins(featureGate featuregate.FeatureGate) ([]volume.VolumePlugin, error) {
 	allPlugins := []volume.VolumePlugin{}
 
@@ -52,6 +53,10 @@ func ProbeVolumePlugins(featureGate featuregate.FeatureGate) ([]volume.VolumePlu
 	//
 	// Kubelet does not currently need to configure volume plugins.
 	// If/when it does, see kube-controller-manager/app/plugins.go for example of using volume.VolumeConfig
+	// 这个插件列表是由 kubelet 二进制文件决定的，而不是通过动态链接或其他“魔法”。
+	// 插件将在稍后分析和初始化。
+	// kubelet 目前不需要配置卷插件。
+	// 如果/当它需要，可以参考 kube-controller-manager/app/plugins.go 作为使用 volume.VolumeConfig 的示例
 	var err error
 	allPlugins, err = appendLegacyProviderVolumes(allPlugins, featureGate)
 	if err != nil {

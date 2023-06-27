@@ -152,6 +152,10 @@ func (s *SecureServingInfo) tlsConfig(stopCh <-chan struct{}) (*tls.Config, erro
 // The actual server loop (stoppable by closing stopCh) runs in a go routine, i.e. Serve does not block.
 // It returns a stoppedCh that is closed when all non-hijacked active requests have been processed.
 // It returns a listenerStoppedCh that is closed when the underlying http Server has stopped listening.
+// Serve 运行安全的 http 服务器。仅当无法加载证书或初始侦听调用失败时才会失败。
+// 实际的服务器循环（通过关闭 stopCh 可停止）在 go 程中运行，即 Serve 不会阻塞。
+// 它返回一个 stoppedCh，该通道在所有非劫持的活动请求都已处理时关闭。
+// 它返回一个 listenerStoppedCh，该通道在底层 http 服务器停止侦听时关闭。
 func (s *SecureServingInfo) Serve(handler http.Handler, shutdownTimeout time.Duration, stopCh <-chan struct{}) (<-chan struct{}, <-chan struct{}, error) {
 	if s.Listener == nil {
 		return nil, nil, fmt.Errorf("listener must not be nil")
@@ -217,6 +221,9 @@ func (s *SecureServingInfo) Serve(handler http.Handler, shutdownTimeout time.Dur
 // have been processed.
 // This function does not block
 // TODO: make private when insecure serving is gone from the kube-apiserver
+// RunServer 产生一个 go-routine，持续运行，直到 stopCh 被关闭。
+// 它返回一个 stoppedCh，该通道在所有非劫持的活动请求都已处理时关闭。
+// 此函数不会阻塞
 func RunServer(
 	server *http.Server,
 	ln net.Listener,

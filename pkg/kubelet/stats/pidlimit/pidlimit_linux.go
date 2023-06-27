@@ -32,12 +32,14 @@ import (
 )
 
 // Stats provides basic information about max and current process count
+// Stats提供有关最大和当前进程计数的基本信息
 func Stats() (*statsapi.RlimitStats, error) {
 	rlimit := &statsapi.RlimitStats{}
 
 	taskMax := int64(-1)
 	// Calculate the mininum of kernel.pid_max and kernel.threads-max as they both specify the
 	// system-wide limit on the number of tasks.
+	// 计算kernel.pid_max和kernel.threads-max的最小值，因为它们都指定了系统范围内任务的数量限制。
 	for _, file := range []string{"/proc/sys/kernel/pid_max", "/proc/sys/kernel/threads-max"} {
 		if content, err := os.ReadFile(file); err == nil {
 			if limit, err := strconv.ParseInt(string(content[:len(content)-1]), 10, 64); err == nil {

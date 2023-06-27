@@ -29,10 +29,13 @@ type GarbageCollectorControllerConfiguration struct {
 	// enables the generic garbage collector. MUST be synced with the
 	// corresponding flag of the kube-apiserver. WARNING: the generic garbage
 	// collector is an alpha feature.
+	// 启用通用垃圾收集器。必须与 kube-apiserver 的相应标志同步。警告：通用垃圾收集器是一个 alpha 特性。
 	EnableGarbageCollector bool
 	// concurrentGCSyncs is the number of garbage collector workers that are
 	// allowed to sync concurrently.
+	// concurrentGCSyncs 是允许并发同步的垃圾收集器工作者的数量。
 	ConcurrentGCSyncs int32
 	// gcIgnoredResources is the list of GroupResources that garbage collection should ignore.
+	// gcIgnoredResources 是垃圾回收应该忽略的 GroupResources 的列表。
 	GCIgnoredResources []GroupResource
 }

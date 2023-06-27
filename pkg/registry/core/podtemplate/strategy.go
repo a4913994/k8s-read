@@ -37,6 +37,7 @@ type podTemplateStrategy struct {
 
 // Strategy is the default logic that applies when creating and updating PodTemplate
 // objects via the REST API.
+// Strategy 是在通过 REST API 创建和更新 PodTemplate 对象时默认的逻辑。
 var Strategy = podTemplateStrategy{legacyscheme.Scheme, names.SimpleNameGenerator}
 
 // NamespaceScoped is true for pod templates.

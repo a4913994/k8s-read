@@ -61,6 +61,7 @@ type APIInstaller struct {
 }
 
 // Struct capturing information about an action ("GET", "POST", "WATCH", "PROXY", etc).
+// 结构捕获有关操作的信息（“GET”、“POST”、“WATCH”、“PROXY”等）。
 type action struct {
 	Verb          string               // Verb identifying the action ("GET", "POST", "WATCH", "PROXY", etc).
 	Path          string               // The path of the action
@@ -155,17 +156,20 @@ func ConvertGroupVersionIntoToDiscovery(list []metav1.APIResource) ([]apidiscove
 }
 
 // An interface to see if one storage supports override its default verb for monitoring
+// 查看一个存储是否支持覆盖其默认动词以进行监视的界面
 type StorageMetricsOverride interface {
 	// OverrideMetricsVerb gives a storage object an opportunity to override the verb reported to the metrics endpoint
 	OverrideMetricsVerb(oldVerb string) (newVerb string)
 }
 
 // An interface to see if an object supports swagger documentation as a method
+// 用于查看对象是否支持 swagger 文档作为方法的接口
 type documentable interface {
 	SwaggerDoc() map[string]string
 }
 
 // toDiscoveryKubeVerb maps an action.Verb to the logical kube verb, used for discovery
+// toDiscoveryKubeVerb 将 action.Verb 映射到逻辑 kube 动词，用于发现
 var toDiscoveryKubeVerb = map[string]string{
 	"CONNECT":          "", // do not list in discovery.
 	"DELETE":           "delete",
@@ -181,6 +185,7 @@ var toDiscoveryKubeVerb = map[string]string{
 }
 
 // Install handlers for API resources.
+// 安装 API 资源的处理程序。
 func (a *APIInstaller) Install() ([]metav1.APIResource, []*storageversion.ResourceInfo, *restful.WebService, []error) {
 	var apiResources []metav1.APIResource
 	var resourceInfos []*storageversion.ResourceInfo
@@ -219,6 +224,8 @@ func (a *APIInstaller) newWebService() *restful.WebService {
 	// Backwards compatibility, we accepted objects with empty content-type at V1.
 	// If we stop using go-restful, we can default empty content-type to application/json on an
 	// endpoint by endpoint basis
+	// 向后兼容性, 我们在 V1 中接受了带有空内容类型的对象.
+	// 如果我们停止使用 go-restful, 我们可以在端点到端的基础上将空内容类型默认为 application/json
 	ws.Consumes("*/*")
 	mediaTypes, streamMediaTypes := negotiation.MediaTypesForSerializer(a.group.Serializer)
 	ws.Produces(append(mediaTypes, streamMediaTypes...)...)
@@ -323,6 +330,7 @@ func (a *APIInstaller) registerResourceHandlers(path string, storage rest.Storag
 	}
 
 	// what verbs are supported by the storage, used to know what verbs we support per path
+	// 存储支持的动词, 用于知道每个路径支持的动词
 	creater, isCreater := storage.(rest.Creater)
 	namedCreater, isNamedCreater := storage.(rest.NamedCreater)
 	lister, isLister := storage.(rest.Lister)
@@ -1243,6 +1251,7 @@ func GetArticleForNoun(noun string, padding string) string {
 }
 
 // isVowel returns true if the rune is a vowel (case insensitive).
+// isVowel 返回 true 如果 rune 是一个元音（不区分大小写）。
 func isVowel(c rune) bool {
 	vowels := []rune{'a', 'e', 'i', 'o', 'u'}
 	for _, value := range vowels {

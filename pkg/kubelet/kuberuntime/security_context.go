@@ -25,6 +25,7 @@ import (
 )
 
 // determineEffectiveSecurityContext gets container's security context from v1.Pod and v1.Container.
+// determineEffectiveSecurityContext从v1获取容器的安全上下文。Pod和v1.Container。
 func (m *kubeGenericRuntimeManager) determineEffectiveSecurityContext(pod *v1.Pod, container *v1.Container, uid *int64, username string) (*runtimeapi.LinuxContainerSecurityContext, error) {
 	effectiveSc := securitycontext.DetermineEffectiveSecurityContext(pod, container)
 	synthesized := convertToRuntimeSecurityContext(effectiveSc)
@@ -83,6 +84,7 @@ func (m *kubeGenericRuntimeManager) determineEffectiveSecurityContext(pod *v1.Po
 }
 
 // convertToRuntimeSecurityContext converts v1.SecurityContext to runtimeapi.SecurityContext.
+// convertToRuntimeSecurityContext将v1.SecurityContext转换为runtimeapi.SecurityContext。
 func convertToRuntimeSecurityContext(securityContext *v1.SecurityContext) *runtimeapi.LinuxContainerSecurityContext {
 	if securityContext == nil {
 		return nil
@@ -109,6 +111,7 @@ func convertToRuntimeSecurityContext(securityContext *v1.SecurityContext) *runti
 }
 
 // convertToRuntimeSELinuxOption converts v1.SELinuxOptions to runtimeapi.SELinuxOption.
+// convertToRuntimeSELinuxOption将v1.SELinuxOptions转换为runtimeapi.SELinuxOption。
 func convertToRuntimeSELinuxOption(opts *v1.SELinuxOptions) *runtimeapi.SELinuxOption {
 	if opts == nil {
 		return nil
@@ -123,6 +126,7 @@ func convertToRuntimeSELinuxOption(opts *v1.SELinuxOptions) *runtimeapi.SELinuxO
 }
 
 // convertToRuntimeCapabilities converts v1.Capabilities to runtimeapi.Capability.
+// convertToRuntimeCapabilities将v1.Capabilities转换为runtimeapi.Capability。
 func convertToRuntimeCapabilities(opts *v1.Capabilities) *runtimeapi.Capability {
 	if opts == nil {
 		return nil

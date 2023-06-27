@@ -33,6 +33,7 @@ import (
 // The config parameter provides an io.Reader handler to the factory in
 // order to load specific configurations. If no configuration is provided
 // the parameter is nil.
+// Factory 是一个函数，它返回一个用于准入决策的接口。 config 参数向工厂提供 io.Reader 处理程序，以便加载特定配置。如果未提供配置，则该参数为 nil。
 type Factory func(config io.Reader) (Interface, error)
 
 type Plugins struct {

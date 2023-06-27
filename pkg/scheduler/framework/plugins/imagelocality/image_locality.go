@@ -29,6 +29,7 @@ import (
 
 // The two thresholds are used as bounds for the image score range. They correspond to a reasonable size range for
 // container images compressed and stored in registries; 90%ile of images on dockerhub drops into this range.
+// 这两个阈值被用作图像评分范围的边界。它们对应于压缩并存储在注册中心的容器映像的合理大小范围;dockerhub上90%的图片都在这个范围内。
 const (
 	mb                    int64 = 1024 * 1024
 	minThreshold          int64 = 23 * mb

@@ -34,6 +34,7 @@ import (
 // The frequency with which global timestamp of the cache is to
 // is to be updated periodically. If pod workers get stuck at cache.GetNewerThan
 // call, after this period it will be unblocked.
+// 缓存全局时间戳的频率。如果pod工作程序在cache.GetNewerThan调用中被卡住，那么在此期间它将被解除阻塞。
 const globalCacheUpdatePeriod = 5 * time.Second
 
 var (
@@ -45,6 +46,7 @@ var (
 // the Evented PLEG feature gate, there could be several reasons it may not be in use.
 // e.g. Streaming data issues from the runtime or the runtime does not implement the
 // container events stream.
+// isEventedPLEGInUse指示Evented PLEG是否正在使用。即使启用了Evented PLEG功能门控，也可能有几个原因使其无法使用。
 func isEventedPLEGInUse() bool {
 	eventedPLEGUsageMu.Lock()
 	defer eventedPLEGUsageMu.Unlock()
@@ -53,6 +55,7 @@ func isEventedPLEGInUse() bool {
 
 // setEventedPLEGUsage should only be accessed from
 // Start/Stop of Evented PLEG.
+// setEventedPLEGUsage只能从Evented PLEG的Start/Stop访问。
 func setEventedPLEGUsage(enable bool) {
 	eventedPLEGUsageMu.RLock()
 	defer eventedPLEGUsageMu.RUnlock()
@@ -85,6 +88,7 @@ type EventedPLEG struct {
 }
 
 // NewEventedPLEG instantiates a new EventedPLEG object and return it.
+// NewEventedPLEG实例化一个新的EventedPLEG对象并返回它。
 func NewEventedPLEG(runtime kubecontainer.Runtime, runtimeService internalapi.RuntimeService, eventChannel chan *PodLifecycleEvent,
 	cache kubecontainer.Cache, genericPleg PodLifecycleEventGenerator, eventedPlegMaxStreamRetries int,
 	relistDuration *RelistDuration, clock clock.Clock) PodLifecycleEventGenerator {
@@ -101,16 +105,19 @@ func NewEventedPLEG(runtime kubecontainer.Runtime, runtimeService internalapi.Ru
 }
 
 // Watch returns a channel from which the subscriber can receive PodLifecycleEvent events.
+// Watch返回一个频道，订阅者可以从中接收PodLifecycleEvent事件。
 func (e *EventedPLEG) Watch() chan *PodLifecycleEvent {
 	return e.eventChannel
 }
 
 // Relist relists all containers using GenericPLEG
+// Relist使用GenericPLEG重新列出所有容器
 func (e *EventedPLEG) Relist() {
 	e.genericPleg.Relist()
 }
 
 // Start starts the Evented PLEG
+// Start启动Evented PLEG
 func (e *EventedPLEG) Start() {
 	e.runningMu.Lock()
 	defer e.runningMu.Unlock()
@@ -141,16 +148,20 @@ func (e *EventedPLEG) Stop() {
 // given state while it has progressed in its life cycle. This function will be
 // called periodically to update the global timestamp of the cache so that those
 // pods stuck at GetNewerThan in pod workers will get unstuck.
+// 如果Evented PLEG在底层GRPC连接中遇到无法检测到的问题，则有可能在其生命周期中进展的同时，该pod可能会卡在给定状态中。
+// 这个函数将被定期调用以更新缓存的全局时间戳，以便在pod工作人员中卡在GetNewerThan中的那些pod将被解除卡住。
 func (e *EventedPLEG) updateGlobalCache() {
 	e.cache.UpdateTime(time.Now())
 }
 
 // Update the relisting period and threshold
+// 更新重新列出的周期和阈值
 func (e *EventedPLEG) Update(relistDuration *RelistDuration) {
 	e.genericPleg.Update(relistDuration)
 }
 
 // Healthy check if PLEG work properly.
+// Healthy检查PLEG是否正常工作。
 func (e *EventedPLEG) Healthy() (bool, error) {
 	// GenericPLEG is declared unhealthy when relisting time is more
 	// than the relistThreshold. In case EventedPLEG is turned on,
@@ -159,6 +170,10 @@ func (e *EventedPLEG) Healthy() (bool, error) {
 	// the adjusted values of relistingPeriod and relistingThreshold.
 
 	// EventedPLEG is declared unhealthy only if eventChannel is out of capacity.
+	// GenericPLEG是在重新列出时间超过relistThreshold时声明不健康的。
+	// 如果启用了EventedPLEG，则relistingPeriod和relistingThreshold将调整为更高的值。
+	// 因此，Generic PLEG的健康检查应检查relistingPeriod和relistingThreshold的调整值。
+	// 只有当eventChannel超出容量时，EventedPLEG才会被声明为不健康的。
 	if len(e.eventChannel) == cap(e.eventChannel) {
 		return false, fmt.Errorf("EventedPLEG: pleg event channel capacity is full with %v events", len(e.eventChannel))
 	}

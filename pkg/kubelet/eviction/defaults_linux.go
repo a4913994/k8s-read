@@ -20,6 +20,7 @@ limitations under the License.
 package eviction
 
 // DefaultEvictionHard includes default options for hard eviction.
+// DefaultEvictionHard 包含硬性驱逐的默认选项。
 var DefaultEvictionHard = map[string]string{
 	"memory.available":  "100Mi",
 	"nodefs.available":  "10%",

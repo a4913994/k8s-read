@@ -21,11 +21,14 @@ import (
 )
 
 // RangeRegistry is a registry that can retrieve or persist a RangeAllocation object.
+// RangeRegistry 是一个注册表，可以检索或持久化 RangeAllocation 对象。
 type RangeRegistry interface {
 	// Get returns the latest allocation, an empty object if no allocation has been made,
 	// or an error if the allocation could not be retrieved.
+	// Get 返回最新的分配，如果没有分配，则返回空对象，如果无法检索分配，则返回错误。
 	Get() (*api.RangeAllocation, error)
 	// CreateOrUpdate should create or update the provide allocation, unless a conflict
 	// has occurred since the item was last created.
+	// CreateOrUpdate 应该创建或更新提供的分配，除非自上次创建以来发生冲突。
 	CreateOrUpdate(*api.RangeAllocation) error
 }

@@ -21,5 +21,6 @@ type JobControllerConfiguration struct {
 	// concurrentJobSyncs is the number of job objects that are
 	// allowed to sync concurrently. Larger number = more responsive jobs,
 	// but more CPU (and network) load.
+	// concurrentJobSyncs是允许并发同步的作业对象的数量。更大的数量=更多的作业响应，但更多的CPU（和网络）负载。
 	ConcurrentJobSyncs int32
 }

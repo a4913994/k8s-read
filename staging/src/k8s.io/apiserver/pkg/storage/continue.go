@@ -36,6 +36,7 @@ var (
 // TODO: if we change the version of the encoded from, we can't start encoding the new version
 // until all other servers are upgraded (i.e. we need to support rolling schema)
 // This is a public API struct and cannot change.
+// continueToken 是一个简单的结构化对象，用于编码 continue 令牌的状态。
 type continueToken struct {
 	APIVersion      string `json:"v"`
 	ResourceVersion int64  `json:"rv"`
@@ -43,6 +44,7 @@ type continueToken struct {
 }
 
 // DecodeContinue transforms an encoded predicate from into a versioned struct.
+// DecodeContinue 将编码的谓词从版本化结构转换为结构化结构。
 // TODO: return a typed error that instructs clients that they must relist
 func DecodeContinue(continueValue, keyPrefix string) (fromKey string, rv int64, err error) {
 	data, err := base64.RawURLEncoding.DecodeString(continueValue)

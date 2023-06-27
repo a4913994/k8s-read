@@ -52,24 +52,31 @@ import (
 )
 
 // FinishFunc is a function returned by Begin hooks to complete an operation.
+// FinishFunc 是由 Begin 钩子返回的函数，用于完成操作。
 type FinishFunc func(ctx context.Context, success bool)
 
 // AfterDeleteFunc is the type used for the Store.AfterDelete hook.
+// AfterDeleteFunc 是 Store.AfterDelete 钩子的类型。
 type AfterDeleteFunc func(obj runtime.Object, options *metav1.DeleteOptions)
 
 // BeginCreateFunc is the type used for the Store.BeginCreate hook.
+// BeginCreateFunc 是 Store.BeginCreate 钩子的类型。
 type BeginCreateFunc func(ctx context.Context, obj runtime.Object, options *metav1.CreateOptions) (FinishFunc, error)
 
 // AfterCreateFunc is the type used for the Store.AfterCreate hook.
+// AfterCreateFunc 是 Store.AfterCreate 钩子的类型。
 type AfterCreateFunc func(obj runtime.Object, options *metav1.CreateOptions)
 
 // BeginUpdateFunc is the type used for the Store.BeginUpdate hook.
+// BeginUpdateFunc 是 Store.BeginUpdate 钩子的类型。
 type BeginUpdateFunc func(ctx context.Context, obj, old runtime.Object, options *metav1.UpdateOptions) (FinishFunc, error)
 
 // AfterUpdateFunc is the type used for the Store.AfterUpdate hook.
+// AfterUpdateFunc 是 Store.AfterUpdate 钩子的类型。
 type AfterUpdateFunc func(obj runtime.Object, options *metav1.UpdateOptions)
 
 // GenericStore interface can be used for type assertions when we need to access the underlying strategies.
+// GenericStore 接口可以用于类型断言，当我们需要访问底层策略时。
 type GenericStore interface {
 	GetCreateStrategy() rest.RESTCreateStrategy
 	GetUpdateStrategy() rest.RESTUpdateStrategy
@@ -92,22 +99,30 @@ type GenericStore interface {
 // specific to the API.
 //
 // TODO: make the default exposed methods exactly match a generic RESTStorage
+// Store 实现了 k8s.io/apiserver/pkg/registry/rest.StandardStorage。它的目的是可嵌入的，并允许消费者实现任何所需的非通用函数。此对象旨在可复制，以便可以以不同的方式使用，但共享相同的底层行为。
+// 除非另有说明，否则所有字段都是必需的。
+// 此类型的用途是在特定于 Kind 的 RESTStorage 实现中嵌入。此类型在 Kubelike 资源上提供 CRUD 语义，处理诸如与 ResourceVersion 的冲突检测和语义之类的细节。RESTCreateStrategy、RESTUpdateStrategy 和 RESTDeleteStrategy 在所有后端上都是通用的，并封装了特定于 API 的逻辑。
 type Store struct {
 	// NewFunc returns a new instance of the type this registry returns for a
 	// GET of a single object, e.g.:
 	//
 	// curl GET /apis/group/version/namespaces/my-ns/myresource/name-of-object
+	// NewFunc 返回此注册表返回的类型的新实例，例如：
 	NewFunc func() runtime.Object
 
 	// NewListFunc returns a new list of the type this registry; it is the
 	// type returned when the resource is listed, e.g.:
 	//
 	// curl GET /apis/group/version/namespaces/my-ns/myresource
+	// NewListFunc 返回此注册表的新列表；当资源被列出时，它是返回的类型，例如：
 	NewListFunc func() runtime.Object
 
 	// DefaultQualifiedResource is the pluralized name of the resource.
 	// This field is used if there is no request info present in the context.
 	// See qualifiedResourceFromContext for details.
+	// DefaultQualifiedResource 是资源的复数名称。
+	// 如果上下文中没有请求信息，则使用此字段。
+	// 有关详细信息，请参阅 qualifiedResourceFromContext。
 	DefaultQualifiedResource schema.GroupResource
 
 	// KeyRootFunc returns the root etcd key for this resource; should not
@@ -115,6 +130,8 @@ type Store struct {
 	// entire collection (listing and watching).
 	//
 	// KeyRootFunc and KeyFunc must be supplied together or not at all.
+	// KeyRootFunc 返回此资源的根 etcd 键；不应包含尾随“/”。这用于在整个集合上工作的操作（列出和监视）。
+	// KeyRootFunc 和 KeyFunc 必须一起提供，或者根本不提供。
 	KeyRootFunc func(ctx context.Context) string
 
 	// KeyFunc returns the key for a specific object in the collection.
@@ -122,9 +139,13 @@ type Store struct {
 	// can be gotten from ctx.
 	//
 	// KeyFunc and KeyRootFunc must be supplied together or not at all.
+	// KeyFunc 返回集合中特定对象的键。
+	// KeyFunc 用于 Create/Update/Get/Delete。请注意，可以从 ctx 中获取“namespace”。
+	// KeyFunc 和 KeyRootFunc 必须一起提供，或者根本不提供。
 	KeyFunc func(ctx context.Context, name string) (string, error)
 
 	// ObjectNameFunc returns the name of an object or an error.
+	// ObjectNameFunc 返回对象的名称或错误。
 	ObjectNameFunc func(obj runtime.Object) (string, error)
 
 	// TTLFunc returns the TTL (time to live) that objects should be persisted
@@ -133,11 +154,14 @@ type Store struct {
 	// against an existing object.
 	//
 	// Objects that are persisted with a TTL are evicted once the TTL expires.
+	// TTLFunc 返回应与对象一起持久化的 TTL（生存时间）。现有参数是当前 TTL 或此操作的默认值。更新参数指示此操作是否针对现有对象。
+	// 使用 TTL 持久化的对象在 TTL 到期后被驱逐。
 	TTLFunc func(obj runtime.Object, existing uint64, update bool) (uint64, error)
 
 	// PredicateFunc returns a matcher corresponding to the provided labels
 	// and fields. The SelectionPredicate returned should return true if the
 	// object matches the given field and label selectors.
+	// PredicateFunc 返回与提供的标签和字段相对应的匹配器。如果对象与给定的字段和标签选择器匹配，则返回的 SelectionPredicate 应返回 true。
 	PredicateFunc func(label labels.Selector, field fields.Selector) storage.SelectionPredicate
 
 	// EnableGarbageCollection affects the handling of Update and Delete
@@ -146,11 +170,14 @@ type Store struct {
 	//
 	// If any store has garbage collection enabled, it must also be enabled in
 	// the kube-controller-manager.
+	// EnableGarbageCollection 影响 Update 和 Delete 请求的处理。启用垃圾收集允许 finalizer 在 store 删除它之前完成工作以完成此对象的最终化。
+	// 如果任何 store 启用了垃圾收集，则必须在 kube-controller-manager 中启用它。
 	EnableGarbageCollection bool
 
 	// DeleteCollectionWorkers is the maximum number of workers in a single
 	// DeleteCollection call. Delete requests for the items in a collection
 	// are issued in parallel.
+	// DeleteCollectionWorkers 是单个 DeleteCollection 调用中的最大工作人员数。删除集合中项目的删除请求是并行发出的。
 	DeleteCollectionWorkers int
 
 	// Decorator is an optional exit hook on an object returned from the
@@ -159,68 +186,87 @@ type Store struct {
 	// integrations that are above storage and should only be used for
 	// specific cases where storage of the value is not appropriate, since
 	// they cannot be watched.
+	// Decorator 是来自底层存储的对象返回的可选退出钩子。返回的对象可以是单个对象（例如 Pod）或列表类型（例如 PodList）。Decorator 用于存储之上的集成，应仅用于存储值不合适的特定情况，因为它们无法被监视。
 	Decorator func(runtime.Object)
 
 	// CreateStrategy implements resource-specific behavior during creation.
+	// CreateStrategy 实现创建期间的资源特定行为。
 	CreateStrategy rest.RESTCreateStrategy
 	// BeginCreate is an optional hook that returns a "transaction-like"
 	// commit/revert function which will be called at the end of the operation,
 	// but before AfterCreate and Decorator, indicating via the argument
 	// whether the operation succeeded.  If this returns an error, the function
 	// is not called.  Almost nobody should use this hook.
+	// BeginCreate 是一个可选的钩子，它返回一个“类似事务”的提交/撤销函数，该函数将在操作结束时调用，但在 AfterCreate 和 Decorator 之前，通过参数指示操作是否成功。如果此函数返回错误，则不调用该函数。几乎没有人应该使用这个钩子。
 	BeginCreate BeginCreateFunc
 	// AfterCreate implements a further operation to run after a resource is
 	// created and before it is decorated, optional.
+	// AfterCreate 在资源创建之后并在其装饰之前实现进一步的操作，可选。
 	AfterCreate AfterCreateFunc
 
 	// UpdateStrategy implements resource-specific behavior during updates.
+	// UpdateStrategy 实现更新期间的资源特定行为。
 	UpdateStrategy rest.RESTUpdateStrategy
 	// BeginUpdate is an optional hook that returns a "transaction-like"
 	// commit/revert function which will be called at the end of the operation,
 	// but before AfterUpdate and Decorator, indicating via the argument
 	// whether the operation succeeded.  If this returns an error, the function
 	// is not called.  Almost nobody should use this hook.
+	// BeginUpdate 是一个可选的钩子，它返回一个“类似事务”的提交/撤销函数，该函数将在操作结束时调用，但在 AfterUpdate 和 Decorator 之前，通过参数指示操作是否成功。如果此函数返回错误，则不调用该函数。几乎没有人应该使用这个钩子。
 	BeginUpdate BeginUpdateFunc
 	// AfterUpdate implements a further operation to run after a resource is
 	// updated and before it is decorated, optional.
+	// AfterUpdate 在资源更新之后并在其装饰之前实现进一步的操作，可选。
 	AfterUpdate AfterUpdateFunc
 
 	// DeleteStrategy implements resource-specific behavior during deletion.
+	// DeleteStrategy 实现删除期间的资源特定行为。
 	DeleteStrategy rest.RESTDeleteStrategy
 	// AfterDelete implements a further operation to run after a resource is
 	// deleted and before it is decorated, optional.
+	// AfterDelete 在资源删除之后并在其装饰之前实现进一步的操作，可选。
 	AfterDelete AfterDeleteFunc
 	// ReturnDeletedObject determines whether the Store returns the object
 	// that was deleted. Otherwise, return a generic success status response.
+	// ReturnDeletedObject 确定 Store 是否返回已删除的对象。否则，返回通用成功状态响应。
 	ReturnDeletedObject bool
 	// ShouldDeleteDuringUpdate is an optional function to determine whether
 	// an update from existing to obj should result in a delete.
 	// If specified, this is checked in addition to standard finalizer,
 	// deletionTimestamp, and deletionGracePeriodSeconds checks.
+	// ShouldDeleteDuringUpdate 是一个可选函数，用于确定现有到 obj 的更新是否应该导致删除。
+	// 如果指定，则除了标准 finalizer、deletionTimestamp 和 deletionGracePeriodSeconds 检查之外，还会检查此函数。
 	ShouldDeleteDuringUpdate func(ctx context.Context, key string, obj, existing runtime.Object) bool
 
 	// TableConvertor is an optional interface for transforming items or lists
 	// of items into tabular output. If unset, the default will be used.
+	// TableConvertor 是用于将项目或项目列表转换为表格输出的可选接口。如果未设置，则将使用默认值。
 	TableConvertor rest.TableConvertor
 
 	// ResetFieldsStrategy provides the fields reset by the strategy that
 	// should not be modified by the user.
+	// ResetFieldsStrategy 提供策略重置的字段，该字段不应由用户修改。
 	ResetFieldsStrategy rest.ResetFieldsStrategy
 
 	// Storage is the interface for the underlying storage for the
 	// resource. It is wrapped into a "DryRunnableStorage" that will
 	// either pass-through or simply dry-run.
+	// Storage 是资源的底层存储的接口。它被包装到一个“DryRunnableStorage”中，该存储将通过或仅进行 dry-run。
 	Storage DryRunnableStorage
 	// StorageVersioner outputs the <group/version/kind> an object will be
 	// converted to before persisted in etcd, given a list of possible
 	// kinds of the object.
 	// If the StorageVersioner is nil, apiserver will leave the
 	// storageVersionHash as empty in the discovery document.
+	// StorageVersioner 在将对象持久化到 etcd 之前，输出对象将转换为的 <group/version/kind>，给定对象的可能类型列表。
+	// 如果 StorageVersioner 为 nil，则 apiserver 将在发现文档中将 storageVersionHash 保留为空。
 	StorageVersioner runtime.GroupVersioner
 
 	// DestroyFunc cleans up clients used by the underlying Storage; optional.
 	// If set, DestroyFunc has to be implemented in thread-safe way and
 	// be prepared for being called more than once.
+	// DestroyFunc 清理底层存储使用的客户端; 可选。
+	// 如果设置了 DestroyFunc，则必须以线程安全的方式实现 DestroyFunc，并为多次调用做好准备。
 	DestroyFunc func()
 }
 
@@ -236,6 +282,7 @@ const (
 
 // NamespaceKeyRootFunc is the default function for constructing storage paths
 // to resource directories enforcing namespace rules.
+// NamespaceKeyRootFunc 是用于构造强制命名空间规则的资源目录的存储路径的默认函数。
 func NamespaceKeyRootFunc(ctx context.Context, prefix string) string {
 	key := prefix
 	ns, ok := genericapirequest.NamespaceFrom(ctx)
@@ -248,6 +295,7 @@ func NamespaceKeyRootFunc(ctx context.Context, prefix string) string {
 // NamespaceKeyFunc is the default function for constructing storage paths to
 // a resource relative to the given prefix enforcing namespace rules. If the
 // context does not contain a namespace, it errors.
+// NamespaceKeyFunc 是用于构造相对于给定前缀的资源的存储路径的默认函数，强制执行命名空间规则。如果上下文不包含命名空间，则会出错。
 func NamespaceKeyFunc(ctx context.Context, prefix string, name string) (string, error) {
 	key := NamespaceKeyRootFunc(ctx, prefix)
 	ns, ok := genericapirequest.NamespaceFrom(ctx)
@@ -266,6 +314,7 @@ func NamespaceKeyFunc(ctx context.Context, prefix string, name string) (string, 
 
 // NoNamespaceKeyFunc is the default function for constructing storage paths
 // to a resource relative to the given prefix without a namespace.
+// NoNamespaceKeyFunc 是用于构造相对于给定前缀的资源的存储路径的默认函数，而不使用命名空间。
 func NoNamespaceKeyFunc(ctx context.Context, prefix string, name string) (string, error) {
 	if len(name) == 0 {
 		return "", apierrors.NewBadRequest("Name parameter required.")
@@ -278,11 +327,13 @@ func NoNamespaceKeyFunc(ctx context.Context, prefix string, name string) (string
 }
 
 // New implements RESTStorage.New.
+// New 实现 RESTStorage.New。
 func (e *Store) New() runtime.Object {
 	return e.NewFunc()
 }
 
 // Destroy cleans up its resources on shutdown.
+// Destroy 在关闭时清理其资源。
 func (e *Store) Destroy() {
 	if e.DestroyFunc != nil {
 		e.DestroyFunc()
@@ -290,11 +341,13 @@ func (e *Store) Destroy() {
 }
 
 // NewList implements rest.Lister.
+// NewList 实现 rest.Lister。
 func (e *Store) NewList() runtime.Object {
 	return e.NewListFunc()
 }
 
 // NamespaceScoped indicates whether the resource is namespaced
+// NamespaceScoped 指示资源是否是命名空间的
 func (e *Store) NamespaceScoped() bool {
 	if e.CreateStrategy != nil {
 		return e.CreateStrategy.NamespaceScoped()
@@ -307,6 +360,7 @@ func (e *Store) NamespaceScoped() bool {
 }
 
 // GetCreateStrategy implements GenericStore.
+// GetCreateStrategy 实现 GenericStore。
 func (e *Store) GetCreateStrategy() rest.RESTCreateStrategy {
 	return e.CreateStrategy
 }
@@ -323,6 +377,7 @@ func (e *Store) GetDeleteStrategy() rest.RESTDeleteStrategy {
 
 // List returns a list of items matching labels and field according to the
 // store's PredicateFunc.
+// List 根据存储的 PredicateFunc 返回与标签和字段匹配的项目列表。
 func (e *Store) List(ctx context.Context, options *metainternalversion.ListOptions) (runtime.Object, error) {
 	label := labels.Everything()
 	if options != nil && options.LabelSelector != nil {
@@ -344,6 +399,7 @@ func (e *Store) List(ctx context.Context, options *metainternalversion.ListOptio
 
 // ListPredicate returns a list of all the items matching the given
 // SelectionPredicate.
+// ListPredicate 返回与给定 SelectionPredicate 匹配的所有项目的列表。
 func (e *Store) ListPredicate(ctx context.Context, p storage.SelectionPredicate, options *metainternalversion.ListOptions) (runtime.Object, error) {
 	if options == nil {
 		// By default we should serve the request from etcd.
@@ -379,6 +435,9 @@ func finishNothing(context.Context, bool) {}
 // Note that registries may mutate the input object (e.g. in the strategy
 // hooks).  Tests which call this might want to call DeepCopy if they expect to
 // be able to examine the input and output objects for differences.
+// Create 根据对象的唯一键插入新项目。
+// 请注意，注册表可能会更改输入对象（例如在策略钩子中）。
+// 调用此方法的测试可能希望调用 DeepCopy，如果它们希望能够检查输入和输出对象之间的差异。
 func (e *Store) Create(ctx context.Context, obj runtime.Object, createValidation rest.ValidateObjectFunc, options *metav1.CreateOptions) (runtime.Object, error) {
 	var finishCreate FinishFunc = finishNothing
 
@@ -467,6 +526,10 @@ func (e *Store) Create(ctx context.Context, obj runtime.Object, createValidation
 // It checks if the new object has no finalizers,
 // the existing object's deletionTimestamp is set, and
 // the existing object's deletionGracePeriodSeconds is 0 or nil
+// ShouldDeleteDuringUpdate 是用于检查对象是否应在更新期间删除的默认函数。
+// 它检查新对象是否没有 finalizers，
+// 现有对象的 deletionTimestamp 是否设置，
+// 现有对象的 deletionGracePeriodSeconds 是否为 0 或 nil
 func ShouldDeleteDuringUpdate(ctx context.Context, key string, obj, existing runtime.Object) bool {
 	newMeta, err := meta.Accessor(obj)
 	if err != nil {
@@ -492,6 +555,8 @@ func ShouldDeleteDuringUpdate(ctx context.Context, key string, obj, existing run
 
 // deleteWithoutFinalizers handles deleting an object ignoring its finalizer list.
 // Used for objects that are either been finalized or have never initialized.
+// deleteWithoutFinalizers 处理删除一个对象，忽略它的 finalizer 列表。
+// 用于已经被 finalizer 的对象或从未初始化的对象。
 func (e *Store) deleteWithoutFinalizers(ctx context.Context, name, key string, obj runtime.Object, preconditions *storage.Preconditions, options *metav1.DeleteOptions) (runtime.Object, bool, error) {
 	out := e.NewFunc()
 	klog.V(6).InfoS("Going to delete object from registry, triggered by update", "object", klog.KRef(genericapirequest.NamespaceValue(ctx), name))
@@ -519,6 +584,8 @@ func (e *Store) deleteWithoutFinalizers(ctx context.Context, name, key string, o
 // Update performs an atomic update and set of the object. Returns the result of the update
 // or an error. If the registry allows create-on-update, the create flow will be executed.
 // A bool is returned along with the object and any errors, to indicate object creation.
+// Update 执行原子更新和设置对象。 返回更新的结果或错误。 如果注册表允许 create-on-update，则将执行创建流程。
+// 与对象和任何错误一起返回一个 bool，以指示对象创建。
 func (e *Store) Update(ctx context.Context, name string, objInfo rest.UpdatedObjectInfo, createValidation rest.ValidateObjectFunc, updateValidation rest.ValidateObjectUpdateFunc, forceAllowCreate bool, options *metav1.UpdateOptions) (runtime.Object, bool, error) {
 	key, err := e.KeyFunc(ctx, name)
 	if err != nil {
@@ -716,6 +783,7 @@ func (e *Store) Update(ctx context.Context, name string, objInfo rest.UpdatedObj
 
 // This is a helper to convert UpdateOptions to CreateOptions for the
 // create-on-update path.
+// 这是一个帮助程序，用于将UpdateOptions转换为CreateOptions以进行create-on-update路径。
 func newCreateOptionsFromUpdateOptions(in *metav1.UpdateOptions) *metav1.CreateOptions {
 	co := &metav1.CreateOptions{
 		DryRun:          in.DryRun,
@@ -728,6 +796,7 @@ func newCreateOptionsFromUpdateOptions(in *metav1.UpdateOptions) *metav1.CreateO
 
 // This is a helper to convert UpdateOptions to DeleteOptions for the
 // delete-on-update path.
+// 这是一个帮助程序，用于将UpdateOptions转换为DeleteOptions以进行delete-on-update路径。
 func newDeleteOptionsFromUpdateOptions(in *metav1.UpdateOptions) *metav1.DeleteOptions {
 	do := &metav1.DeleteOptions{
 		DryRun: in.DryRun,
@@ -737,6 +806,7 @@ func newDeleteOptionsFromUpdateOptions(in *metav1.UpdateOptions) *metav1.DeleteO
 }
 
 // Get retrieves the item from storage.
+// Get从存储中检索项目。
 func (e *Store) Get(ctx context.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
 	obj := e.NewFunc()
 	key, err := e.KeyFunc(ctx, name)
@@ -754,6 +824,8 @@ func (e *Store) Get(ctx context.Context, name string, options *metav1.GetOptions
 
 // qualifiedResourceFromContext attempts to retrieve a GroupResource from the context's request info.
 // If the context has no request info, DefaultQualifiedResource is used.
+// qualifiedResourceFromContext 试图从上下文的请求信息中检索 GroupResource。
+// 如果上下文没有请求信息，则使用 DefaultQualifiedResource。
 func (e *Store) qualifiedResourceFromContext(ctx context.Context) schema.GroupResource {
 	if info, ok := genericapirequest.RequestInfoFrom(ctx); ok {
 		return schema.GroupResource{Group: info.APIGroup, Resource: info.Resource}
@@ -773,6 +845,11 @@ var (
 // priority, there are three factors affect whether to add/remove the
 // FinalizerOrphanDependents: options, existing finalizers of the object,
 // and e.DeleteStrategy.DefaultGarbageCollectionPolicy.
+// shouldOrphanDependents 返回是否应该设置用于孤立依赖项的最终程序的值
+// 更新 FinalizerOrphanDependents。 从最高到最低的顺序
+// 优先级，有三个因素影响是否添加/删除
+// FinalizerOrphanDependents：选项，对象的现有最终程序
+// 和 e.DeleteStrategy.DefaultGarbageCollectionPolicy。
 func shouldOrphanDependents(ctx context.Context, e *Store, accessor metav1.Object, options *metav1.DeleteOptions) bool {
 	// Get default GC policy from this REST object type
 	gcStrategy, ok := e.DeleteStrategy.(rest.GarbageCollectionDeleteStrategy)
@@ -822,6 +899,11 @@ func shouldOrphanDependents(ctx context.Context, e *Store, accessor metav1.Objec
 // priority, there are three factors affect whether to add/remove the
 // FinalizerDeleteDependents: options, existing finalizers of the object, and
 // e.DeleteStrategy.DefaultGarbageCollectionPolicy.
+// shouldDeleteDependents 返回是否应该设置用于前景删除的最终程序的值
+// 更新 FinalizerDeleteDependents。 从最高到最低的顺序
+// 优先级，有三个因素影响是否添加/删除
+// FinalizerDeleteDependents：选项，对象的现有最终程序，和
+// e.DeleteStrategy.DefaultGarbageCollectionPolicy。
 func shouldDeleteDependents(ctx context.Context, e *Store, accessor metav1.Object, options *metav1.DeleteOptions) bool {
 	// Get default GC policy from this REST object type
 	if gcStrategy, ok := e.DeleteStrategy.(rest.GarbageCollectionDeleteStrategy); ok && gcStrategy.DefaultGarbageCollectionPolicy(ctx) == rest.Unsupported {
@@ -866,6 +948,13 @@ func shouldDeleteDependents(ctx context.Context, e *Store, accessor metav1.Objec
 // The finalizers returned are intended to be handled by the garbage collector.
 // If garbage collection is disabled for the store, this function returns false
 // to ensure finalizers aren't set which will never be cleared.
+// deletionFinalizersForGarbageCollection 分析对象和删除选项
+// 确定对象是否需要由垃圾收集器进行最终化。 如果是这样，返回要应用的删除最终程序集，并返回一个布尔值
+// 指示最终程序列表是否已更改并需要更新。
+//
+// 返回的最终程序旨在由垃圾收集器处理。 如果垃圾收集被禁用
+// 存储器，此函数返回 false 以确保不会设置最终程序
+// 将永远不会清除。
 func deletionFinalizersForGarbageCollection(ctx context.Context, e *Store, accessor metav1.Object, options *metav1.DeleteOptions) (bool, []string) {
 	if !e.EnableGarbageCollection {
 		return false, []string{}
@@ -901,6 +990,9 @@ func deletionFinalizersForGarbageCollection(ctx context.Context, e *Store, acces
 // DeletionTimestamp to "now" if there is no existing deletionTimestamp or if the existing
 // deletionTimestamp is further in future. Finalizers are watching for such updates and will
 // finalize the object if their IDs are present in the object's Finalizers list.
+// markAsDeleting 将 obj 的 DeletionGracePeriodSeconds 设置为 0，并将 DeletionTimestamp 设置为“现在”
+// 如果没有现有的 deletionTimestamp 或者现有的 deletionTimestamp 更远，则设置为“现在”。
+// 如果最终程序的 ID 存在于对象的最终程序列表中，则最终程序将最终化对象。
 func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 	objectMeta, kerr := meta.Accessor(obj)
 	if kerr != nil {
@@ -934,6 +1026,16 @@ func markAsDeleting(obj runtime.Object, now time.Time) (err error) {
 //     should be deleted immediately
 //  4. a new output object with the state that was updated
 //  5. a copy of the last existing state of the object
+//
+// updateForGracefulDeletionAndFinalizers 通过设置删除时间戳和
+// 等待时间（优雅删除）并更新最终程序列表（最终化）来更新给定对象
+// 它返回：
+//
+//  1. 一个错误
+//  2. 一个布尔值，指示对象未找到，但应该被忽略
+//  3. 一个布尔值，指示对象的等待时间已耗尽，应该立即删除
+//  4. 一个具有更新状态的新输出对象
+//  5. 对象的最后一个现有状态的副本
 func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name, key string, options *metav1.DeleteOptions, preconditions storage.Preconditions, deleteValidation rest.ValidateObjectFunc, in runtime.Object) (err error, ignoreNotFound, deleteImmediately bool, out, lastExisting runtime.Object) {
 	lastGraceful := int64(0)
 	var pendingFinalizers bool
@@ -1021,6 +1123,8 @@ func (e *Store) updateForGracefulDeletionAndFinalizers(ctx context.Context, name
 
 // Delete removes the item from storage.
 // options can be mutated by rest.BeforeDelete due to a graceful deletion strategy.
+// Delete 从存储中删除项目。
+// 选项可以由于优雅删除策略而被rest.BeforeDelete修改。
 func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.ValidateObjectFunc, options *metav1.DeleteOptions) (runtime.Object, bool, error) {
 	key, err := e.KeyFunc(ctx, name)
 	if err != nil {
@@ -1113,6 +1217,7 @@ func (e *Store) Delete(ctx context.Context, name string, deleteValidation rest.V
 }
 
 // DeleteReturnsDeletedObject implements the rest.MayReturnFullObjectDeleter interface
+// DeleteReturnsDeletedObject 实现了 rest.MayReturnFullObjectDeleter 接口
 func (e *Store) DeleteReturnsDeletedObject() bool {
 	return e.ReturnDeletedObject
 }
@@ -1127,6 +1232,13 @@ func (e *Store) DeleteReturnsDeletedObject() bool {
 // are removing all objects of a given type) with the current API (it's technically
 // possibly with storage API, but watch is not delivered correctly then).
 // It will be possible to fix it with v3 etcd API.
+// DeleteCollection 删除存储中通过 ListOptions 列出的所有项。
+// DeleteCollection 目前不是原子的。可能只有一部分对象会从存储中删除，然后返回一个错误。
+// 在成功的情况下，将返回已删除对象的列表。
+//
+// TODO：目前，没有简单的方法可以从存储中删除“目录”条目（如果我们删除给定类型的所有对象），当前的 API（如果我们
+// 使用存储 API，但是 watch 无法正确传递）。
+// 使用 v3 etcd API 可以解决这个问题。
 func (e *Store) DeleteCollection(ctx context.Context, deleteValidation rest.ValidateObjectFunc, options *metav1.DeleteOptions, listOptions *metainternalversion.ListOptions) (runtime.Object, error) {
 	if listOptions == nil {
 		listOptions = &metainternalversion.ListOptions{}
@@ -1221,6 +1333,7 @@ func (e *Store) DeleteCollection(ctx context.Context, deleteValidation rest.Vali
 
 // finalizeDelete runs the Store's AfterDelete hook if runHooks is set and
 // returns the decorated deleted object if appropriate.
+// finalizeDelete 运行 Store 的 AfterDelete 钩子（如果 runHooks 设置为 true），并返回适当的已删除对象。
 func (e *Store) finalizeDelete(ctx context.Context, obj runtime.Object, runHooks bool, options *metav1.DeleteOptions) (runtime.Object, error) {
 	if runHooks && e.AfterDelete != nil {
 		e.AfterDelete(obj, options)
@@ -1252,6 +1365,7 @@ func (e *Store) finalizeDelete(ctx context.Context, obj runtime.Object, runHooks
 // WatchPredicate. If possible, you should customize PredicateFunc to produce
 // a matcher that matches by key. SelectionPredicate does this for you
 // automatically.
+// Watch 为给定的标签和字段制作一个匹配器，并调用 WatchPredicate。如果可能的话，您应该自定义 PredicateFunc 以生成一个按键匹配的匹配器。SelectionPredicate 会为您自动完成此操作。
 func (e *Store) Watch(ctx context.Context, options *metainternalversion.ListOptions) (watch.Interface, error) {
 	label := labels.Everything()
 	if options != nil && options.LabelSelector != nil {
@@ -1272,6 +1386,7 @@ func (e *Store) Watch(ctx context.Context, options *metainternalversion.ListOpti
 }
 
 // WatchPredicate starts a watch for the items that matches.
+// WatchPredicate 为匹配的项启动监视。
 func (e *Store) WatchPredicate(ctx context.Context, p storage.SelectionPredicate, resourceVersion string) (watch.Interface, error) {
 	storageOpts := storage.ListOptions{ResourceVersion: resourceVersion, Predicate: p, Recursive: true}
 
@@ -1298,6 +1413,7 @@ func (e *Store) WatchPredicate(ctx context.Context, p storage.SelectionPredicate
 // calculateTTL is a helper for retrieving the updated TTL for an object or
 // returning an error if the TTL cannot be calculated. The defaultTTL is
 // changed to 1 if less than zero. Zero means no TTL, not expire immediately.
+// calculateTTL 是一个用于检索对象的更新 TTL 或返回无法计算 TTL 的错误的辅助函数。如果小于零，则将 defaultTTL 更改为 1。零意味着没有 TTL，而不是立即过期。
 func (e *Store) calculateTTL(obj runtime.Object, defaultTTL int64, update bool) (ttl uint64, err error) {
 	// TODO: validate this is assertion is still valid.
 
@@ -1316,6 +1432,7 @@ func (e *Store) calculateTTL(obj runtime.Object, defaultTTL int64, update bool) 
 
 // CompleteWithOptions updates the store with the provided options and
 // defaults common fields.
+// CompleteWithOptions 使用提供的选项更新存储并默认常见字段。
 func (e *Store) CompleteWithOptions(options *generic.StoreOptions) error {
 	if e.DefaultQualifiedResource.Empty() {
 		return fmt.Errorf("store %#v must have a non-empty qualified resource", e)
@@ -1476,6 +1593,7 @@ func (e *Store) CompleteWithOptions(options *generic.StoreOptions) error {
 }
 
 // startObservingCount starts monitoring given prefix and periodically updating metrics. It returns a function to stop collection.
+// startObservingCount 开始监视给定的前缀，并定期更新指标。 它返回一个函数来停止收集。
 func (e *Store) startObservingCount(period time.Duration, objectCountTracker flowcontrolrequest.StorageObjectCountTracker) func() {
 	prefix := e.KeyRootFunc(genericapirequest.NewContext())
 	resourceName := e.DefaultQualifiedResource.String()

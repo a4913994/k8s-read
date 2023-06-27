@@ -48,10 +48,10 @@ import (
 
 const nodeWithoutTopology = -1
 
-// ActivePodsFunc is a function that returns a list of pods to reconcile.
+// ActivePodsFunc是一个函数，它返回一个要调节的pod的列表。
 type ActivePodsFunc func() []*v1.Pod
 
-// ManagerImpl is the structure in charge of managing Device Plugins.
+// ManagerImpl是负责管理设备插件的结构。
 type ManagerImpl struct {
 	checkpointdir string
 
@@ -951,10 +951,10 @@ func (m *ManagerImpl) callGetPreferredAllocationIfAvailable(podUID, contName, re
 	return sets.NewString(), nil
 }
 
-// sanitizeNodeAllocatable scans through allocatedDevices in the device manager
-// and if necessary, updates allocatableResource in nodeInfo to at least equal to
-// the allocated capacity. This allows pods that have already been scheduled on
-// the node to pass GeneralPredicates admission checking even upon device plugin failure.
+// sanitizeNodeAllocatable 扫描设备管理器中的分配设备
+// 如果有必要，将nodeInfo中的allocatableResource更新为至少等于
+// 分配的容量。这允许已经被安排在节点上的pods
+// 即使在设备插件失败时，也能通过GeneralPredicates接纳检查。
 func (m *ManagerImpl) sanitizeNodeAllocatable(node *schedulerframework.NodeInfo) {
 	var newAllocatableResource *schedulerframework.Resource
 	allocatableResource := node.Allocatable

@@ -69,6 +69,7 @@ var initAPFOnce sync.Once
 
 // WithPriorityAndFairness limits the number of in-flight
 // requests in a fine-grained way.
+// WithPriorityAndFairness 以细粒度的方式限制进行中请求的数量。
 func WithPriorityAndFairness(
 	handler http.Handler,
 	longRunningRequestCheck apirequest.LongRunningRequestCheck,

@@ -165,56 +165,73 @@ type Attacher interface {
 }
 
 // CommandRunner interface allows to run command in a container.
+// CommandRunner 接口允许在容器中运行命令。
 type CommandRunner interface {
 	// RunInContainer synchronously executes the command in the container, and returns the output.
 	// If the command completes with a non-0 exit code, a k8s.io/utils/exec.ExitError will be returned.
+	// RunInContainer 同步执行容器中的命令，并返回输出。 如果命令以非 0 退出代码完成，则将返回 k8s.io/utils/exec.ExitError。
 	RunInContainer(ctx context.Context, id ContainerID, cmd []string, timeout time.Duration) ([]byte, error)
 }
 
 // Pod is a group of containers.
+// Pod 是一组容器。
 type Pod struct {
 	// The ID of the pod, which can be used to retrieve a particular pod
 	// from the pod list returned by GetPods().
+	// Pod的ID 可以用来从GetPods()返回的pod列表中检索特定的pod。
 	ID types.UID
 	// The name and namespace of the pod, which is readable by human.
+	// Pod的名称和命名空间，可以被人类阅读。
 	Name      string
 	Namespace string
 	// Creation timestamps of the Pod in nanoseconds.
+	// Pod的创建时间戳（以纳秒为单位）。
 	CreatedAt uint64
 	// List of containers that belongs to this pod. It may contain only
 	// running containers, or mixed with dead ones (when GetPods(true)).
+	// 属于此pod的容器列表。 它可能只包含运行中的容器，也可能包含死亡的容器（当GetPods(true)时）。
 	Containers []*Container
 	// List of sandboxes associated with this pod. The sandboxes are converted
 	// to Container temporarily to avoid substantial changes to other
 	// components. This is only populated by kuberuntime.
 	// TODO: use the runtimeApi.PodSandbox type directly.
+	// 与此pod关联的沙箱列表。 沙箱被转换为容器，以避免对其他组件进行大量更改。 这只由kuberuntime填充。
+	// TODO：直接使用runtimeApi.PodSandbox类型。
 	Sandboxes []*Container
 }
 
 // PodPair contains both runtime#Pod and api#Pod
+// PodPair 包含 runtime#Pod 和 api#Pod
 type PodPair struct {
 	// APIPod is the v1.Pod
+	// APIPod 是 v1.Pod
 	APIPod *v1.Pod
 	// RunningPod is the pod defined in pkg/kubelet/container/runtime#Pod
+	// RunningPod 是 pkg/kubelet/container/runtime#Pod 中定义的 pod
 	RunningPod *Pod
 }
 
 // ContainerID is a type that identifies a container.
+// ContainerID 是一种标识容器的类型。
 type ContainerID struct {
 	// The type of the container runtime. e.g. 'docker'.
+	// 容器运行时的类型。 例如“docker”。
 	Type string
 	// The identification of the container, this is comsumable by
 	// the underlying container runtime. (Note that the container
 	// runtime interface still takes the whole struct as input).
+	// 容器的标识，这是底层容器运行时可以消耗的。 （请注意，容器运行时接口仍然将整个结构作为输入）。
 	ID string
 }
 
 // BuildContainerID returns the ContainerID given type and id.
+// BuildContainerID 返回给定类型和 id 的 ContainerID。
 func BuildContainerID(typ, ID string) ContainerID {
 	return ContainerID{Type: typ, ID: ID}
 }
 
 // ParseContainerID is a convenience method for creating a ContainerID from an ID string.
+// ParseContainerID 是从 ID 字符串创建 ContainerID 的便捷方法。
 func ParseContainerID(containerID string) ContainerID {
 	var id ContainerID
 	if err := id.ParseString(containerID); err != nil {
@@ -224,6 +241,7 @@ func ParseContainerID(containerID string) ContainerID {
 }
 
 // ParseString converts given string into ContainerID
+// ParseString 将给定字符串转换为 ContainerID
 func (c *ContainerID) ParseString(data string) error {
 	// Trim the quotes and split the type and ID.
 	parts := strings.Split(strings.Trim(data, "\""), "://")
@@ -265,6 +283,7 @@ func (id DockerID) ContainerID() ContainerID {
 }
 
 // State represents the state of a container
+// State 表示容器的状态
 type State string
 
 const (
@@ -280,27 +299,35 @@ const (
 
 // Container provides the runtime information for a container, such as ID, hash,
 // state of the container.
+// Container 提供容器的运行时信息，例如 ID、hash、容器的状态。
 type Container struct {
 	// The ID of the container, used by the container runtime to identify
 	// a container.
+	// 容器的 ID，由容器运行时用于识别容器。
 	ID ContainerID
 	// The name of the container, which should be the same as specified by
 	// v1.Container.
+	// 容器的名称，应该与 v1.Container 指定的相同。
 	Name string
 	// The image name of the container, this also includes the tag of the image,
 	// the expected form is "NAME:TAG".
+	// 容器的镜像名称，这也包括镜像的标签，预期的形式是“NAME:TAG”。
 	Image string
 	// The id of the image used by the container.
+	// 容器使用的镜像的 id。
 	ImageID string
 	// Hash of the container, used for comparison. Optional for containers
 	// not managed by kubelet.
+	// 容器的 hash，用于比较。 对于不由 kubelet 管理的容器，可选。
 	Hash uint64
 	// State is the state of the container.
+	// State 是容器的状态。
 	State State
 }
 
 // PodStatus represents the status of the pod and its containers.
 // v1.PodStatus can be derived from examining PodStatus and v1.Pod.
+// PodStatus 表示 pod 和其容器的状态。 可以从检查 PodStatus 和 v1.Pod 中派生出 v1.PodStatus。
 type PodStatus struct {
 	// ID of the pod.
 	ID types.UID
@@ -314,14 +341,18 @@ type PodStatus struct {
 	ContainerStatuses []*Status
 	// Status of the pod sandbox.
 	// Only for kuberuntime now, other runtime may keep it nil.
+	// pod 沙箱的状态。 仅对 kuberuntime，其他运行时可能将其保留为 nil。
 	SandboxStatuses []*runtimeapi.PodSandboxStatus
 	// Timestamp at which container and pod statuses were recorded
+	// Timestamp 是记录容器和 pod 状态的时间戳
 	TimeStamp time.Time
 }
 
 // Status represents the status of a container.
+// Status 表示容器的状态。
 type Status struct {
 	// ID of the container.
+	// 容器的 ID。
 	ID ContainerID
 	// Name of the container.
 	Name string
@@ -353,6 +384,7 @@ type Status struct {
 
 // FindContainerStatusByName returns container status in the pod status with the given name.
 // When there are multiple containers' statuses with the same name, the first match will be returned.
+// FindContainerStatusByName返回具有给定名称的 pod 状态中的容器状态。 当有多个容器的状态具有相同的名称时，将返回第一个匹配。
 func (podStatus *PodStatus) FindContainerStatusByName(containerName string) *Status {
 	for _, containerStatus := range podStatus.ContainerStatuses {
 		if containerStatus.Name == containerName {
@@ -363,6 +395,7 @@ func (podStatus *PodStatus) FindContainerStatusByName(containerName string) *Sta
 }
 
 // GetRunningContainerStatuses returns container status of all the running containers in a pod
+// GetRunningContainerStatuses 返回 pod 中所有正在运行的容器的容器状态
 func (podStatus *PodStatus) GetRunningContainerStatuses() []*Status {
 	runningContainerStatuses := []*Status{}
 	for _, containerStatus := range podStatus.ContainerStatuses {
@@ -374,6 +407,7 @@ func (podStatus *PodStatus) GetRunningContainerStatuses() []*Status {
 }
 
 // Image contains basic information about a container image.
+// Image 包含容器镜像的基本信息。
 type Image struct {
 	// ID of the image.
 	ID string
@@ -390,6 +424,7 @@ type Image struct {
 }
 
 // EnvVar represents the environment variable.
+// EnvVar 表示环境变量。
 type EnvVar struct {
 	Name  string
 	Value string
@@ -442,6 +477,7 @@ type DeviceInfo struct {
 }
 
 // RunContainerOptions specify the options which are necessary for running containers
+// RunContainerOptions 指定运行容器所必需的选项
 type RunContainerOptions struct {
 	// The environment variables list.
 	Envs []EnvVar

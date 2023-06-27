@@ -46,8 +46,10 @@ import (
 
 const (
 	// Default configuration values for ModeBatch.
+	// ModeBatch 的默认配置值。
 	defaultBatchBufferSize = 10000 // Buffer up to 10000 events before starting discarding.
 	// These batch parameters are only used by the webhook backend.
+	// 这些批处理参数仅供 webhook 后端使用。
 	defaultBatchMaxSize       = 400              // Only send up to 400 events at a time.
 	defaultBatchMaxWait       = 30 * time.Second // Send events at least twice a minute.
 	defaultBatchThrottleQPS   = 10               // Limit the send rate by 10 QPS.
@@ -67,6 +69,7 @@ func appendBackend(existing, newBackend audit.Backend) audit.Backend {
 type AuditOptions struct {
 	// Policy configuration file for filtering audit events that are captured.
 	// If unspecified, a default is provided.
+	// 用于过滤捕获的审计事件的策略配置文件。如果未指定，则提供默认值。
 	PolicyFile string
 
 	// Plugin options
@@ -78,18 +81,22 @@ const (
 	// ModeBatch indicates that the audit backend should buffer audit events
 	// internally, sending batch updates either once a certain number of
 	// events have been received or a certain amount of time has passed.
+	// ModeBatch 表示审计后端应该在内部缓冲审计事件，发送批量更新，要么收到一定数量的事件，要么一定时间已经过去。
 	ModeBatch = "batch"
 	// ModeBlocking causes the audit backend to block on every attempt to process
 	// a set of events. This causes requests to the API server to wait for the
 	// flush before sending a response.
+	// ModeBlocking 会导致审计后端在尝试处理一组事件的每次尝试上阻塞。这会导致 API 服务器的请求在发送响应之前等待刷新。
 	ModeBlocking = "blocking"
 	// ModeBlockingStrict is the same as ModeBlocking, except when there is
 	// a failure during audit logging at RequestReceived stage, the whole
 	// request to apiserver will fail.
+	// ModeBlockingStrict 与 ModeBlocking 相同，除了在审计日志记录期间出现故障时，整个请求到 apiserver 将失败。
 	ModeBlockingStrict = "blocking-strict"
 )
 
 // AllowedModes is the modes known for audit backends.
+// AllowedModes 是已知的审计后端模式。
 var AllowedModes = []string{
 	ModeBatch,
 	ModeBlocking,
@@ -101,20 +108,25 @@ type AuditBatchOptions struct {
 	// should the backend block responses?
 	//
 	// Defaults to asynchronous batch events.
+	// 后端异步批处理事件应该发送到 webhook 后端还是后端应该阻止响应？默认为异步批处理事件。
 	Mode string
 	// Configuration for batching backend. Only used in batch mode.
+	// 批处理后端的配置。仅用于批处理模式。
 	BatchConfig pluginbuffered.BatchConfig
 }
 
 type AuditTruncateOptions struct {
 	// Whether truncating is enabled or not.
+	// 是否启用截断。
 	Enabled bool
 
 	// Truncating configuration.
+	// 截断配置。
 	TruncateConfig plugintruncate.Config
 }
 
 // AuditLogOptions determines the output of the structured audit log by default.
+// AuditLogOptions 默认确定结构化审计日志的输出。
 type AuditLogOptions struct {
 	Path       string
 	MaxAge     int
@@ -131,6 +143,7 @@ type AuditLogOptions struct {
 }
 
 // AuditWebhookOptions control the webhook configuration for audit events.
+// AuditWebhookOptions 控制审计事件的 webhook 配置。
 type AuditWebhookOptions struct {
 	ConfigFile     string
 	InitialBackoff time.Duration
@@ -143,12 +156,15 @@ type AuditWebhookOptions struct {
 }
 
 // AuditDynamicOptions control the configuration of dynamic backends for audit events
+// AuditDynamicOptions 控制审计事件的动态后端的配置
 type AuditDynamicOptions struct {
 	// Enabled tells whether the dynamic audit capability is enabled.
+	// Enabled 告诉是否启用动态审计功能。
 	Enabled bool
 
 	// Configuration for batching backend. This is currently only used as an override
 	// for integration tests
+	// 批处理后端的配置。目前仅用作集成测试的覆盖
 	BatchConfig *pluginbuffered.BatchConfig
 }
 
@@ -186,6 +202,7 @@ func NewAuditTruncateOptions() AuditTruncateOptions {
 }
 
 // Validate checks invalid config combination
+// Validate 检查无效的配置组合
 func (o *AuditOptions) Validate() []error {
 	if o == nil {
 		return nil

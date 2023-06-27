@@ -25,6 +25,7 @@ import (
 )
 
 // BasicLongRunningRequestCheck returns true if the given request has one of the specified verbs or one of the specified subresources, or is a profiler request.
+// 如果给定请求具有指定动词之一或指定子资源之一，或者是探查器请求，则 BasicLongRunningRequestCheck 返回 true。
 func BasicLongRunningRequestCheck(longRunningVerbs, longRunningSubresources sets.String) apirequest.LongRunningRequestCheck {
 	return func(r *http.Request, requestInfo *apirequest.RequestInfo) bool {
 		if longRunningVerbs.Has(requestInfo.Verb) {

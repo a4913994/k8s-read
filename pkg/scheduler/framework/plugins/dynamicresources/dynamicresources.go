@@ -50,6 +50,7 @@ const (
 // The state is initialized in PreFilter phase. Because we save the pointer in
 // framework.CycleState, in the later phases we don't need to call Write method
 // to update the value
+// 在PreFilter阶段初始化状态。因为我们在框架中保存了指针。在后面的阶段，我们不需要调用Write方法来更新值
 type stateData struct {
 	// A copy of all claims for the Pod (i.e. 1:1 match with
 	// pod.Spec.ResourceClaims), initially with the status from the start

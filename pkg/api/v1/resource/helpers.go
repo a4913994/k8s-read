@@ -280,6 +280,7 @@ func findContainerInPod(pod *v1.Pod, containerName string) (*v1.Container, error
 
 // MergeContainerResourceLimits checks if a limit is applied for
 // the container, and if not, it sets the limit to the passed resource list.
+// MergeContainerResourceLimits 检查容器是否应用了限制，如果没有，则将限制设置为传递的资源列表。
 func MergeContainerResourceLimits(container *v1.Container,
 	allocatable v1.ResourceList) {
 	if container.Resources.Limits == nil {

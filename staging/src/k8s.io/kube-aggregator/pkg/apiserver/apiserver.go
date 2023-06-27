@@ -75,17 +75,21 @@ const (
 )
 
 // ExtraConfig represents APIServices-specific configuration
+// ExtraConfig 表示 APIServices 特定的配置
 type ExtraConfig struct {
 	// ProxyClientCert/Key are the client cert used to identify this proxy. Backing APIServices use
 	// this to confirm the proxy's identity
+	// ProxyClientCertKey 是用于识别此代理的客户端证书。支持 APIServices 使用它来确认代理的身份
 	ProxyClientCertFile string
 	ProxyClientKeyFile  string
 
 	// If present, the Dial method will be used for dialing out to delegate
 	// apiservers.
+	// 如果存在，Dial 方法将用于拨出委托 apiservers。
 	ProxyTransport *http.Transport
 
 	// Mechanism by which the Aggregator will resolve services. Required.
+	// 聚合器解决服务的机制。必需的。
 	ServiceResolver ServiceResolver
 
 	RejectForwardingRedirects bool
@@ -379,6 +383,7 @@ func (c completedConfig) NewWithDelegate(delegationTarget genericapiserver.Deleg
 
 // PrepareRun prepares the aggregator to run, by setting up the OpenAPI spec &
 // aggregated discovery document and calling the generic PrepareRun.
+// PrepareRun 通过设置 OpenAPI 规范和聚合发现文档并调用通用 PrepareRun 来准备聚合器运行。
 func (s *APIAggregator) PrepareRun() (preparedAPIAggregator, error) {
 	// add post start hook before generic PrepareRun in order to be before /healthz installation
 	if s.openAPIConfig != nil {

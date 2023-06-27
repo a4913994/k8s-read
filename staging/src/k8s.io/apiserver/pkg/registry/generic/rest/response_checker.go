@@ -29,6 +29,9 @@ import (
 // Check the http error status from a location URL.
 // And convert an error into a structured API object.
 // Finally ensure we close the body before returning the error
+// HttpResponseChecker 检查来自位置 URL 的 http 错误状态。
+// 并将错误转换为结构化的 API 对象。
+// 最后确保在返回错误之前关闭 body。
 type HttpResponseChecker interface {
 	Check(resp *http.Response) error
 }
@@ -39,6 +42,7 @@ const (
 )
 
 // A generic http response checker to transform the error.
+// 一个通用的 http 响应检查器来转换错误。
 type GenericHttpResponseChecker struct {
 	QualifiedResource schema.GroupResource
 	Name              string

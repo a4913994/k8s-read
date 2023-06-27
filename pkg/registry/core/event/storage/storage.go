@@ -34,6 +34,7 @@ type REST struct {
 }
 
 // NewREST returns a RESTStorage object that will work against events.
+// NewREST 返回一个 RESTStorage 对象，该对象将与 events 一起工作。
 func NewREST(optsGetter generic.RESTOptionsGetter, ttl uint64) (*REST, error) {
 	store := &genericregistry.Store{
 		NewFunc:       func() runtime.Object { return &api.Event{} },

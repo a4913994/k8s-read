@@ -37,9 +37,9 @@ const (
 	podCgroupNamePrefix = "pod"
 )
 
-// podContainerManagerImpl implements podContainerManager interface.
-// It is the general implementation which allows pod level container
-// management if qos Cgroup is enabled.
+// podContainerManagerImpl实现了podContainerManager接口。
+// 它是一般的实现，如果启用了qos Cgroup，它可以实现pod级别的容器
+// 管理，如果qos Cgroup被启用。
 type podContainerManagerImpl struct {
 	// qosContainersInfo hold absolute paths of the top level qos containers
 	qosContainersInfo QOSContainersInfo

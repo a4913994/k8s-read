@@ -29,6 +29,10 @@ import (
 //
 //	https://man7.org/linux/man-pages/man8/sysctl.8.html
 //	https://man7.org/linux/man-pages/man5/sysctl.d.5.html
+//
+// convertSysctlVariableToDotsSeparator可以以点分隔符格式返回sysctl变量。
+// '/'分隔符也可以代替'.'。
+// 将sysctl变量转换为点分隔符格式进行验证。
 func convertSysctlVariableToDotsSeparator(val string) string {
 	if val == "" {
 		return val

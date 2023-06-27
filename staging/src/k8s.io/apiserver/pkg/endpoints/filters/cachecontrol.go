@@ -21,6 +21,7 @@ import (
 )
 
 // WithCacheControl sets the Cache-Control header to "no-cache, private" because all servers are protected by authn/authz.
+// WithCacheControl 将 Cache-Control 标头设置为“无缓存，私有”，因为所有服务器都受 authnauthz 保护。
 // see https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#defining_optimal_cache-control_policy
 func WithCacheControl(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

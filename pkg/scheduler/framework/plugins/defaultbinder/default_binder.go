@@ -31,6 +31,7 @@ import (
 const Name = names.DefaultBinder
 
 // DefaultBinder binds pods to nodes using a k8s client.
+// DefaultBinder使用k8s客户端将pod绑定到节点。
 type DefaultBinder struct {
 	handle framework.Handle
 }

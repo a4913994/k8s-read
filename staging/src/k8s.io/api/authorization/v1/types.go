@@ -28,6 +28,7 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // SubjectAccessReview checks whether or not a user or group can perform an action.
+// SubjectAccessReview 检查用户或组是否可以执行某个操作。
 type SubjectAccessReview struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard list metadata.
@@ -36,10 +37,12 @@ type SubjectAccessReview struct {
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Spec holds information about the request being evaluated
+	// Spec 保存了被评估的请求的信息
 	Spec SubjectAccessReviewSpec `json:"spec" protobuf:"bytes,2,opt,name=spec"`
 
 	// Status is filled in by the server and indicates whether the request is allowed or not
 	// +optional
+	// Status 被服务器填充，表示请求是否被允许
 	Status SubjectAccessReviewStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
@@ -51,6 +54,7 @@ type SubjectAccessReview struct {
 // SelfSubjectAccessReview checks whether or the current user can perform an action.  Not filling in a
 // spec.namespace means "in all namespaces".  Self is a special case, because users should always be able
 // to check whether they can perform an action
+// SelfSubjectAccessReview 检查当前用户是否可以执行某个操作。如果 spec.namespace 没有填写，表示在所有的命名空间中。Self 是一个特殊的情况，因为用户应该总是能够检查自己是否可以执行某个操作。
 type SelfSubjectAccessReview struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard list metadata.
@@ -59,10 +63,12 @@ type SelfSubjectAccessReview struct {
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
 	// Spec holds information about the request being evaluated.  user and groups must be empty
+	// Spec 保存了被评估的请求的信息。user 和 groups 必须为空。
 	Spec SelfSubjectAccessReviewSpec `json:"spec" protobuf:"bytes,2,opt,name=spec"`
 
 	// Status is filled in by the server and indicates whether the request is allowed or not
 	// +optional
+	// Status 被服务器填充，表示请求是否被允许
 	Status SubjectAccessReviewStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
@@ -73,6 +79,7 @@ type SelfSubjectAccessReview struct {
 // LocalSubjectAccessReview checks whether or not a user or group can perform an action in a given namespace.
 // Having a namespace scoped resource makes it much easier to grant namespace scoped policy that includes permissions
 // checking.
+// LocalSubjectAccessReview 检查用户或组是否可以在给定的命名空间中执行某个操作。拥有一个命名空间范围的资源使得授权命名空间范围的策略变得更加容易，包括权限检查。
 type LocalSubjectAccessReview struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard list metadata.
@@ -90,15 +97,21 @@ type LocalSubjectAccessReview struct {
 }
 
 // ResourceAttributes includes the authorization attributes available for resource requests to the Authorizer interface
+// ResourceAttributes 包含了资源请求的授权属性，可用于 Authorizer 接口
 type ResourceAttributes struct {
 	// Namespace is the namespace of the action being requested.  Currently, there is no distinction between no namespace and all namespaces
 	// "" (empty) is defaulted for LocalSubjectAccessReviews
 	// "" (empty) is empty for cluster-scoped resources
 	// "" (empty) means "all" for namespace scoped resources from a SubjectAccessReview or SelfSubjectAccessReview
 	// +optional
+	// Namespace 是被请求的操作的命名空间。目前，没有区分没有命名空间和所有命名空间的区别。
+	// ""（空）被默认为 LocalSubjectAccessReviews
+	// ""（空）是集群范围资源的空值
+	// ""（空）表示 SubjectAccessReview 或 SelfSubjectAccessReview 中命名空间范围资源的“所有”
 	Namespace string `json:"namespace,omitempty" protobuf:"bytes,1,opt,name=namespace"`
 	// Verb is a kubernetes resource API verb, like: get, list, watch, create, update, delete, proxy.  "*" means all.
 	// +optional
+	// Verb 是 kubernetes 资源 API 动词，例如：get、list、watch、create、update、delete、proxy。"*" 表示所有。
 	Verb string `json:"verb,omitempty" protobuf:"bytes,2,opt,name=verb"`
 	// Group is the API Group of the Resource.  "*" means all.
 	// +optional
@@ -118,6 +131,7 @@ type ResourceAttributes struct {
 }
 
 // NonResourceAttributes includes the authorization attributes available for non-resource requests to the Authorizer interface
+// NonResourceAttributes 包含了非资源请求的授权属性，可用于 Authorizer 接口
 type NonResourceAttributes struct {
 	// Path is the URL path of the request
 	// +optional
@@ -129,9 +143,11 @@ type NonResourceAttributes struct {
 
 // SubjectAccessReviewSpec is a description of the access request.  Exactly one of ResourceAuthorizationAttributes
 // and NonResourceAuthorizationAttributes must be set
+// SubjectAccessReviewSpec 是访问请求的描述。ResourceAuthorizationAttributes 和 NonResourceAuthorizationAttributes 必须设置其中一个。
 type SubjectAccessReviewSpec struct {
 	// ResourceAuthorizationAttributes describes information for a resource access request
 	// +optional
+	// ResourceAuthorizationAttributes 描述了资源访问请求的信息
 	ResourceAttributes *ResourceAttributes `json:"resourceAttributes,omitempty" protobuf:"bytes,1,opt,name=resourceAttributes"`
 	// NonResourceAttributes describes information for a non-resource access request
 	// +optional
@@ -156,6 +172,7 @@ type SubjectAccessReviewSpec struct {
 // ExtraValue masks the value so protobuf can generate
 // +protobuf.nullable=true
 // +protobuf.options.(gogoproto.goproto_stringer)=false
+// ExtraValue标记了值，以便protobuf可以生成
 type ExtraValue []string
 
 func (t ExtraValue) String() string {
@@ -164,6 +181,7 @@ func (t ExtraValue) String() string {
 
 // SelfSubjectAccessReviewSpec is a description of the access request.  Exactly one of ResourceAuthorizationAttributes
 // and NonResourceAuthorizationAttributes must be set
+// SelfSubjectAccessReviewSpec 是访问请求的描述。ResourceAuthorizationAttributes 和 NonResourceAuthorizationAttributes 必须设置其中一个。
 type SelfSubjectAccessReviewSpec struct {
 	// ResourceAuthorizationAttributes describes information for a resource access request
 	// +optional

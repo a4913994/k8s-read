@@ -64,25 +64,32 @@ import (
 
 const (
 	// The api version of kubelet runtime api
+	// kubelet运行时api的api版本
 	kubeRuntimeAPIVersion = "0.1.0"
 	// The root directory for pod logs
+	// pod日志的根目录
 	podLogsRootDirectory = "/var/log/pods"
 	// A minimal shutdown window for avoiding unnecessary SIGKILLs
+	// 避免不必要的SIGKILL的最小关闭窗口
 	minimumGracePeriodInSeconds = 2
 
 	// The expiration time of version cache.
+	// 版本缓存的过期时间
 	versionCacheTTL = 60 * time.Second
 	// How frequently to report identical errors
+	// 报告相同错误的频率
 	identicalErrorDelay = 1 * time.Minute
 )
 
 var (
 	// ErrVersionNotSupported is returned when the api version of runtime interface is not supported
+	// 当运行时接口的api版本不受支持时返回ErrVersionNotSupported
 	ErrVersionNotSupported = errors.New("runtime api version is not supported")
 )
 
 // podStateProvider can determine if none of the elements are necessary to retain (pod content)
 // or if none of the runtime elements are necessary to retain (containers)
+// podStateProvider可以确定是否不需要保留任何元素（pod内容）或者是否不需要保留任何运行时元素（容器）
 type podStateProvider interface {
 	IsPodTerminationRequested(kubetypes.UID) bool
 	ShouldPodContentBeRemoved(kubetypes.UID) bool
@@ -95,73 +102,95 @@ type kubeGenericRuntimeManager struct {
 	osInterface kubecontainer.OSInterface
 
 	// machineInfo contains the machine information.
+	// machineInfo包含机器信息
 	machineInfo *cadvisorapi.MachineInfo
 
 	// Container GC manager
+	// 容器GC管理器
 	containerGC *containerGC
 
 	// Keyring for pulling images
+	// 拉取镜像的
 	keyring credentialprovider.DockerKeyring
 
 	// Runner of lifecycle events.
+	// 生命周期事件的运行者
 	runner kubecontainer.HandlerRunner
 
 	// RuntimeHelper that wraps kubelet to generate runtime container options.
+	// RuntimeHelper包装kubelet以生成运行时容器选项
 	runtimeHelper kubecontainer.RuntimeHelper
 
 	// Health check results.
+	// 健康检查结果
 	livenessManager  proberesults.Manager
 	readinessManager proberesults.Manager
 	startupManager   proberesults.Manager
 
 	// If true, enforce container cpu limits with CFS quota support
+	// 如果为true，则使用CFS配额支持强制执行容器cpu限制
 	cpuCFSQuota bool
 
 	// CPUCFSQuotaPeriod sets the CPU CFS quota period value, cpu.cfs_period_us, defaults to 100ms
+	// CPUCFSQuotaPeriod设置CPU CFS配额期值，cpu.cfs_period_us，默认为100ms
 	cpuCFSQuotaPeriod metav1.Duration
 
 	// wrapped image puller.
+	// 包装的镜像拉取器
 	imagePuller images.ImageManager
 
 	// gRPC service clients
+	// gRPC服务客户端
 	runtimeService internalapi.RuntimeService
 	imageService   internalapi.ImageManagerService
 
 	// The version cache of runtime daemon.
+	// 运行时守护进程的版本缓存
 	versionCache *cache.ObjectCache
 
 	// The directory path for seccomp profiles.
+	// seccomp配置文件的目录路径
 	seccompProfileRoot string
 
 	// Internal lifecycle event handlers for container resource management.
+	// 用于容器资源管理的内部生命周期事件处理程序
 	internalLifecycle cm.InternalContainerLifecycle
 
 	// Manage container logs.
+	// 管理容器日志
 	logManager logs.ContainerLogManager
 
 	// Manage RuntimeClass resources.
+	// 管理RuntimeClass资源
 	runtimeClassManager *runtimeclass.Manager
 
 	// Cache last per-container error message to reduce log spam
+	// 缓存上一个容器的错误消息以减少日志垃圾
 	logReduction *logreduction.LogReduction
 
 	// PodState provider instance
+	// PodState提供程序实例
 	podStateProvider podStateProvider
 
 	// Use RuntimeDefault as the default seccomp profile for all workloads.
+	// 将RuntimeDefault用作所有工作负载的默认seccomp配置文件
 	seccompDefault bool
 
 	// MemorySwapBehavior defines how swap is used
+	// MemorySwapBehavior定义了如何使用swap
 	memorySwapBehavior string
 
 	//Function to get node allocatable resources
+	// 用于获取节点可分配资源的函数
 	getNodeAllocatable func() v1.ResourceList
 
 	// Memory throttling factor for MemoryQoS
+	// MemoryQoS的内存节流因子
 	memoryThrottlingFactor float64
 }
 
 // KubeGenericRuntime is a interface contains interfaces for container runtime and command.
+// KubeGenericRuntime是一个包含容器运行时和命令的接口
 type KubeGenericRuntime interface {
 	kubecontainer.Runtime
 	kubecontainer.StreamingRuntime
@@ -169,6 +198,7 @@ type KubeGenericRuntime interface {
 }
 
 // NewKubeGenericRuntimeManager creates a new kubeGenericRuntimeManager
+// NewKubeGenericRuntimeManager创建一个新的kubeGenericRuntimeManager
 func NewKubeGenericRuntimeManager(
 	recorder record.EventRecorder,
 	livenessManager proberesults.Manager,
@@ -286,6 +316,7 @@ func NewKubeGenericRuntimeManager(
 }
 
 // Type returns the type of the container runtime.
+// Type返回容器运行时的类型。
 func (m *kubeGenericRuntimeManager) Type() string {
 	return m.runtimeName
 }
@@ -318,6 +349,8 @@ func (m *kubeGenericRuntimeManager) Version(ctx context.Context) (kubecontainer.
 // APIVersion returns the cached API version information of the container
 // runtime. Implementation is expected to update this cache periodically.
 // This may be different from the runtime engine's version.
+// APIVersion返回容器运行时的缓存API版本信息。实现应该定期更新此缓存。
+// 这可能与运行时引擎的版本不同。
 func (m *kubeGenericRuntimeManager) APIVersion() (kubecontainer.Version, error) {
 	versionObject, err := m.versionCache.Get(m.machineInfo.MachineID)
 	if err != nil {
@@ -330,6 +363,7 @@ func (m *kubeGenericRuntimeManager) APIVersion() (kubecontainer.Version, error) 
 
 // Status returns the status of the runtime. An error is returned if the Status
 // function itself fails, nil otherwise.
+// Status返回运行时的状态。如果Status函数本身失败，则返回错误，否则返回nil。
 func (m *kubeGenericRuntimeManager) Status(ctx context.Context) (*kubecontainer.RuntimeStatus, error) {
 	resp, err := m.runtimeService.Status(ctx, false)
 	if err != nil {
@@ -344,6 +378,7 @@ func (m *kubeGenericRuntimeManager) Status(ctx context.Context) (*kubecontainer.
 // GetPods returns a list of containers grouped by pods. The boolean parameter
 // specifies whether the runtime returns all containers including those already
 // exited and dead containers (used for garbage collection).
+// GetPods返回按pod分组的容器列表。布尔参数指定运行时是否返回所有容器，包括已退出和死亡的容器（用于垃圾回收）。
 func (m *kubeGenericRuntimeManager) GetPods(ctx context.Context, all bool) ([]*kubecontainer.Pod, error) {
 	pods := make(map[kubetypes.UID]*kubecontainer.Pod)
 	sandboxes, err := m.getKubeletSandboxes(ctx, all)
@@ -424,6 +459,7 @@ func (m *kubeGenericRuntimeManager) GetPods(ctx context.Context, all bool) ([]*k
 }
 
 // containerKillReason explains what killed a given container
+// containerKillReason解释了为什么杀死了给定的容器
 type containerKillReason string
 
 const (
@@ -434,6 +470,7 @@ const (
 )
 
 // containerToKillInfo contains necessary information to kill a container.
+// containerToKillInfo包含杀死容器所需的必要信息。
 type containerToKillInfo struct {
 	// The spec of the container.
 	container *v1.Container
@@ -447,29 +484,38 @@ type containerToKillInfo struct {
 }
 
 // podActions keeps information what to do for a pod.
+// podActions保存关于pod的信息。
 type podActions struct {
 	// Stop all running (regular, init and ephemeral) containers and the sandbox for the pod.
+	// 停止所有运行的(常规的、初始化的和临时的)容器和pod的沙箱。
 	KillPod bool
 	// Whether need to create a new sandbox. If needed to kill pod and create
 	// a new pod sandbox, all init containers need to be purged (i.e., removed).
+	// 是否需要创建新的沙盒。如果需要杀死pod并创建一个新的pod沙箱，所有的init容器都需要被清除(即删除)。
 	CreateSandbox bool
 	// The id of existing sandbox. It is used for starting containers in ContainersToStart.
+	// 已存在沙箱的id。它用于在ContainersToStart中启动容器。
 	SandboxID string
 	// The attempt number of creating sandboxes for the pod.
+	// 为pod创建沙箱的尝试次数。
 	Attempt uint32
 
 	// The next init container to start.
+	// 要启动的下一个init容器。
 	NextInitContainerToStart *v1.Container
 	// ContainersToStart keeps a list of indexes for the containers to start,
 	// where the index is the index of the specific container in the pod spec (
 	// pod.Spec.Containers.
+	// ContainersToStart保留要启动的容器的索引列表，其中索引是pod spec中特定容器的索引(pod.Spec.Containers。
 	ContainersToStart []int
 	// ContainersToKill keeps a map of containers that need to be killed, note that
 	// the key is the container ID of the container, while
 	// the value contains necessary information to kill a container.
+	// ContainersToKill保存了一个需要杀死的容器的映射，注意键是容器的容器ID，而值包含了杀死容器的必要信息。
 	ContainersToKill map[kubecontainer.ContainerID]containerToKillInfo
 	// EphemeralContainersToStart is a list of indexes for the ephemeral containers to start,
 	// where the index is the index of the specific container in pod.Spec.EphemeralContainers.
+	// EphemeralContainersToStart是要启动的临时容器的索引列表，其中索引是pod.Spec.EphemeralContainers中特定容器的索引。
 	EphemeralContainersToStart []int
 }
 
@@ -491,6 +537,7 @@ func containerSucceeded(c *v1.Container, podStatus *kubecontainer.PodStatus) boo
 }
 
 // computePodActions checks whether the pod spec has changed and returns the changes if true.
+// computePodActions检查pod spec是否已更改，并在true时返回更改。
 func (m *kubeGenericRuntimeManager) computePodActions(pod *v1.Pod, podStatus *kubecontainer.PodStatus) podActions {
 	klog.V(5).InfoS("Syncing Pod", "pod", klog.KObj(pod))
 
@@ -675,6 +722,15 @@ func (m *kubeGenericRuntimeManager) computePodActions(pod *v1.Pod, podStatus *ku
 //  5. Create ephemeral containers.
 //  6. Create init containers.
 //  7. Create normal containers.
+//
+// SyncPod同步运行中的pod到期望的pod，通过执行以下步骤：
+// 1. 计算沙箱和容器的变化。
+// 2. 如果需要，杀死pod沙箱。
+// 3. 杀死任何不应该运行的容器。
+// 4. 如果需要，创建沙箱。
+// 5. 创建临时容器。
+// 6. 创建初始化容器。
+// 7. 创建正常容器。
 func (m *kubeGenericRuntimeManager) SyncPod(ctx context.Context, pod *v1.Pod, podStatus *kubecontainer.PodStatus, pullSecrets []v1.Secret, backOff *flowcontrol.Backoff) (result kubecontainer.PodSyncResult) {
 	// Step 1: Compute sandbox and container changes.
 	podContainerChanges := m.computePodActions(pod, podStatus)
@@ -906,6 +962,7 @@ func (m *kubeGenericRuntimeManager) SyncPod(ctx context.Context, pod *v1.Pod, po
 
 // If a container is still in backoff, the function will return a brief backoff error and
 // a detailed error message.
+// 如果容器仍在回退，则该函数将返回一个简短的回退错误和详细的错误消息。
 func (m *kubeGenericRuntimeManager) doBackOff(pod *v1.Pod, container *v1.Container, podStatus *kubecontainer.PodStatus, backOff *flowcontrol.Backoff) (bool, string, error) {
 	var cStatus *kubecontainer.Status
 	for _, c := range podStatus.ContainerStatuses {
@@ -942,6 +999,10 @@ func (m *kubeGenericRuntimeManager) doBackOff(pod *v1.Pod, container *v1.Contain
 // gracePeriodOverride if specified allows the caller to override the pod default grace period.
 // only hard kill paths are allowed to specify a gracePeriodOverride in the kubelet in order to not corrupt user data.
 // it is useful when doing SIGKILL for hard eviction scenarios, or max grace period during soft eviction scenarios.
+// KillPod 杀死一个Pod的所有容器。Pod可能为零，运行Pod一定不是。
+// 如果指定了gracePeriodOverride，则允许调用者覆盖Pod默认的宽限期。
+// 只有硬杀路径允许在kubelet中指定gracePeriodOverride，以避免破坏用户数据。
+// 在硬逐出场景中进行SIGKILL时很有用，或者在软逐出场景中进行最大宽限期。
 func (m *kubeGenericRuntimeManager) KillPod(ctx context.Context, pod *v1.Pod, runningPod kubecontainer.Pod, gracePeriodOverride *int64) error {
 	err := m.killPodWithSyncResult(ctx, pod, runningPod, gracePeriodOverride)
 	return err.Error()
@@ -949,6 +1010,7 @@ func (m *kubeGenericRuntimeManager) KillPod(ctx context.Context, pod *v1.Pod, ru
 
 // killPodWithSyncResult kills a runningPod and returns SyncResult.
 // Note: The pod passed in could be *nil* when kubelet restarted.
+// killPodWithSyncResult 杀死一个运行的Pod并返回SyncResult。 注意：当kubelet重启时，传入的Pod可能为*nil*。
 func (m *kubeGenericRuntimeManager) killPodWithSyncResult(ctx context.Context, pod *v1.Pod, runningPod kubecontainer.Pod, gracePeriodOverride *int64) (result kubecontainer.PodSyncResult) {
 	killContainerResults := m.killContainersWithSyncResult(ctx, pod, runningPod, gracePeriodOverride)
 	for _, containerResult := range killContainerResults {
@@ -991,6 +1053,7 @@ func (m *kubeGenericRuntimeManager) GeneratePodStatus(event *runtimeapi.Containe
 
 // GetPodStatus retrieves the status of the pod, including the
 // information of all containers in the pod that are visible in Runtime.
+// GetPodStatus检索Pod的状态，包括Pod中所有可见的容器的信息。
 func (m *kubeGenericRuntimeManager) GetPodStatus(ctx context.Context, uid kubetypes.UID, name, namespace string) (*kubecontainer.PodStatus, error) {
 	// Now we retain restart count of container as a container label. Each time a container
 	// restarts, pod will read the restart count from the registered dead container, increment
@@ -1102,12 +1165,14 @@ func (m *kubeGenericRuntimeManager) GetPodStatus(ctx context.Context, uid kubety
 }
 
 // GarbageCollect removes dead containers using the specified container gc policy.
+// GarbageCollect 删除死亡容器使用指定的容器 gc 策略。
 func (m *kubeGenericRuntimeManager) GarbageCollect(ctx context.Context, gcPolicy kubecontainer.GCPolicy, allSourcesReady bool, evictNonDeletedPods bool) error {
 	return m.containerGC.GarbageCollect(ctx, gcPolicy, allSourcesReady, evictNonDeletedPods)
 }
 
 // UpdatePodCIDR is just a passthrough method to update the runtimeConfig of the shim
 // with the podCIDR supplied by the kubelet.
+// UpdatePodCIDR 只是一个传递方法，用于更新带有 kubelet 提供的 podCIDR 的 shim 的 runtimeConfig。
 func (m *kubeGenericRuntimeManager) UpdatePodCIDR(ctx context.Context, podCIDR string) error {
 	// TODO(#35531): do we really want to write a method on this manager for each
 	// field of the config?

@@ -70,6 +70,7 @@ const (
 )
 
 // RequestScope encapsulates common fields across all RESTful handler methods.
+// RequestScope 封装了所有 RESTful 处理程序方法中的公共字段。
 type RequestScope struct {
 	Namer ScopeNamer
 

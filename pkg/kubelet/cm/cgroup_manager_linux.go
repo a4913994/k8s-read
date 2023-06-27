@@ -41,19 +41,19 @@ import (
 )
 
 const (
-	// systemdSuffix is the cgroup name suffix for systemd
+	//systemdSuffix 是 systemd 的 cgroup 名称后缀。
 	systemdSuffix string = ".slice"
-	// MemoryMin is memory.min for cgroup v2
+	//MemoryMin是cgroup v2的memory.min。
 	MemoryMin string = "memory.min"
-	// MemoryHigh is memory.high for cgroup v2
+	//MemoryHigh是cgroup v2的memory.high。
 	MemoryHigh string = "memory.high"
 )
 
 var RootCgroupName = CgroupName([]string{})
 
-// NewCgroupName composes a new cgroup name.
-// Use RootCgroupName as base to start at the root.
-// This function does some basic check for invalid characters at the name.
+// NewCgroupName组成一个新的cgroup名称。
+// 使用RootCgroupName作为基础，从根开始。
+// 该函数对名称中的无效字符进行一些基本检查。
 func NewCgroupName(base CgroupName, components ...string) CgroupName {
 	for _, component := range components {
 		// Forbit using "_" in internal names. When remapping internal
@@ -74,11 +74,11 @@ func unescapeSystemdCgroupName(part string) string {
 	return strings.Replace(part, "_", "-", -1)
 }
 
-// cgroupName.ToSystemd converts the internal cgroup name to a systemd name.
-// For example, the name {"kubepods", "burstable", "pod1234-abcd-5678-efgh"} becomes
+// cgroupName.ToSystemd将内部cgroup名称转换为systemd名称。
+// 例如，{"kubepods", "burstable", "pod1234-abcd-5678-efgh"}变为
 // "/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod1234_abcd_5678_efgh.slice"
-// This function always expands the systemd name into the cgroupfs form. If only
-// the last part is needed, use path.Base(...) on it to discard the rest.
+// 这个函数总是将systemd的名字扩展为cgroupfs的形式。如果只需要
+// 扩充到cgroupfs的形式，则使用path.Base(...)来放弃其他部分。
 func (cgroupName CgroupName) ToSystemd() string {
 	if len(cgroupName) == 0 || (len(cgroupName) == 1 && cgroupName[0] == "") {
 		return "/"
@@ -124,7 +124,7 @@ func IsSystemdStyleName(name string) bool {
 	return strings.HasSuffix(name, systemdSuffix)
 }
 
-// CgroupSubsystems holds information about the mounted cgroup subsystems
+// CgroupSubsystems持有关于安装的cgroup子系统的信息。
 type CgroupSubsystems struct {
 	// Cgroup subsystem mounts.
 	// e.g.: "/sys/fs/cgroup/cpu" -> ["cpu", "cpuacct"]
@@ -135,10 +135,10 @@ type CgroupSubsystems struct {
 	MountPoints map[string]string
 }
 
-// cgroupManagerImpl implements the CgroupManager interface.
-// Its a stateless object which can be used to
-// update,create or delete any number of cgroups
-// It relies on runc/libcontainer cgroup managers.
+// cgroupManagerImpl实现了CgroupManager接口。
+// 它是一个无状态对象，可以用来
+// 更新、创建或删除任何数量的cgroup。
+// 它依赖于runc/libcontainer cgroup管理器。
 type cgroupManagerImpl struct {
 	// subsystems holds information about all the
 	// mounted cgroup subsystems on the node
@@ -148,7 +148,7 @@ type cgroupManagerImpl struct {
 	useSystemd bool
 }
 
-// Make sure that cgroupManagerImpl implements the CgroupManager interface
+// 确保cgroupManagerImpl实现了CgroupManager接口。
 var _ CgroupManager = &cgroupManagerImpl{}
 
 // NewCgroupManager is a factory method that returns a CgroupManager

@@ -36,20 +36,25 @@ import (
 // name generation behavior to update an object that follows Kubernetes
 // API conventions. A resource may have many UpdateStrategies, depending on
 // the call pattern in use.
+// RESTUpdateStrategy 定义了最小的验证、接受的输入和名称生成行为，以更新遵循 Kubernetes API 约定的对象。 资源可能有许多 UpdateStrategies，具体取决于使用的调用模式。
 type RESTUpdateStrategy interface {
 	runtime.ObjectTyper
 	// NamespaceScoped returns true if the object must be within a namespace.
+	// NamespaceScoped 返回 true 表示对象必须在命名空间中。
 	NamespaceScoped() bool
 	// AllowCreateOnUpdate returns true if the object can be created by a PUT.
+	// AllowCreateOnUpdate 返回 true 表示对象可以通过 PUT 创建。
 	AllowCreateOnUpdate() bool
 	// PrepareForUpdate is invoked on update before validation to normalize
 	// the object.  For example: remove fields that are not to be persisted,
 	// sort order-insensitive list fields, etc.  This should not remove fields
 	// whose presence would be considered a validation error.
+	// PrepareForUpdate 在更新之前调用以对对象进行规范化。 例如：删除不要持久化的字段、对无序列表字段进行排序等。 这不应该删除其存在将被视为验证错误的字段。
 	PrepareForUpdate(ctx context.Context, obj, old runtime.Object)
 	// ValidateUpdate is invoked after default fields in the object have been
 	// filled in before the object is persisted.  This method should not mutate
 	// the object.
+	// ValidateUpdate 在对象持久化之前填充对象中的默认字段之后调用。 此方法不应该改变对象。
 	ValidateUpdate(ctx context.Context, obj, old runtime.Object) field.ErrorList
 	// WarningsOnUpdate returns warnings to the client performing the update.
 	// WarningsOnUpdate is invoked after default fields in the object have been filled in
@@ -104,6 +109,8 @@ func validateCommonFields(obj, old runtime.Object, strategy RESTUpdateStrategy) 
 // errors that can be converted to api.Status. It will invoke update validation with the provided existing
 // and updated objects.
 // It sets zero values only if the object does not have a zero value for the respective field.
+// BeforeUpdate 确保所有资源的更新都执行了常见操作。 它只返回可以转换为 api.Status 的错误。 它将使用提供的现有和更新对象调用更新验证。
+// 它只在对象没有相应字段的零值时设置零值。
 func BeforeUpdate(strategy RESTUpdateStrategy, ctx context.Context, obj, old runtime.Object) error {
 	objectMeta, kind, kerr := objectMetaAndKind(strategy, obj)
 	if kerr != nil {
@@ -166,9 +173,11 @@ func BeforeUpdate(strategy RESTUpdateStrategy, ctx context.Context, obj, old run
 }
 
 // TransformFunc is a function to transform and return newObj
+// TransformFunc是一个函数，用于转换并返回newObj
 type TransformFunc func(ctx context.Context, newObj runtime.Object, oldObj runtime.Object) (transformedNewObj runtime.Object, err error)
 
 // defaultUpdatedObjectInfo implements UpdatedObjectInfo
+// defaultUpdatedObjectInfo实现了UpdatedObjectInfo
 type defaultUpdatedObjectInfo struct {
 	// obj is the updated object
 	obj runtime.Object
@@ -179,6 +188,7 @@ type defaultUpdatedObjectInfo struct {
 }
 
 // DefaultUpdatedObjectInfo returns an UpdatedObjectInfo impl based on the specified object.
+// DefaultUpdatedObjectInfo根据指定的对象返回一个UpdatedObjectInfo impl。
 func DefaultUpdatedObjectInfo(obj runtime.Object, transformers ...TransformFunc) UpdatedObjectInfo {
 	return &defaultUpdatedObjectInfo{obj, transformers}
 }
@@ -203,6 +213,7 @@ func (i *defaultUpdatedObjectInfo) Preconditions() *metav1.Preconditions {
 
 // UpdatedObject satisfies the UpdatedObjectInfo interface.
 // It returns a copy of the held obj, passed through any configured transformers.
+// UpdatedObject满足UpdatedObjectInfo接口。 它返回一个持有obj的副本，通过任何配置的转换器传递。
 func (i *defaultUpdatedObjectInfo) UpdatedObject(ctx context.Context, oldObj runtime.Object) (runtime.Object, error) {
 	var err error
 	// Start with the configured object
@@ -228,6 +239,7 @@ func (i *defaultUpdatedObjectInfo) UpdatedObject(ctx context.Context, oldObj run
 
 // wrappedUpdatedObjectInfo allows wrapping an existing objInfo and
 // chaining additional transformations/checks on the result of UpdatedObject()
+// wrappedUpdatedObjectInfo允许包装现有的objInfo，并在UpdatedObject（）的结果上链接其他转换/检查
 type wrappedUpdatedObjectInfo struct {
 	// obj is the updated object
 	objInfo UpdatedObjectInfo
@@ -239,17 +251,21 @@ type wrappedUpdatedObjectInfo struct {
 
 // WrapUpdatedObjectInfo returns an UpdatedObjectInfo impl that delegates to
 // the specified objInfo, then calls the passed transformers
+// WrapUpdatedObjectInfo返回一个UpdatedObjectInfo impl，该impl委托给指定的objInfo，然后调用传递的转换器
 func WrapUpdatedObjectInfo(objInfo UpdatedObjectInfo, transformers ...TransformFunc) UpdatedObjectInfo {
 	return &wrappedUpdatedObjectInfo{objInfo, transformers}
 }
 
 // Preconditions satisfies the UpdatedObjectInfo interface.
+// Preconditions 满足 UpdatedObjectInfo 接口
 func (i *wrappedUpdatedObjectInfo) Preconditions() *metav1.Preconditions {
 	return i.objInfo.Preconditions()
 }
 
 // UpdatedObject satisfies the UpdatedObjectInfo interface.
 // It delegates to the wrapped objInfo and passes the result through any configured transformers.
+// UpdatedObject 满足 UpdatedObjectInfo 接口
+// 它委托给包装的objInfo，并通过任何配置的转换器传递结果。
 func (i *wrappedUpdatedObjectInfo) UpdatedObject(ctx context.Context, oldObj runtime.Object) (runtime.Object, error) {
 	newObj, err := i.objInfo.UpdatedObject(ctx, oldObj)
 	if err != nil {
@@ -268,6 +284,7 @@ func (i *wrappedUpdatedObjectInfo) UpdatedObject(ctx context.Context, oldObj run
 }
 
 // AdmissionToValidateObjectUpdateFunc converts validating admission to a rest validate object update func
+// AdmissionToValidateObjectUpdateFunc将验证admission转换为rest验证对象更新函数
 func AdmissionToValidateObjectUpdateFunc(admit admission.Interface, staticAttributes admission.Attributes, o admission.ObjectInterfaces) ValidateObjectUpdateFunc {
 	validatingAdmission, ok := admit.(admission.ValidationInterface)
 	if !ok {

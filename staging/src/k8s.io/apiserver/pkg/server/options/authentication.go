@@ -40,6 +40,7 @@ import (
 
 // DefaultAuthWebhookRetryBackoff is the default backoff parameters for
 // both authentication and authorization webhook used by the apiserver.
+// DefaultAuthWebhookRetryBackoff 是 apiserver 用于身份验证和授权 webhook 的默认回退参数。
 func DefaultAuthWebhookRetryBackoff() *wait.Backoff {
 	return &wait.Backoff{
 		Duration: 500 * time.Millisecond,
@@ -137,6 +138,7 @@ func (s *RequestHeaderAuthenticationOptions) ToAuthenticationRequestHeaderConfig
 
 // ClientCertAuthenticationOptions provides different options for client cert auth. You should use `GetClientVerifyOptionFn` to
 // get the verify options for your authenticator.
+// ClientCertAuthenticationOptions 提供了不同的客户端证书认证选项。您应该使用 `GetClientVerifyOptionFn` 来获取您的身份验证器的验证选项。
 type ClientCertAuthenticationOptions struct {
 	// ClientCA is the certificate bundle for all the signers that you'll recognize for incoming client certificates
 	ClientCA string

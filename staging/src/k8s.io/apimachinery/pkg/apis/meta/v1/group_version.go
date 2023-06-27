@@ -47,6 +47,7 @@ func (gr *GroupResource) String() string {
 // to avoid automatic coercion.  It doesn't use a GroupVersion to avoid custom marshalling
 //
 // +protobuf.options.(gogoproto.goproto_stringer)=false
+// GroupVersionResource 明确地标识资源。 它不会匿名包含 GroupVersion,以避免自动强制转换。 它不使用 GroupVersion,以避免自定义编组
 type GroupVersionResource struct {
 	Group    string `json:"group" protobuf:"bytes,1,opt,name=group"`
 	Version  string `json:"version" protobuf:"bytes,2,opt,name=version"`
@@ -83,6 +84,7 @@ func (gk *GroupKind) String() string {
 // to avoid automatic coercion.  It doesn't use a GroupVersion to avoid custom marshalling
 //
 // +protobuf.options.(gogoproto.goproto_stringer)=false
+// GroupVersionKind明确地标识了一个类型。 它不会匿名包含GroupVersion, 以避免自动强制转换。 它不使用GroupVersion来避免自定义编组
 type GroupVersionKind struct {
 	Group   string `json:"group" protobuf:"bytes,1,opt,name=group"`
 	Version string `json:"version" protobuf:"bytes,2,opt,name=version"`

@@ -32,6 +32,8 @@ import (
 // the node allocatable.
 // TODO: if/when we have pod level resources, we need to update this function
 // to use those limits instead of node allocatable.
+// defaultPodLimitsForDownwardAPI 拷贝输入的 pod 和可选的 container，并应用默认资源限制。它返回输入 pod 的副本，以及输入容器的副本（如果指定）。
+// 如果容器没有指定限制，则将限制默认为节点可分配的。
 func (kl *Kubelet) defaultPodLimitsForDownwardAPI(pod *v1.Pod, container *v1.Container) (*v1.Pod, *v1.Container, error) {
 	if pod == nil {
 		return nil, nil, fmt.Errorf("invalid input, pod cannot be nil")

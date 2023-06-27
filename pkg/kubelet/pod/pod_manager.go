@@ -30,11 +30,17 @@ import (
 // Manager stores and manages access to pods, maintaining the mappings
 // between static pods and mirror pods.
 //
+// Manager 存储并管理对 pod 的访问，维护静态 pod 和镜像 pod 之间的映射。
+//
 // The kubelet discovers pod updates from 3 sources: file, http, and
 // apiserver. Pods from non-apiserver sources are called static pods, and API
 // server is not aware of the existence of static pods. In order to monitor
 // the status of such pods, the kubelet creates a mirror pod for each static
 // pod via the API server.
+//
+// kubelet 从 3 个源发现 pod 更新： 文件、http 和 apiserver。
+// 来自非 apiserver 源的 pod 称为静态 pod，而 API 服务器不知道静态 pod 的存在。
+// 为了监控这些 pod 的状态，kubelet 通过 API 服务器为每个静态 pod 创建一个镜像 pod。
 //
 // A mirror pod has the same pod full name (name and namespace) as its static
 // counterpart (albeit different metadata such as UID, etc). By leveraging the
@@ -42,38 +48,54 @@ import (
 // status of the mirror pod always reflects the actual status of the static
 // pod. When a static pod gets deleted, the associated orphaned mirror pod
 // will also be removed.
+// 一个镜像 pod 的 pod 全名（名称和命名空间）与其静态副本相同（尽管元数据不同，例如 UID 等）。
+// 通过利用 kubelet 使用 pod 全名报告 pod 状态的事实，镜像 pod 的状态始终反映静态 pod 的实际状态。
+// 当删除静态 pod 时，相关的孤立镜像 pod 也将被删除。
 type Manager interface {
 	// GetPods returns the regular pods bound to the kubelet and their spec.
+	// GetPods 返回绑定到 kubelet 的常规 pod 和它们的 spec。
 	GetPods() []*v1.Pod
 	// GetPodByFullName returns the (non-mirror) pod that matches full name, as well as
 	// whether the pod was found.
+	// GetPodByFullName 返回与全名匹配的（非镜像）pod，以及是否找到了 pod。
 	GetPodByFullName(podFullName string) (*v1.Pod, bool)
 	// GetPodByName provides the (non-mirror) pod that matches namespace and
 	// name, as well as whether the pod was found.
+	// GetPodByName 提供与命名空间和名称匹配的（非镜像）pod，以及是否找到了 pod。
 	GetPodByName(namespace, name string) (*v1.Pod, bool)
 	// GetPodByUID provides the (non-mirror) pod that matches pod UID, as well as
 	// whether the pod is found.
+	// GetPodByUID 提供与 pod UID 匹配的（非镜像）pod，以及是否找到了 pod。
 	GetPodByUID(types.UID) (*v1.Pod, bool)
 	// GetPodByMirrorPod returns the static pod for the given mirror pod and
 	// whether it was known to the pod manager.
+	// GetPodByMirrorPod 返回给定镜像 pod 的静态 pod，以及 pod 管理器是否知道它。
 	GetPodByMirrorPod(*v1.Pod) (*v1.Pod, bool)
 	// GetMirrorPodByPod returns the mirror pod for the given static pod and
 	// whether it was known to the pod manager.
+	// GetMirrorPodByPod 返回给定静态 pod 的镜像 pod，以及 pod 管理器是否知道它。
 	GetMirrorPodByPod(*v1.Pod) (*v1.Pod, bool)
 	// GetPodsAndMirrorPods returns the both regular and mirror pods.
+	// GetPodsAndMirrorPods 返回常规和镜像 pod。
 	GetPodsAndMirrorPods() ([]*v1.Pod, []*v1.Pod)
 	// SetPods replaces the internal pods with the new pods.
 	// It is currently only used for testing.
+	// SetPods 用新的 pod 替换内部 pod。 目前仅用于测试。
 	SetPods(pods []*v1.Pod)
 	// AddPod adds the given pod to the manager.
+	// AddPod 将给定的 pod 添加到管理器中。
 	AddPod(pod *v1.Pod)
 	// UpdatePod updates the given pod in the manager.
+	// UpdatePod 在管理器中更新给定的 pod。
 	UpdatePod(pod *v1.Pod)
 	// DeletePod deletes the given pod from the manager.  For mirror pods,
 	// this means deleting the mappings related to mirror pods.  For non-
 	// mirror pods, this means deleting from indexes for all non-mirror pods.
+	// DeletePod 从管理器中删除给定的 pod。 对于镜像 pod，这意味着删除与镜像 pod 相关的映射。
+	// 对于非镜像 pod，这意味着从所有非镜像 pod 的索引中删除。
 	DeletePod(pod *v1.Pod)
 	// GetOrphanedMirrorPodNames returns names of orphaned mirror pods
+	// GetOrphanedMirrorPodNames 返回孤立的镜像 pod 的名称
 	GetOrphanedMirrorPodNames() []string
 	// TranslatePodUID returns the actual UID of a pod. If the UID belongs to
 	// a mirror pod, returns the UID of its static pod. Otherwise, returns the
@@ -82,12 +104,19 @@ type Manager interface {
 	// All public-facing functions should perform this translation for UIDs
 	// because user may provide a mirror pod UID, which is not recognized by
 	// internal Kubelet functions.
+	// TranslatePodUID 返回 pod 的实际 UID。 如果 UID 属于镜像 pod，则返回其静态 pod 的 UID。
+	// 否则，返回原始 UID。
+	//
+	// 所有面向公众的函数都应该为 UID 执行此转换，因为用户可能会提供镜像 pod 的 UID，
+	// 该 UID 不被内部 Kubelet 函数识别。
 	TranslatePodUID(uid types.UID) kubetypes.ResolvedPodUID
 	// GetUIDTranslations returns the mappings of static pod UIDs to mirror pod
 	// UIDs and mirror pod UIDs to static pod UIDs.
+	// GetUIDTranslations 返回静态 pod UID 到镜像 pod UID 的映射和镜像 pod UID 到静态 pod UID 的映射。
 	GetUIDTranslations() (podToMirror map[kubetypes.ResolvedPodUID]kubetypes.MirrorPodUID, mirrorToPod map[kubetypes.MirrorPodUID]kubetypes.ResolvedPodUID)
 	// IsMirrorPodOf returns true if mirrorPod is a correct representation of
 	// pod; false otherwise.
+	// IsMirrorPodOf 如果 mirrorPod 是 pod 的正确表示，则返回 true；否则返回 false。
 	IsMirrorPodOf(mirrorPod, pod *v1.Pod) bool
 
 	MirrorClient
@@ -97,8 +126,12 @@ type Manager interface {
 //
 // All fields in basicManager are read-only and are updated calling SetPods,
 // AddPod, UpdatePod, or DeletePod.
+// basicManager 是一个功能性的 Manager。
+//
+// basicManager 中的所有字段都是只读的，并且通过调用 SetPods、AddPod、UpdatePod 或 DeletePod 进行更新。
 type basicManager struct {
 	// Protects all internal maps.
+	// 保护所有内部映射。
 	lock sync.RWMutex
 
 	// Regular pods indexed by UID.
@@ -107,17 +140,21 @@ type basicManager struct {
 	mirrorPodByUID map[kubetypes.MirrorPodUID]*v1.Pod
 
 	// Pods indexed by full name for easy access.
+	// 通过全名索引的 pod，以便轻松访问。
 	podByFullName       map[string]*v1.Pod
 	mirrorPodByFullName map[string]*v1.Pod
 
 	// Mirror pod UID to pod UID map.
+	// 镜像 pod UID 到 pod UID 的映射。
 	translationByUID map[kubetypes.MirrorPodUID]kubetypes.ResolvedPodUID
 
 	// A mirror pod client to create/delete mirror pods.
+	// 一个镜像 pod 客户端来创建/删除镜像 pod。
 	MirrorClient
 }
 
 // NewBasicPodManager returns a functional Manager.
+// NewBasicPodManager 返回一个功能性的 Manager。
 func NewBasicPodManager(client MirrorClient) Manager {
 	pm := &basicManager{}
 	pm.MirrorClient = client
@@ -126,6 +163,7 @@ func NewBasicPodManager(client MirrorClient) Manager {
 }
 
 // Set the internal pods based on the new pods.
+// 根据新的 pod 设置内部 pod。
 func (pm *basicManager) SetPods(newPods []*v1.Pod) {
 	pm.lock.Lock()
 	defer pm.lock.Unlock()
@@ -151,6 +189,7 @@ func (pm *basicManager) UpdatePod(pod *v1.Pod) {
 
 // updateMetrics updates the metrics surfaced by the pod manager.
 // oldPod or newPod may be nil to signify creation or deletion.
+// updateMetrics 更新 pod 管理器公开的指标。 oldPod 或 newPod 可能为 nil，以表示创建或删除。
 func updateMetrics(oldPod, newPod *v1.Pod) {
 	var numEC int
 	if oldPod != nil {
@@ -167,6 +206,7 @@ func updateMetrics(oldPod, newPod *v1.Pod) {
 // updatePodsInternal replaces the given pods in the current state of the
 // manager, updating the various indices. The caller is assumed to hold the
 // lock.
+// updatePodsInternal 在管理器的当前状态中替换给定的 pod，并更新各种索引。 假定调用者持有锁。
 func (pm *basicManager) updatePodsInternal(pods ...*v1.Pod) {
 	for _, pod := range pods {
 		podFullName := kubecontainer.GetPodFullName(pod)

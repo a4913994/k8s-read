@@ -44,6 +44,8 @@ func newDecoratedWatcher(ctx context.Context, w watch.Interface, decorator func(
 // run decorates watch events from the underlying watcher until its result channel
 // is closed or the passed in context is done.
 // When run() returns, decoratedWatcher#resultCh is closed.
+// run 修饰来自底层观察者的观察事件，直到其结果通道被关闭或传入的上下文完成。
+// 当 run() 返回时，decoratedWatcher#resultCh 被关闭。
 func (d *decoratedWatcher) run(ctx context.Context) {
 	var recv, send watch.Event
 	var ok bool

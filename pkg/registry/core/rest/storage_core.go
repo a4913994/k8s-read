@@ -70,6 +70,7 @@ import (
 
 // LegacyRESTStorageProvider provides information needed to build RESTStorage for core, but
 // does NOT implement the "normal" RESTStorageProvider (yet!)
+// LegacyRESTStorageProvider 提供构建 core RESTStorage 所需的信息，但是还没有实现“正常”的 RESTStorageProvider（尚未实现！）
 type LegacyRESTStorageProvider struct {
 	StorageFactory serverstorage.StorageFactory
 	// Used for custom proxy dialing, and proxy TLS options
@@ -95,6 +96,7 @@ type LegacyRESTStorageProvider struct {
 // LegacyRESTStorage returns stateful information about particular instances of REST storage to
 // master.go for wiring controllers.
 // TODO remove this by running the controller as a poststarthook
+// LegacyRESTStorage 返回特定 REST 存储实例的有状态信息，以便 master.go 进行控制器的连接。
 type LegacyRESTStorage struct {
 	ServiceClusterIPAllocator          rangeallocation.RangeRegistry
 	SecondaryServiceClusterIPAllocator rangeallocation.RangeRegistry
@@ -125,6 +127,7 @@ func (c LegacyRESTStorageProvider) NewLegacyRESTStorage(apiResourceConfigSource 
 	if err != nil {
 		return LegacyRESTStorage{}, genericapiserver.APIGroupInfo{}, err
 	}
+
 	limitRangeStorage, err := limitrangestore.NewREST(restOptionsGetter)
 	if err != nil {
 		return LegacyRESTStorage{}, genericapiserver.APIGroupInfo{}, err

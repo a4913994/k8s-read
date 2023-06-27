@@ -38,6 +38,11 @@ import (
 // modifying objects stored by the indexers (if any) will *not* automatically lead
 // to a re-index. So it's not a good idea to directly modify the objects returned by
 // Get/List, in general.
+// ThreadSafeStore 是一个接口，允许并发访问存储后端的索引。 它类似于 Indexer，但不（必须）知道如何从给定对象中提取 Store 键。
+// TL;DR 注意事项：您不得修改 Get 或 List 返回的任何内容，因为它将破坏索引功能，除此之外，它也不是线程安全的。
+// List/Get 提供的线程安全保证仅在调用者将返回的项目视为只读时才有效。 例如，通过 Add 插入存储中的指针将作为 Get 返回。
+// 多个客户端可能会在同一键上调用 Get 并以非线程安全的方式修改指针。
+// 请注意，存储在索引器（如果有）中的对象的修改（如果有）将*不*自动导致重新索引。 因此，一般来说，不建议直接修改 Get/List 返回的对象。
 type ThreadSafeStore interface {
 	Add(key string, obj interface{})
 	Update(key string, obj interface{})
@@ -54,12 +59,15 @@ type ThreadSafeStore interface {
 
 	// AddIndexers adds more indexers to this store.  If you call this after you already have data
 	// in the store, the results are undefined.
+	// AddIndexers 将更多的索引器添加到此存储中。 如果在存储中已经有数据时调用此函数，则结果是未定义的。
 	AddIndexers(newIndexers Indexers) error
 	// Resync is a no-op and is deprecated
+	// Resync 是一个空操作，已弃用
 	Resync() error
 }
 
 // storeIndex implements the indexing functionality for Store interface
+// storeIndex 实现了 Store 接口的索引功能
 type storeIndex struct {
 	// indexers maps a name to an IndexFunc
 	indexers Indexers
@@ -140,6 +148,11 @@ func (i *storeIndex) addIndexers(newIndexers Indexers) error {
 // - for update you must provide both the oldObj and the newObj
 // - for delete you must provide only the oldObj
 // updateIndices must be called from a function that already has a lock on the cache
+// updateIndices 修改对象在管理索引中的位置：
+// - 对于创建，您必须仅提供 newObj
+// - 对于更新，您必须同时提供 oldObj 和 newObj
+// - 对于删除，您必须仅提供 oldObj
+// updateIndices 必须从已经对缓存进行了锁定的函数中调用
 func (i *storeIndex) updateIndices(oldObj interface{}, newObj interface{}, key string) {
 	var oldIndexValues, indexValues []string
 	var err error
@@ -206,6 +219,7 @@ func (i *storeIndex) deleteKeyFromIndex(key, indexValue string, index Index) {
 }
 
 // threadSafeMap implements ThreadSafeStore
+// threadSafeMap 实现了 ThreadSafeStore
 type threadSafeMap struct {
 	lock  sync.RWMutex
 	items map[string]interface{}
@@ -352,6 +366,7 @@ func (c *threadSafeMap) Resync() error {
 }
 
 // NewThreadSafeStore creates a new instance of ThreadSafeStore.
+// NewThreadSafeStore 创建一个新的 ThreadSafeStore 实例
 func NewThreadSafeStore(indexers Indexers, indices Indices) ThreadSafeStore {
 	return &threadSafeMap{
 		items: map[string]interface{}{},

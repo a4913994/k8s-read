@@ -58,6 +58,7 @@ type podStatusProvider interface {
 }
 
 // NewHandlerRunner returns a configured lifecycle handler for a container.
+// NewHandlerRunner 返回一个配置好的容器生命周期处理器。
 func NewHandlerRunner(httpDoer kubetypes.HTTPDoer, commandRunner kubecontainer.CommandRunner, containerManager podStatusProvider, eventRecorder record.EventRecorder) kubecontainer.HandlerRunner {
 	return &handlerRunner{
 		httpDoer:         httpDoer,
@@ -100,6 +101,7 @@ func (hr *handlerRunner) Run(ctx context.Context, containerID kubecontainer.Cont
 // an attempt is made to find a port with the same name in the container spec.
 // If a port with the same name is found, it's ContainerPort value is returned.  If no matching
 // port is found, an error is returned.
+// resolvePort 尝试将 IntOrString 类型的端口引用转换为具体的端口号。 如果 portReference 是 int 类型，则将其视为字面值，并返回该值。 如果 portReference 是 string 类型，则首先尝试将其解析为整数。 如果解析失败，则尝试在容器规范中查找具有相同名称的端口。 如果找到具有相同名称的端口，则返回其 ContainerPort 值。 如果未找到匹配的端口，则返回错误。
 func resolvePort(portReference intstr.IntOrString, container *v1.Container) (int, error) {
 	if portReference.Type == intstr.Int {
 		return portReference.IntValue(), nil

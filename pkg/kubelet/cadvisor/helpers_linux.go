@@ -25,14 +25,14 @@ import (
 	cadvisorfs "github.com/google/cadvisor/fs"
 )
 
-// imageFsInfoProvider knows how to translate the configured runtime
-// to its file system label for images.
+// imageFsInfoProvider知道如何将配置的运行时
+// 到其文件系统标签的图像。
 type imageFsInfoProvider struct {
 	runtimeEndpoint string
 }
 
-// ImageFsInfoLabel returns the image fs label for the configured runtime.
-// For remote runtimes, it handles additional runtimes natively understood by cAdvisor.
+// ImageFsInfoLabel返回配置的运行时的图像fs标签。
+// 对于远程运行时，它可以处理cAdvisor原生理解的额外运行时。
 func (i *imageFsInfoProvider) ImageFsInfoLabel() (string, error) {
 	// This is a temporary workaround to get stats for cri-o from cadvisor
 	// and should be removed.
@@ -43,7 +43,7 @@ func (i *imageFsInfoProvider) ImageFsInfoLabel() (string, error) {
 	return "", fmt.Errorf("no imagefs label for configured runtime")
 }
 
-// NewImageFsInfoProvider returns a provider for the specified runtime configuration.
+// NewImageFsInfoProvider为指定的运行时配置返回一个提供者。
 func NewImageFsInfoProvider(runtimeEndpoint string) ImageFsInfoProvider {
 	return &imageFsInfoProvider{runtimeEndpoint: runtimeEndpoint}
 }

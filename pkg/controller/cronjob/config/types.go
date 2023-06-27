@@ -22,5 +22,6 @@ type CronJobControllerConfiguration struct {
 	// ConcurrentCronJobSyncs is the number of cron job objects that are
 	// allowed to sync concurrently. Larger number = more responsive jobs,
 	// but more CPU (and network) load.
+	// Concurrent CronJob Syncs 是允许同时同步的 cron 作业对象的数量。大数字 = 更多的作业，但 CPU（和网络）负载更多。
 	ConcurrentCronJobSyncs int32
 }

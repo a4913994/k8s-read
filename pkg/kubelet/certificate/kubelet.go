@@ -38,8 +38,8 @@ import (
 	netutils "k8s.io/utils/net"
 )
 
-// NewKubeletServerCertificateManager creates a certificate manager for the kubelet when retrieving a server certificate
-// or returns an error.
+// NewKubeletServerCertificateManager在检索服务器证书时为kubelet创建一个证书管理器
+// 或返回一个错误。
 func NewKubeletServerCertificateManager(kubeClient clientset.Interface, kubeCfg *kubeletconfig.KubeletConfiguration, nodeName types.NodeName, getAddresses func() []v1.NodeAddress, certDirectory string) (certificate.Manager, error) {
 	var clientsetFn certificate.ClientsetFunc
 	if kubeClient != nil {
@@ -188,9 +188,9 @@ func addressesToHostnamesAndIPs(addresses []v1.NodeAddress) (dnsNames []string, 
 	return dnsNames, ips
 }
 
-// NewKubeletClientCertificateManager sets up a certificate manager without a
-// client that can be used to sign new certificates (or rotate). If a CSR
-// client is set later, it may begin rotating/renewing the client cert.
+// NewKubeletClientCertificateManager设置了一个没有客户端的证书管理器。
+// 客户端，可以用来签署新的证书（或轮换）。如果CSR
+// 客户端稍后被设置，它可以开始轮换/更新客户端的证书。
 func NewKubeletClientCertificateManager(
 	certDirectory string,
 	nodeName types.NodeName,

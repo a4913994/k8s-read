@@ -25,7 +25,7 @@ import (
 // Type defines the policy type
 type policyType string
 
-// Policy implements logic for pod container to a memory assignment.
+// 策略实现了pod容器到内存分配的逻辑。
 type Policy interface {
 	Name() string
 	Start(s state.State) error

@@ -36,6 +36,7 @@ import (
 )
 
 // SpecialDefaultResourcePrefixes are prefixes compiled into Kubernetes.
+// SpecialDefaultResourcePrefixes 是编译到 Kubernetes 中的前缀。
 var SpecialDefaultResourcePrefixes = map[schema.GroupResource]string{
 	{Group: "", Resource: "replicationcontrollers"}:        "controllers",
 	{Group: "", Resource: "endpoints"}:                     "services/endpoints",
@@ -49,6 +50,7 @@ var SpecialDefaultResourcePrefixes = map[schema.GroupResource]string{
 
 // DefaultWatchCacheSizes defines default resources for which watchcache
 // should be disabled.
+// DefaultWatchCacheSizes 定义了默认资源，对于这些资源，应该禁用 watchcache。
 func DefaultWatchCacheSizes() map[schema.GroupResource]int {
 	return map[schema.GroupResource]int{
 		{Resource: "events"}:                         0,
@@ -57,6 +59,7 @@ func DefaultWatchCacheSizes() map[schema.GroupResource]int {
 }
 
 // NewStorageFactoryConfig returns a new StorageFactoryConfig set up with necessary resource overrides.
+// NewStorageFactoryConfig 返回一个新的 StorageFactoryConfig，该 StorageFactoryConfig 已设置必要的资源覆盖。
 func NewStorageFactoryConfig() *StorageFactoryConfig {
 	resources := []schema.GroupVersionResource{
 		// If a resource has to be stored in a version that is not the
@@ -83,6 +86,7 @@ func NewStorageFactoryConfig() *StorageFactoryConfig {
 }
 
 // StorageFactoryConfig is a configuration for creating storage factory.
+// StorageFactoryConfig 是创建存储工厂的配置。
 type StorageFactoryConfig struct {
 	StorageConfig             storagebackend.Config
 	APIResourceConfig         *serverstorage.ResourceConfig
@@ -95,6 +99,7 @@ type StorageFactoryConfig struct {
 
 // Complete completes the StorageFactoryConfig with provided etcdOptions returning completedStorageFactoryConfig.
 // This method mutates the receiver (StorageFactoryConfig).  It must never mutate the inputs.
+// Complete 使用提供的 etcdOptions 完成 StorageFactoryConfig，返回 completedStorageFactoryConfig。
 func (c *StorageFactoryConfig) Complete(etcdOptions *serveroptions.EtcdOptions) *completedStorageFactoryConfig {
 	c.StorageConfig = etcdOptions.StorageConfig
 	c.DefaultStorageMediaType = etcdOptions.DefaultStorageMediaType
@@ -106,11 +111,16 @@ func (c *StorageFactoryConfig) Complete(etcdOptions *serveroptions.EtcdOptions) 
 //
 // Note: this struct is intentionally unexported so that it can only be constructed via a StorageFactoryConfig.Complete
 // call. The implied consequence is that this does not comply with golint.
+// completedStorageFactoryConfig 是一个包装了 StorageFactoryConfig 的结构，该结构已使用 etcd 选项完成。
+//
+// 注意：此结构有意未导出，以便只能通过 StorageFactoryConfig.Complete 调用来构造它。
+// 这种隐含的结果是，它不符合 golint。
 type completedStorageFactoryConfig struct {
 	*StorageFactoryConfig
 }
 
 // New returns a new storage factory created from the completed storage factory configuration.
+// New 从已完成的存储工厂配置中创建一个新的存储工厂。
 func (c *completedStorageFactoryConfig) New() (*serverstorage.DefaultStorageFactory, error) {
 	resourceEncodingConfig := resourceconfig.MergeResourceEncodingConfigs(c.DefaultResourceEncoding, c.ResourceEncodingOverrides)
 	storageFactory := serverstorage.NewDefaultStorageFactory(
